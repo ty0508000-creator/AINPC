@@ -1,0 +1,8 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://drixlu0odja8w"]
+
+[ext_resource type="Shader" uid="uid://b3k4qc6it71dc" path="res://water.gdshader" id="1_uj2pl"]
+
+[resource]
+shader = ExtResource("1_uj2pl")
+shader_parameter/white_pixel_color = Color(0.520339, 0.531269, 0.444767, 1)
+shader_parameter/water_interaction_height = 0.327

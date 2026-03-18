@@ -1,0 +1,12 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://cgstjkt6wq5bu"]
+
+[ext_resource type="Shader" uid="uid://ck00dlhsimjon" path="res://wind.gdshader" id="1_tpxwb"]
+
+[resource]
+shader = ExtResource("1_tpxwb")
+shader_parameter/base_lean = 1.0
+shader_parameter/gust_strength = 1.0
+shader_parameter/wind_speed = 1.5
+shader_parameter/return_speed = 1.0
+shader_parameter/wind_direction = Vector2(1, 0)
+shader_parameter/turbulence = 0.1
