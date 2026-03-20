@@ -1,0 +1,2979 @@
+fileFormatVersion: 2
+guid: 16893b6a11fe2964c9077e072893a252
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 635984841576638179
+    second: moss_to_mud 1_0
+  - first:
+      213: 814607304958843975
+    second: moss_to_mud 1_1
+  - first:
+      213: -2190518950624189237
+    second: moss_to_mud 1_2
+  - first:
+      213: -2693910887061562278
+    second: moss_to_mud 1_3
+  - first:
+      213: 8375776932096616307
+    second: moss_to_mud 1_4
+  - first:
+      213: 8073837239851149158
+    second: moss_to_mud 1_5
+  - first:
+      213: 2430459404680785895
+    second: moss_to_mud 1_6
+  - first:
+      213: 6929335417915346834
+    second: moss_to_mud 1_7
+  - first:
+      213: 6970561351195636342
+    second: moss_to_mud 1_8
+  - first:
+      213: 666983661639576746
+    second: moss_to_mud 1_9
+  - first:
+      213: 669389264332676180
+    second: moss_to_mud 1_10
+  - first:
+      213: 6545710152971051121
+    second: moss_to_mud 1_11
+  - first:
+      213: 1157238299938127906
+    second: moss_to_mud 1_12
+  - first:
+      213: 7511866660846584874
+    second: moss_to_mud 1_13
+  - first:
+      213: 3793986678518145879
+    second: moss_to_mud 1_14
+  - first:
+      213: 2013337441108630744
+    second: moss_to_mud 1_15
+  - first:
+      213: -3035419245261047551
+    second: moss_to_mud 1_16
+  - first:
+      213: -3439347569169171504
+    second: moss_to_mud 1_17
+  - first:
+      213: 4854534225796154437
+    second: moss_to_mud 1_18
+  - first:
+      213: -5529771519448693172
+    second: moss_to_mud 1_19
+  - first:
+      213: -7442299930165954959
+    second: moss_to_mud 1_20
+  - first:
+      213: 1747107986524217303
+    second: moss_to_mud 1_21
+  - first:
+      213: -3985366348471075396
+    second: moss_to_mud 1_22
+  - first:
+      213: -851998752108906659
+    second: moss_to_mud 1_23
+  - first:
+      213: -7990483230071460640
+    second: moss_to_mud 1_24
+  - first:
+      213: 8934836207673438563
+    second: moss_to_mud 1_25
+  - first:
+      213: -5943876122265072740
+    second: moss_to_mud 1_26
+  - first:
+      213: 129488779065830086
+    second: moss_to_mud 1_27
+  - first:
+      213: 7256963997657255791
+    second: moss_to_mud 1_28
+  - first:
+      213: -7735048093412702771
+    second: moss_to_mud 1_29
+  - first:
+      213: 4120405701117225350
+    second: moss_to_mud 1_30
+  - first:
+      213: 8909933661158204079
+    second: moss_to_mud 1_31
+  - first:
+      213: 8555960672693025623
+    second: moss_to_mud 1_32
+  - first:
+      213: 6964229518994911004
+    second: moss_to_mud 1_33
+  - first:
+      213: 2895898178935520606
+    second: moss_to_mud 1_34
+  - first:
+      213: -4119639730792285718
+    second: moss_to_mud 1_35
+  - first:
+      213: 2850007988855577380
+    second: moss_to_mud 1_36
+  - first:
+      213: 4129018479835609229
+    second: moss_to_mud 1_37
+  - first:
+      213: 7768373047169952037
+    second: moss_to_mud 1_38
+  - first:
+      213: 4981042337797829712
+    second: moss_to_mud 1_39
+  - first:
+      213: -6216363034671145765
+    second: moss_to_mud 1_40
+  - first:
+      213: 6732861389465574276
+    second: moss_to_mud 1_41
+  - first:
+      213: 3390976650227573917
+    second: moss_to_mud 1_42
+  - first:
+      213: 1901447187097259043
+    second: moss_to_mud 1_43
+  - first:
+      213: 6544472714397533319
+    second: moss_to_mud 1_44
+  - first:
+      213: -4989410258803245759
+    second: moss_to_mud 1_45
+  - first:
+      213: 4407099716470339763
+    second: moss_to_mud 1_46
+  - first:
+      213: 2190458286151957396
+    second: moss_to_mud 1_47
+  - first:
+      213: -7724986195098678025
+    second: moss_to_mud 1_48
+  - first:
+      213: 2088572520751761032
+    second: moss_to_mud 1_49
+  - first:
+      213: 5472309330009502234
+    second: moss_to_mud 1_50
+  - first:
+      213: -3487453925204708988
+    second: moss_to_mud 1_51
+  - first:
+      213: 7229219191693020298
+    second: moss_to_mud 1_52
+  - first:
+      213: 3813926380613617623
+    second: moss_to_mud 1_53
+  - first:
+      213: -3344392422592308476
+    second: moss_to_mud 1_54
+  - first:
+      213: 1521779521720127806
+    second: moss_to_mud 1_55
+  - first:
+      213: -4195787844227099027
+    second: moss_to_mud 1_56
+  - first:
+      213: 7024701912861843586
+    second: moss_to_mud 1_57
+  - first:
+      213: -6031236665295235084
+    second: moss_to_mud 1_58
+  - first:
+      213: -3511726056822304004
+    second: moss_to_mud 1_59
+  - first:
+      213: -7381998276171671023
+    second: moss_to_mud 1_60
+  - first:
+      213: -1124579602716184778
+    second: moss_to_mud 1_61
+  - first:
+      213: -8056024990859483810
+    second: moss_to_mud 1_62
+  - first:
+      213: 7501730592959455447
+    second: moss_to_mud 1_63
+  - first:
+      213: -1702208199917189786
+    second: moss_to_mud 1_64
+  - first:
+      213: 4348509675906800373
+    second: moss_to_mud 1_65
+  - first:
+      213: -5815612611883122098
+    second: moss_to_mud 1_66
+  - first:
+      213: 631415158031778047
+    second: moss_to_mud 1_67
+  - first:
+      213: 4165660975200508812
+    second: moss_to_mud 1_68
+  - first:
+      213: -4060570414088686989
+    second: moss_to_mud 1_69
+  - first:
+      213: 1785495829499332825
+    second: moss_to_mud 1_70
+  - first:
+      213: 5369233609029349857
+    second: moss_to_mud 1_71
+  - first:
+      213: -7785374985202324606
+    second: moss_to_mud 1_72
+  - first:
+      213: -8992258724118492110
+    second: moss_to_mud 1_73
+  - first:
+      213: 9221569819602809448
+    second: moss_to_mud 1_74
+  - first:
+      213: 7918112719105704190
+    second: moss_to_mud 1_75
+  - first:
+      213: -2428528203899031239
+    second: moss_to_mud 1_76
+  - first:
+      213: 9057676830766595416
+    second: moss_to_mud 1_77
+  - first:
+      213: 8363125943767322988
+    second: moss_to_mud 1_78
+  - first:
+      213: 2033661466208557155
+    second: moss_to_mud 1_79
+  - first:
+      213: 7896195064072763381
+    second: moss_to_mud 1_80
+  - first:
+      213: 5793904725666012402
+    second: moss_to_mud 1_81
+  - first:
+      213: 3503079069944433423
+    second: moss_to_mud 1_82
+  - first:
+      213: 9188748983253659473
+    second: moss_to_mud 1_83
+  - first:
+      213: 4039243290577698938
+    second: moss_to_mud 1_84
+  - first:
+      213: -4617156670004386101
+    second: moss_to_mud 1_85
+  - first:
+      213: 1221037384101578022
+    second: moss_to_mud 1_86
+  - first:
+      213: -5573367450391454516
+    second: moss_to_mud 1_87
+  - first:
+      213: 5693958714139007624
+    second: moss_to_mud 1_88
+  - first:
+      213: 8545771632886036737
+    second: moss_to_mud 1_89
+  - first:
+      213: -3049881150612048815
+    second: moss_to_mud 1_90
+  - first:
+      213: -4408515346303870123
+    second: moss_to_mud 1_91
+  - first:
+      213: 6989650274942544260
+    second: moss_to_mud 1_92
+  - first:
+      213: -8947671487582121221
+    second: moss_to_mud 1_93
+  - first:
+      213: -4792453245568156467
+    second: moss_to_mud 1_94
+  - first:
+      213: -246555821202588610
+    second: moss_to_mud 1_95
+  - first:
+      213: -7974809202147828457
+    second: moss_to_mud 1_96
+  - first:
+      213: 3874125024559528725
+    second: moss_to_mud 1_97
+  - first:
+      213: 5475042488585258019
+    second: moss_to_mud 1_98
+  - first:
+      213: 4863537604654320268
+    second: moss_to_mud 1_99
+  - first:
+      213: 409534712500130716
+    second: moss_to_mud 1_100
+  - first:
+      213: -5628901695958001570
+    second: moss_to_mud 1_101
+  - first:
+      213: 6932324720611043879
+    second: moss_to_mud 1_102
+  - first:
+      213: 943068711238462657
+    second: moss_to_mud 1_103
+  - first:
+      213: -6453327998353489137
+    second: moss_to_mud 1_104
+  - first:
+      213: -9179776547822602236
+    second: moss_to_mud 1_105
+  - first:
+      213: -37270142042187134
+    second: moss_to_mud 1_106
+  - first:
+      213: 6218198617905602915
+    second: moss_to_mud 1_107
+  - first:
+      213: 3059781972186342271
+    second: moss_to_mud 1_108
+  - first:
+      213: -6809122884608574614
+    second: moss_to_mud 1_109
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 32
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: moss_to_mud 1_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 324
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e665b408d873d800800000000000000
+      internalID: 635984841576638179
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_1
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 324
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74c928327011e4b00800000000000000
+      internalID: 814607304958843975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_2
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 324
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc4a84ace96b991e0800000000000000
+      internalID: -2190518950624189237
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_3
+      rect:
+        serializedVersion: 2
+        x: 108
+        y: 324
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5c5328325e4d9ad0800000000000000
+      internalID: -2693910887061562278
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_4
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 324
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 377a7833ebcbc3470800000000000000
+      internalID: 8375776932096616307
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_5
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 324
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 667e5af41380c0070800000000000000
+      internalID: 8073837239851149158
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_6
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 324
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ef610193f9bab120800000000000000
+      internalID: 2430459404680785895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_7
+      rect:
+        serializedVersion: 2
+        x: 252
+        y: 324
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29f806279d1f92060800000000000000
+      internalID: 6929335417915346834
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_8
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 324
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67235170e986cb060800000000000000
+      internalID: 6970561351195636342
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_9
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 324
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aac240f3b1a914900800000000000000
+      internalID: 666983661639576746
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_10
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 324
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45c52054df52a4900800000000000000
+      internalID: 669389264332676180
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_11
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 288
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 170e18614b807da50800000000000000
+      internalID: 6545710152971051121
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_12
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 288
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2200a4c3a165f0010800000000000000
+      internalID: 1157238299938127906
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_13
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 288
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a244cdfade28f3860800000000000000
+      internalID: 7511866660846584874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_14
+      rect:
+        serializedVersion: 2
+        x: 108
+        y: 288
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 75363af58c2f6a430800000000000000
+      internalID: 3793986678518145879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_15
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 288
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8dc164e4cbfc0fb10800000000000000
+      internalID: 2013337441108630744
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_16
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 288
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 109b4dd574600e5d0800000000000000
+      internalID: -3035419245261047551
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_17
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 288
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0db7198bb9bf440d0800000000000000
+      internalID: -3439347569169171504
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_18
+      rect:
+        serializedVersion: 2
+        x: 252
+        y: 288
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5444e8e6825ce5340800000000000000
+      internalID: 4854534225796154437
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_19
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 288
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c46403ed91e4243b0800000000000000
+      internalID: -5529771519448693172
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_20
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 288
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1763b8ef4a3a7b890800000000000000
+      internalID: -7442299930165954959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_21
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 288
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7df16090579fe3810800000000000000
+      internalID: 1747107986524217303
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_22
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 252
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cbdf593eb6221b8c0800000000000000
+      internalID: -3985366348471075396
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_23
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 252
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d57f87726a71d24f0800000000000000
+      internalID: -851998752108906659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_24
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 252
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ecefdf66d91c1190800000000000000
+      internalID: -7990483230071460640
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_25
+      rect:
+        serializedVersion: 2
+        x: 108
+        y: 252
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3617cac213aeefb70800000000000000
+      internalID: 8934836207673438563
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_26
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 252
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9bc677a82c138da0800000000000000
+      internalID: -5943876122265072740
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_27
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 252
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ca2e96cb590cc100800000000000000
+      internalID: 129488779065830086
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_28
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 252
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f6fc82c8e4ae5b460800000000000000
+      internalID: 7256963997657255791
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_29
+      rect:
+        serializedVersion: 2
+        x: 252
+        y: 252
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc5c297bdb697a490800000000000000
+      internalID: -7735048093412702771
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_30
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 252
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6892691872f9e2930800000000000000
+      internalID: 4120405701117225350
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_31
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 252
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa261ad357176ab70800000000000000
+      internalID: 8909933661158204079
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_32
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 252
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 75b741086e0ecb670800000000000000
+      internalID: 8555960672693025623
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_33
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 216
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1f2bf579d9e5a060800000000000000
+      internalID: 6964229518994911004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_34
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 216
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e5df625fc0c403820800000000000000
+      internalID: 2895898178935520606
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_35
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 216
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae93a8bdd7914d6c0800000000000000
+      internalID: -4119639730792285718
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_36
+      rect:
+        serializedVersion: 2
+        x: 108
+        y: 216
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42b13c67a234d8720800000000000000
+      internalID: 2850007988855577380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_37
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 216
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d88ff915e683d4930800000000000000
+      internalID: 4129018479835609229
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_38
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 216
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 529a847b02ececb60800000000000000
+      internalID: 7768373047169952037
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_39
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 216
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 054fe939d97302540800000000000000
+      internalID: 4981042337797829712
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_40
+      rect:
+        serializedVersion: 2
+        x: 252
+        y: 216
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bdc9e8371ca0bb9a0800000000000000
+      internalID: -6216363034671145765
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_41
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 216
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48bd901f2cdef6d50800000000000000
+      internalID: 6732861389465574276
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_42
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 216
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d9465761c4b2f0f20800000000000000
+      internalID: 3390976650227573917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_43
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 216
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32c0912742c436a10800000000000000
+      internalID: 1901447187097259043
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_44
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 180
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 784c6e77243a2da50800000000000000
+      internalID: 6544472714397533319
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_45
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 180
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14db75dfdcd02cab0800000000000000
+      internalID: -4989410258803245759
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_46
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 180
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b870f1a7d9292d30800000000000000
+      internalID: 4407099716470339763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_47
+      rect:
+        serializedVersion: 2
+        x: 108
+        y: 180
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49bf569a432166e10800000000000000
+      internalID: 2190458286151957396
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_48
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 180
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7fcc85afbf55bc490800000000000000
+      internalID: -7724986195098678025
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_49
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 180
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8860d0354a91cfc10800000000000000
+      internalID: 2088572520751761032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_50
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 180
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a12b544975c81fb40800000000000000
+      internalID: 5472309330009502234
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_51
+      rect:
+        serializedVersion: 2
+        x: 252
+        y: 180
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 481b1a1e1231a9fc0800000000000000
+      internalID: -3487453925204708988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_52
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 180
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8c8c448d88535460800000000000000
+      internalID: 7229219191693020298
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_53
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 180
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d747fb06d9cde430800000000000000
+      internalID: 3813926380613617623
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_54
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 180
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40b90ed9fc45691d0800000000000000
+      internalID: -3344392422592308476
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_55
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 144
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e31979a89627e1510800000000000000
+      internalID: 1521779521720127806
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_56
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 144
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6611f79f2195c5c0800000000000000
+      internalID: -4195787844227099027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_57
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 144
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2802329db21cc7160800000000000000
+      internalID: 7024701912861843586
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_58
+      rect:
+        serializedVersion: 2
+        x: 108
+        y: 144
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f714c0353ebc4ca0800000000000000
+      internalID: -6031236665295235084
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_59
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 144
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf29f9ad1c7d34fc0800000000000000
+      internalID: -3511726056822304004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_60
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 144
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11add38edafdd8990800000000000000
+      internalID: -7381998276171671023
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_61
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 144
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63fa3724fc0b460f0800000000000000
+      internalID: -1124579602716184778
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_62
+      rect:
+        serializedVersion: 2
+        x: 252
+        y: 144
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e55a62614ff333090800000000000000
+      internalID: -8056024990859483810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_63
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 144
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d0670a7a308b1860800000000000000
+      internalID: 7501730592959455447
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_64
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 144
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 665cd2e29aa8068e0800000000000000
+      internalID: -1702208199917189786
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_65
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 144
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5fa16c6c282095c30800000000000000
+      internalID: 4348509675906800373
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_66
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 108
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e42cc65542bca4fa0800000000000000
+      internalID: -5815612611883122098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_67
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 108
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff00848adbc33c800800000000000000
+      internalID: 631415158031778047
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_68
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 108
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c8b988916966fc930800000000000000
+      internalID: 4165660975200508812
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_69
+      rect:
+        serializedVersion: 2
+        x: 108
+        y: 108
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37278c2e8b4f5a7c0800000000000000
+      internalID: -4060570414088686989
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_70
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 108
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d8cf393ffa57c810800000000000000
+      internalID: 1785495829499332825
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_71
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 108
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e1784e1589538a40800000000000000
+      internalID: 5369233609029349857
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_72
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 108
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28badcb13bac4f390800000000000000
+      internalID: -7785374985202324606
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_73
+      rect:
+        serializedVersion: 2
+        x: 252
+        y: 108
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23c828c5554153380800000000000000
+      internalID: -8992258724118492110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_74
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 108
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86273e894e899ff70800000000000000
+      internalID: 9221569819602809448
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_75
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 108
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef04cc9e099c2ed60800000000000000
+      internalID: 7918112719105704190
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_76
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 108
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 931b49727722c4ed0800000000000000
+      internalID: -2428528203899031239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_77
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 72
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85df024861553bd70800000000000000
+      internalID: 9057676830766595416
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_78
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 72
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c61da127cbacf0470800000000000000
+      internalID: 8363125943767322988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_79
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 72
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 368d2c62454093c10800000000000000
+      internalID: 2033661466208557155
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_80
+      rect:
+        serializedVersion: 2
+        x: 108
+        y: 72
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f7ff3f239be49d60800000000000000
+      internalID: 7896195064072763381
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_81
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 72
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fc97cb86a5186050800000000000000
+      internalID: 5793904725666012402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_82
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 72
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0bc420aadf6d9030800000000000000
+      internalID: 3503079069944433423
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_83
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 72
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15fe015248ef48f70800000000000000
+      internalID: 9188748983253659473
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_84
+      rect:
+        serializedVersion: 2
+        x: 252
+        y: 72
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7083483f564e0830800000000000000
+      internalID: 4039243290577698938
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_85
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 72
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc6201ca8709cefb0800000000000000
+      internalID: -4617156670004386101
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_86
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 72
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 625c8d0180ff1f010800000000000000
+      internalID: 1221037384101578022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_87
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 72
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccc51b435db67a2b0800000000000000
+      internalID: -5573367450391454516
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_88
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 36
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88adef95841050f40800000000000000
+      internalID: 5693958714139007624
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_89
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 36
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10938cdc50ea89670800000000000000
+      internalID: 8545771632886036737
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_90
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 36
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 154fb92a045aca5d0800000000000000
+      internalID: -3049881150612048815
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_91
+      rect:
+        serializedVersion: 2
+        x: 108
+        y: 36
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55b13bc56aec1d2c0800000000000000
+      internalID: -4408515346303870123
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_92
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 36
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 489692e64e9300160800000000000000
+      internalID: 6989650274942544260
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_93
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 36
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf2d6c7503c73d380800000000000000
+      internalID: -8947671487582121221
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_94
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 36
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dccfd372a29cd7db0800000000000000
+      internalID: -4792453245568156467
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_95
+      rect:
+        serializedVersion: 2
+        x: 252
+        y: 36
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3c3ae379ce049cf0800000000000000
+      internalID: -246555821202588610
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_96
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 36
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71d56727849c35190800000000000000
+      internalID: -7974809202147828457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_97
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 36
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51b72501f28a3c530800000000000000
+      internalID: 3874125024559528725
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_98
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 36
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3248b46a2224bfb40800000000000000
+      internalID: 5475042488585258019
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_99
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c8acc2deea1ce7340800000000000000
+      internalID: 4863537604654320268
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_100
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9313c5b6a5fea500800000000000000
+      internalID: 409534712500130716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_101
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e5854d01bbf12e1b0800000000000000
+      internalID: -5628901695958001570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_102
+      rect:
+        serializedVersion: 2
+        x: 108
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72a2ea7ba90943060800000000000000
+      internalID: 6932324720611043879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_103
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cc672c0ff3761d00800000000000000
+      internalID: 943068711238462657
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_104
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f03ce0f606c2176a0800000000000000
+      internalID: -6453327998353489137
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_105
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4087295cdd1ea9080800000000000000
+      internalID: -9179776547822602236
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_106
+      rect:
+        serializedVersion: 2
+        x: 252
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28ad8d6d0079b7ff0800000000000000
+      internalID: -37270142042187134
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_107
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 361a61392ba7b4650800000000000000
+      internalID: 6218198617905602915
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_108
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f73af460e77867a20800000000000000
+      internalID: 3059781972186342271
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: moss_to_mud 1_109
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6b3cee00d22181a0800000000000000
+      internalID: -6809122884608574614
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e96a779474f7e940909a91e6f784892
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":32.0,"y":32.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":4.0,"y":4.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      moss_to_mud 1_0: 635984841576638179
+      moss_to_mud 1_1: 814607304958843975
+      moss_to_mud 1_10: 669389264332676180
+      moss_to_mud 1_100: 409534712500130716
+      moss_to_mud 1_101: -5628901695958001570
+      moss_to_mud 1_102: 6932324720611043879
+      moss_to_mud 1_103: 943068711238462657
+      moss_to_mud 1_104: -6453327998353489137
+      moss_to_mud 1_105: -9179776547822602236
+      moss_to_mud 1_106: -37270142042187134
+      moss_to_mud 1_107: 6218198617905602915
+      moss_to_mud 1_108: 3059781972186342271
+      moss_to_mud 1_109: -6809122884608574614
+      moss_to_mud 1_11: 6545710152971051121
+      moss_to_mud 1_12: 1157238299938127906
+      moss_to_mud 1_13: 7511866660846584874
+      moss_to_mud 1_14: 3793986678518145879
+      moss_to_mud 1_15: 2013337441108630744
+      moss_to_mud 1_16: -3035419245261047551
+      moss_to_mud 1_17: -3439347569169171504
+      moss_to_mud 1_18: 4854534225796154437
+      moss_to_mud 1_19: -5529771519448693172
+      moss_to_mud 1_2: -2190518950624189237
+      moss_to_mud 1_20: -7442299930165954959
+      moss_to_mud 1_21: 1747107986524217303
+      moss_to_mud 1_22: -3985366348471075396
+      moss_to_mud 1_23: -851998752108906659
+      moss_to_mud 1_24: -7990483230071460640
+      moss_to_mud 1_25: 8934836207673438563
+      moss_to_mud 1_26: -5943876122265072740
+      moss_to_mud 1_27: 129488779065830086
+      moss_to_mud 1_28: 7256963997657255791
+      moss_to_mud 1_29: -7735048093412702771
+      moss_to_mud 1_3: -2693910887061562278
+      moss_to_mud 1_30: 4120405701117225350
+      moss_to_mud 1_31: 8909933661158204079
+      moss_to_mud 1_32: 8555960672693025623
+      moss_to_mud 1_33: 6964229518994911004
+      moss_to_mud 1_34: 2895898178935520606
+      moss_to_mud 1_35: -4119639730792285718
+      moss_to_mud 1_36: 2850007988855577380
+      moss_to_mud 1_37: 4129018479835609229
+      moss_to_mud 1_38: 7768373047169952037
+      moss_to_mud 1_39: 4981042337797829712
+      moss_to_mud 1_4: 8375776932096616307
+      moss_to_mud 1_40: -6216363034671145765
+      moss_to_mud 1_41: 6732861389465574276
+      moss_to_mud 1_42: 3390976650227573917
+      moss_to_mud 1_43: 1901447187097259043
+      moss_to_mud 1_44: 6544472714397533319
+      moss_to_mud 1_45: -4989410258803245759
+      moss_to_mud 1_46: 4407099716470339763
+      moss_to_mud 1_47: 2190458286151957396
+      moss_to_mud 1_48: -7724986195098678025
+      moss_to_mud 1_49: 2088572520751761032
+      moss_to_mud 1_5: 8073837239851149158
+      moss_to_mud 1_50: 5472309330009502234
+      moss_to_mud 1_51: -3487453925204708988
+      moss_to_mud 1_52: 7229219191693020298
+      moss_to_mud 1_53: 3813926380613617623
+      moss_to_mud 1_54: -3344392422592308476
+      moss_to_mud 1_55: 1521779521720127806
+      moss_to_mud 1_56: -4195787844227099027
+      moss_to_mud 1_57: 7024701912861843586
+      moss_to_mud 1_58: -6031236665295235084
+      moss_to_mud 1_59: -3511726056822304004
+      moss_to_mud 1_6: 2430459404680785895
+      moss_to_mud 1_60: -7381998276171671023
+      moss_to_mud 1_61: -1124579602716184778
+      moss_to_mud 1_62: -8056024990859483810
+      moss_to_mud 1_63: 7501730592959455447
+      moss_to_mud 1_64: -1702208199917189786
+      moss_to_mud 1_65: 4348509675906800373
+      moss_to_mud 1_66: -5815612611883122098
+      moss_to_mud 1_67: 631415158031778047
+      moss_to_mud 1_68: 4165660975200508812
+      moss_to_mud 1_69: -4060570414088686989
+      moss_to_mud 1_7: 6929335417915346834
+      moss_to_mud 1_70: 1785495829499332825
+      moss_to_mud 1_71: 5369233609029349857
+      moss_to_mud 1_72: -7785374985202324606
+      moss_to_mud 1_73: -8992258724118492110
+      moss_to_mud 1_74: 9221569819602809448
+      moss_to_mud 1_75: 7918112719105704190
+      moss_to_mud 1_76: -2428528203899031239
+      moss_to_mud 1_77: 9057676830766595416
+      moss_to_mud 1_78: 8363125943767322988
+      moss_to_mud 1_79: 2033661466208557155
+      moss_to_mud 1_8: 6970561351195636342
+      moss_to_mud 1_80: 7896195064072763381
+      moss_to_mud 1_81: 5793904725666012402
+      moss_to_mud 1_82: 3503079069944433423
+      moss_to_mud 1_83: 9188748983253659473
+      moss_to_mud 1_84: 4039243290577698938
+      moss_to_mud 1_85: -4617156670004386101
+      moss_to_mud 1_86: 1221037384101578022
+      moss_to_mud 1_87: -5573367450391454516
+      moss_to_mud 1_88: 5693958714139007624
+      moss_to_mud 1_89: 8545771632886036737
+      moss_to_mud 1_9: 666983661639576746
+      moss_to_mud 1_90: -3049881150612048815
+      moss_to_mud 1_91: -4408515346303870123
+      moss_to_mud 1_92: 6989650274942544260
+      moss_to_mud 1_93: -8947671487582121221
+      moss_to_mud 1_94: -4792453245568156467
+      moss_to_mud 1_95: -246555821202588610
+      moss_to_mud 1_96: -7974809202147828457
+      moss_to_mud 1_97: 3874125024559528725
+      moss_to_mud 1_98: 5475042488585258019
+      moss_to_mud 1_99: 4863537604654320268
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
