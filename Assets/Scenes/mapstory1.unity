@@ -17051,6 +17051,8 @@ Tilemap:
   m_TileAssetArray:
   - m_RefCount: 1683
     m_Data: {fileID: 11400000, guid: c65ae6be9b4405648bc4e381a989a016, type: 2}
+  - m_RefCount: 0
+    m_Data: {fileID: 0}
   m_TileSpriteArray:
   - m_RefCount: 0
     m_Data: {fileID: 0}
