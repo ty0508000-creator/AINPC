@@ -1,0 +1,438 @@
+fileFormatVersion: 2
+guid: 92185b135327a2d449be51edee42a237
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 7308909575585346297
+    second: Miko_no_0
+  - first:
+      213: 6444740791939706536
+    second: Miko_no_1
+  - first:
+      213: -7050745711503971658
+    second: Miko_no_2
+  - first:
+      213: -5228645161414741492
+    second: Miko_no_3
+  - first:
+      213: 1733198508472224140
+    second: Miko_no_4
+  - first:
+      213: -1179943962030826802
+    second: Miko_no_5
+  - first:
+      213: 7274922194911687161
+    second: Miko_no_6
+  - first:
+      213: 1328292162714899257
+    second: Miko_no_7
+  - first:
+      213: 8722280221613063883
+    second: Miko_no_8
+  - first:
+      213: -7990325107575897310
+    second: Miko_no_9
+  - first:
+      213: -2631208821649079364
+    second: Miko_no_10
+  - first:
+      213: 2213857792664981618
+    second: Miko_no_11
+  - first:
+      213: -102594903205652431
+    second: Miko_no_12
+  - first:
+      213: -6454274251315881081
+    second: Miko_no_13
+  - first:
+      213: 6402878168330970858
+    second: Miko_no_14
+  - first:
+      213: 2543960233925656840
+    second: Miko_no_15
+  - first:
+      213: -3254594042754389849
+    second: Miko_no_16
+  - first:
+      213: -6143040792886371504
+    second: Miko_no_17
+  - first:
+      213: 4283547827839995275
+    second: Miko_no_18
+  - first:
+      213: 8326736692008406356
+    second: Miko_no_19
+  - first:
+      213: -4653827478240352418
+    second: Miko_no_20
+  - first:
+      213: -7742501489771660736
+    second: Miko_no_21
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 32
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Miko_Idle_1
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 249
+        width: 126
+        height: 154
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f1f05c2137b5f460800000000000000
+      internalID: 7274922194911687161
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Miko_Idle_2
+      rect:
+        serializedVersion: 2
+        x: 226
+        y: 249
+        width: 126
+        height: 153
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9339e843faa0f6210800000000000000
+      internalID: 1328292162714899257
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Miko_Idle_3
+      rect:
+        serializedVersion: 2
+        x: 422
+        y: 249
+        width: 128
+        height: 153
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bce79a026a3cb0970800000000000000
+      internalID: 8722280221613063883
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Miko_Idle_4
+      rect:
+        serializedVersion: 2
+        x: 627
+        y: 249
+        width: 128
+        height: 154
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 223cd0336a9ac1190800000000000000
+      internalID: -7990325107575897310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Miko_Walk_1
+      rect:
+        serializedVersion: 2
+        x: 75
+        y: 27
+        width: 84
+        height: 156
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a8a58136fb55d2d0800000000000000
+      internalID: -3254594042754389849
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Miko_Walk_2
+      rect:
+        serializedVersion: 2
+        x: 268
+        y: 28
+        width: 83
+        height: 156
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05b164332f88fbaa0800000000000000
+      internalID: -6143040792886371504
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Miko_Walk_3
+      rect:
+        serializedVersion: 2
+        x: 466
+        y: 28
+        width: 87
+        height: 156
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8d8cc0ed08327b30800000000000000
+      internalID: 4283547827839995275
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Miko_Walk_4
+      rect:
+        serializedVersion: 2
+        x: 669
+        y: 28
+        width: 75
+        height: 156
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45d4f5987e28e8370800000000000000
+      internalID: 8326736692008406356
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Miko_Walk_5
+      rect:
+        serializedVersion: 2
+        x: 861
+        y: 27
+        width: 80
+        height: 157
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e572889c0984a6fb0800000000000000
+      internalID: -4653827478240352418
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Miko_Walk_6
+      rect:
+        serializedVersion: 2
+        x: 1059
+        y: 27
+        width: 75
+        height: 157
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04a3a35aaeb1d8490800000000000000
+      internalID: -7742501489771660736
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 411f5342db2f8bb4c9376293dc3aa6ae
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Miko_Idle_1: 7274922194911687161
+      Miko_Idle_2: 1328292162714899257
+      Miko_Idle_3: 8722280221613063883
+      Miko_Idle_4: -7990325107575897310
+      Miko_Walk_1: -3254594042754389849
+      Miko_Walk_2: -6143040792886371504
+      Miko_Walk_3: 4283547827839995275
+      Miko_Walk_4: 8326736692008406356
+      Miko_Walk_5: -4653827478240352418
+      Miko_Walk_6: -7742501489771660736
+      Miko_no_0: 7308909575585346297
+      Miko_no_1: 6444740791939706536
+      Miko_no_10: -2631208821649079364
+      Miko_no_11: 2213857792664981618
+      Miko_no_12: -102594903205652431
+      Miko_no_13: -6454274251315881081
+      Miko_no_14: 6402878168330970858
+      Miko_no_15: 2543960233925656840
+      Miko_no_2: -7050745711503971658
+      Miko_no_3: -5228645161414741492
+      Miko_no_4: 1733198508472224140
+      Miko_no_5: -1179943962030826802
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
