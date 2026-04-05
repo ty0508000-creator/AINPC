@@ -100,4 +100,9 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Ollama 모델 및 대용량 모델 파일 제외
+Assets/StreamingAssets/Ollama/
+*.gguf
+*.bin
+
 # End of https://www.toptal.com/developers/gitignore/api/windows,unity
