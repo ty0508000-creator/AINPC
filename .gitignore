@@ -105,4 +105,7 @@ Assets/StreamingAssets/Ollama/
 *.gguf
 *.bin
 
+# LLMUnity 폴더 제외
+LLMUnity-3.0.3/
+
 # End of https://www.toptal.com/developers/gitignore/api/windows,unity
