@@ -4,27 +4,42 @@ using UnityEngine.InputSystem;
 public class Player_Controller : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
+
+    public Vector2 LastMoveDir { get; private set; } = Vector2.right;
+
     private Animator animator;
     private SpriteRenderer spriteRenderer;
-    private Rigidbody2D rigidbody2D;
+    private Rigidbody2D rb;
     private Vector2 moveInput;
+    private Player_Attack playerAttack;
+    private ControlManager controlManager;
 
     void Start()
     {
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        rigidbody2D = GetComponent<Rigidbody2D>();
+        rb = GetComponent<Rigidbody2D>();
+        playerAttack = GetComponent<Player_Attack>();
+        controlManager = GetComponent<ControlManager>();
     }
 
     void Update()
     {
-        // Input System을 통해 WASD 입력 받기 (신규방식)
-        moveInput = InputSystem.actions.FindAction("Move").ReadValue<Vector2>();
+        bool blocked = playerAttack.IsInvincible || !controlManager.IsPlayerControlled;
 
-        // 애니메이션 속도 설정
+        if (blocked)
+        {
+            moveInput = Vector2.zero;
+        }
+        else
+        {
+            moveInput = InputSystem.actions.FindAction("Move").ReadValue<Vector2>();
+            if (moveInput != Vector2.zero)
+                LastMoveDir = moveInput.normalized;
+        }
+
         animator.SetFloat("Speed", moveInput.magnitude);
 
-        // 좌우 스프라이트 반전
         if (moveInput.x < 0)
             spriteRenderer.flipX = true;
         else if (moveInput.x > 0)
@@ -33,8 +48,7 @@ public class Player_Controller : MonoBehaviour
 
     void FixedUpdate()
     {
-        // WASD로 캐릭터 이동 (Rigidbody2D 사용)
-        Vector2 moveDirection = moveInput.normalized;
-        rigidbody2D.linearVelocity = moveDirection * moveSpeed;
+        if (playerAttack.IsInvincible || !controlManager.IsPlayerControlled) return;
+        rb.linearVelocity = moveInput.normalized * moveSpeed;
     }
 }
