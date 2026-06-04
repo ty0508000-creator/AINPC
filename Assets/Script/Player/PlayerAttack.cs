@@ -22,11 +22,18 @@ public class Player_Attack : MonoBehaviour
     [SerializeField] private float dashSpeed = 20f;
     [SerializeField] private float dashCooldown = 5f;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip swingSfx;   // 휘두르는 소리
+    [SerializeField] private AudioClip hitSfx;     // 적에 명중하는 타격음
+    [SerializeField] private AudioClip dashSfx;    // 대시 소리
+    [SerializeField] private float pitchVariation = 0.1f;
+
     public bool IsInvincible { get; private set; }
 
     private Player_Controller playerController;
     private Animator animator;
     private Rigidbody2D rb;
+    private AudioSource audioSource;
 
     private float lastAttackTime = -99f;
     private float lastDashTime = -99f;
@@ -43,8 +50,20 @@ public class Player_Attack : MonoBehaviour
         playerController = GetComponent<Player_Controller>();
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
+
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+
         CreateChargeIndicator();
         CreateAttackIndicator();
+    }
+
+    void PlayClip(AudioClip clip)
+    {
+        if (clip == null || audioSource == null) return;
+        audioSource.pitch = 1f + Random.Range(-pitchVariation, pitchVariation);
+        audioSource.PlayOneShot(clip);
     }
 
     void CreateAttackIndicator()
@@ -107,13 +126,19 @@ public class Player_Attack : MonoBehaviour
         Vector2 boxSize = new Vector2(attackWidth * 1.5f, attackWidth * 2f);
 
         StartCoroutine(ShowAttackBox(center, boxSize, angle));
+        PlayClip(swingSfx);
 
         Collider2D[] hits = Physics2D.OverlapBoxAll(center, boxSize, angle, enemyLayer);
+        bool hitAny = false;
         foreach (var hit in hits)
         {
             if (hit.TryGetComponent<IDamageable>(out var damageable))
+            {
                 damageable.TakeDamage(attackDamage);
+                hitAny = true;
+            }
         }
+        if (hitAny) PlayClip(hitSfx);
     }
 
     IEnumerator ShowAttackBox(Vector2 center, Vector2 size, float angle)
@@ -170,6 +195,7 @@ public class Player_Attack : MonoBehaviour
     {
         IsInvincible = true;
         TrySetTrigger("Dash");
+        PlayClip(dashSfx);
 
         float dashDistance = Mathf.Lerp(minDashDistance, maxDashDistance, ratio);
         int damage = Mathf.RoundToInt(Mathf.Lerp(minDashDamage, maxDashDamage, ratio));
@@ -179,11 +205,16 @@ public class Player_Attack : MonoBehaviour
             dir, dashDistance, enemyLayer);
 
         HashSet<Collider2D> hitSet = new HashSet<Collider2D>();
+        bool hitAny = false;
         foreach (var hit in hits)
         {
             if (hitSet.Add(hit.collider) && hit.collider.TryGetComponent<IDamageable>(out var damageable))
+            {
                 damageable.TakeDamage(damage);
+                hitAny = true;
+            }
         }
+        if (hitAny) PlayClip(hitSfx);
 
         Vector2 destination = rb.position + dir * dashDistance;
         while (Vector2.Distance(rb.position, destination) > 0.05f)
@@ -195,6 +226,20 @@ public class Player_Attack : MonoBehaviour
         rb.MovePosition(destination);
         rb.linearVelocity = Vector2.zero;
         IsInvincible = false;
+    }
+
+    // ── AI용 인터페이스 ───────────────────────────────────────────
+    public bool DashReady => Time.time - lastDashTime >= dashCooldown;
+    public float MaxDashRange => maxDashDistance;
+
+    // AI가 직접 호출하는 대시 공격. desiredDistance(적까지 거리)로 충전량을 맞춘다.
+    public void ForceDash(Vector2 direction, float desiredDistance)
+    {
+        if (IsInvincible || Time.time - lastDashTime < dashCooldown) return;
+
+        lastDashTime = Time.time;
+        float ratio = Mathf.Clamp01(Mathf.InverseLerp(minDashDistance, maxDashDistance, desiredDistance));
+        StartCoroutine(DashCoroutine(ratio, direction.normalized));
     }
 
     // AI가 직접 호출하는 공격 메서드
@@ -209,12 +254,20 @@ public class Player_Attack : MonoBehaviour
         Vector2 center = rb.position + dir * attackRange;
         Vector2 boxSize = new Vector2(attackWidth * 1.5f, attackWidth * 2f);
 
+        StartCoroutine(ShowAttackBox(center, boxSize, angle));
+        PlayClip(swingSfx);
+
         Collider2D[] hits = Physics2D.OverlapBoxAll(center, boxSize, angle, enemyLayer);
+        bool hitAny = false;
         foreach (var hit in hits)
         {
             if (hit.TryGetComponent<IDamageable>(out var damageable))
+            {
                 damageable.TakeDamage(attackDamage);
+                hitAny = true;
+            }
         }
+        if (hitAny) PlayClip(hitSfx);
     }
 
     void TrySetTrigger(string triggerName)

@@ -11,7 +11,7 @@ public class NPCInteraction : MonoBehaviour
 
     void Start()
     {
-        dialogueManager = FindObjectOfType<DialogueManager>();
+        dialogueManager = FindFirstObjectByType<DialogueManager>();
 
         if (dialogueManager == null)
         {
