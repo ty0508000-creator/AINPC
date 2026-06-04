@@ -69,9 +69,9 @@ public class InnerVoiceManager : MonoBehaviour
         controlManager = GetComponent<ControlManager>();
 
         if (llmAgent == null)
-            llmAgent = FindObjectOfType<LLMAgent>();
+            llmAgent = FindFirstObjectByType<LLMAgent>();
         if (memory == null)
-            memory = FindObjectOfType<MemoryManager>();
+            memory = FindFirstObjectByType<MemoryManager>();
 
         EnsureEventSystem();
         BuildUI();
@@ -86,7 +86,7 @@ public class InnerVoiceManager : MonoBehaviour
         {
             yield return new WaitForSeconds(checkInterval);
 
-            if (!isActive && Random.value <= triggerChance)
+            if (!isActive && UnityEngine.Random.value <= triggerChance)
                 _ = OpenDialogue();
         }
     }
@@ -365,7 +365,7 @@ public class InnerVoiceManager : MonoBehaviour
 
     void EnsureEventSystem()
     {
-        if (FindObjectOfType<EventSystem>() == null)
+        if (FindFirstObjectByType<EventSystem>() == null)
         {
             var es = new GameObject("EventSystem");
             es.AddComponent<EventSystem>();
@@ -432,7 +432,7 @@ public class InnerVoiceManager : MonoBehaviour
             new Vector2(0.5f, 0.42f), 34f, Color.white, 1100f);
         aiText.alignment = TextAlignmentOptions.Center;
         aiText.fontStyle = FontStyles.Italic;
-        aiText.enableWordWrapping = true;
+        aiText.textWrappingMode = TextWrappingModes.Normal;
 
         // 기분 변화
         moodDeltaText = Label(contentGO.transform, "",

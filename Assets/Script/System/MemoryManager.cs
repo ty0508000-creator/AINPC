@@ -42,7 +42,7 @@ public class MemoryManager : MonoBehaviour
         {
             if (rag == null) rag = GetComponent<RAG>();
             if (rag == null) rag = gameObject.AddComponent<RAG>();
-            if (llm == null) llm = FindObjectOfType<LLM>();
+            if (llm == null) llm = FindFirstObjectByType<LLM>();
 
             if (llm == null)
                 Debug.LogWarning("[Memory] LLM을 찾지 못했습니다. 임베딩 불가 → 기억 비활성.");

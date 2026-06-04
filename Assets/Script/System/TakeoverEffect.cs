@@ -49,7 +49,7 @@ public class TakeoverEffect : MonoBehaviour
     void Start()
     {
         controlManager = GetComponent<ControlManager>();
-        cameraFollow   = FindObjectOfType<CameraFollow>();
+        cameraFollow   = FindFirstObjectByType<CameraFollow>();
 
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();

@@ -58,16 +58,16 @@ public class DialogueManager : MonoBehaviour
         sendButton.onClick.AddListener(OnSendButtonClick);
 
         if (llmAgent == null)
-            llmAgent = FindObjectOfType<LLMAgent>();
+            llmAgent = FindFirstObjectByType<LLMAgent>();
 
-        moodSystem = FindObjectOfType<MoodSystem>();
+        moodSystem = FindFirstObjectByType<MoodSystem>();
         if (moodSystem == null)
             Debug.LogWarning("DialogueManager: MoodSystem을 찾을 수 없습니다.");
 
-        controlManager = FindObjectOfType<ControlManager>();
+        controlManager = FindFirstObjectByType<ControlManager>();
 
         if (memory == null)
-            memory = FindObjectOfType<MemoryManager>();
+            memory = FindFirstObjectByType<MemoryManager>();
     }
 
     public void OpenDialogue(string name, string personality)
@@ -81,7 +81,7 @@ public class DialogueManager : MonoBehaviour
         {
             blocked = true;
             string fear = (fearLines != null && fearLines.Length > 0)
-                ? fearLines[Random.Range(0, fearLines.Length)]
+                ? fearLines[UnityEngine.Random.Range(0, fearLines.Length)]
                 : "...";
             npcText.text = $"{name}: {fear}";
             dialoguePanel.SetActive(true);
