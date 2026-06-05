@@ -17,7 +17,7 @@ MonoBehaviour:
   maxHP: 50
   expReward: 30
   attackDamage: 10
-  attackRange: 0.8
+  attackRange: 8
   attackCooldown: 0.9
   moveSpeed: 2.5
-  aggroRange: 5.5
+  aggroRange: 8
