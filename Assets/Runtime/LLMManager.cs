@@ -26,7 +26,7 @@ namespace LLMUnity
         public bool includeInBuild;
         public int contextLength;
 
-        static List<string> embeddingOnlyArchs = new List<string> { "bert", "nomic-bert", "jina-bert-v2", "t5", "t5encoder", "gemma-embedding" };
+        static List<string> embeddingOnlyArchs = new List<string> { "bert", "nomic-bert", "jina-bert-v2", "t5", "t5encoder", "gemma-embedding", "modernbert", "modern-bert" };
 
         /// <summary>
         /// Returns the relative asset path if it is in the AssetPath folder (StreamingAssets or persistentPath), otherwise the filename.

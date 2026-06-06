@@ -14,6 +14,7 @@ namespace LLMUnity
     {
         protected override async Task SetLLM(LLM llmSet)
         {
+            llmSet?.RefreshModelMetadata();
             await base.SetLLM(llmSet);
             if (llmSet != null && !llmSet.embeddingsOnly)
             {
@@ -23,6 +24,7 @@ namespace LLMUnity
 
         public override bool IsAutoAssignableLLM(LLM llmSet)
         {
+            llmSet?.RefreshModelMetadata();
             return llmSet.embeddingsOnly;
         }
     }

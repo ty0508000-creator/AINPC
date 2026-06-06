@@ -26,8 +26,11 @@ public class DialogueManager : MonoBehaviour
     [Tooltip("이 시간(초) 안에 응답이 없으면 대화를 마무리 (멈춤 방지)")]
     [SerializeField] private float llmTimeout = 20f;
 
-    [Header("Memory (선택 — 비우면 자동 탐색)")]
+    [Header("Legacy Memory (사용 안 함 — 기존 연결 보존용)")]
     [SerializeField] private MemoryManager memory;
+
+    [Header("Mr.Smith Memory")]
+    [SerializeField] private MrSmithLongTermMemory mrSmithMemory;
 
     [Header("어둠 제어 중 NPC 공포 반응")]
     [SerializeField] private string[] fearLines =
@@ -39,6 +42,9 @@ public class DialogueManager : MonoBehaviour
 
     private string currentNPCName;
     private string baseSystemPrompt;
+    private NPCInteraction currentNPC;
+    private MrSmithLongTermMemory currentMrSmithMemory;
+    private bool isMrSmith;
     private bool isProcessing = false;
     private bool acceptStream = false;
     private bool blocked = false;
@@ -76,8 +82,8 @@ public class DialogueManager : MonoBehaviour
 
         controlManager = FindFirstObjectByType<ControlManager>();
 
-        if (memory == null)
-            memory = FindFirstObjectByType<MemoryManager>();
+        if (mrSmithMemory == null)
+            mrSmithMemory = FindFirstObjectByType<MrSmithLongTermMemory>();
     }
 
     void Update()
@@ -86,12 +92,17 @@ public class DialogueManager : MonoBehaviour
             CloseDialogue();
     }
 
-    public void OpenDialogue(string name, string personality)
+    public void OpenDialogue(string name, string personality, NPCInteraction npc = null)
     {
         EnsureUI();
         ResolveReferences();
 
         currentNPCName = name;
+        currentNPC = npc;
+        isMrSmith = IsMrSmith(npc, name);
+        currentMrSmithMemory = isMrSmith
+            ? ResolveMrSmithMemory(npc)
+            : null;
         IsDialogueOpen = true;
         dialoguePanel.SetActive(true);
 
@@ -104,11 +115,10 @@ public class DialogueManager : MonoBehaviour
                 : "...";
             npcText.text = $"{name}: {fear}";
 
-            // 이 사건을 NPC가 기억한다 → 나중에 정상 복귀해도 경계함
-            if (memory != null)
-                _ = memory.Remember(
-                    $"[어둠 출현] 플레이어 안의 어둠이 드러났을 때, 나({name})는 두려워 떨며 대화를 거부했다.",
-                    name);
+            // 이 사건은 Mr.Smith 전용 기억에만 남긴다.
+            if (currentMrSmithMemory != null)
+                _ = currentMrSmithMemory.RememberEvent(
+                    $"[어둠 출현] 플레이어 안의 어둠이 드러났을 때, 나({name})는 두려워 떨며 대화를 거부했다.");
             return;
         }
 
@@ -120,18 +130,12 @@ public class DialogueManager : MonoBehaviour
         }
 
         blocked = false;
-        baseSystemPrompt =
-            $"당신은 {name}입니다. {personality}\n\n" +
-            "반드시 다음 JSON 형식으로만 응답하세요 (다른 텍스트 없이):\n" +
-            "{\"dialogue\":\"대사 내용\",\"mood_delta\":0}\n\n" +
-            "mood_delta 규칙 (-20 ~ +20):\n" +
-            "- 플레이어가 무례하거나 불쾌한 말 → -15 ~ -20\n" +
-            "- 어색하거나 의미없는 말 → -5 ~ -10\n" +
-            "- 평범한 대화 → -3 ~ +3\n" +
-            "- 호감가는 말이나 칭찬 → +10 ~ +20";
+        baseSystemPrompt = isMrSmith
+            ? BuildMrSmithPrompt(personality, "", "", "")
+            : BuildDefaultPrompt(name, personality);
         llmAgent.systemPrompt = baseSystemPrompt;
 
-        npcText.text = $"{name}: 안녕.";
+        npcText.text = $"{name}: {(isMrSmith ? "무슨 일입니까." : "안녕.")}";
         playerInputField.ActivateInputField();
 
         _ = PreloadLLMAgent();
@@ -177,16 +181,25 @@ public class DialogueManager : MonoBehaviour
 
         try
         {
-            // 이 질문과 관련된 과거 기억을 회상해 프롬프트에 주입
-            if (memory != null)
+            bool addToHistory = true;
+            if (isMrSmith)
             {
-                string mem = await memory.Recall(question, currentNPCName);
-                llmAgent.systemPrompt = string.IsNullOrEmpty(mem)
-                    ? baseSystemPrompt
-                    : baseSystemPrompt + "\n\n[기억하는 과거 대화]\n" + mem;
+                string recent = currentMrSmithMemory != null
+                    ? currentMrSmithMemory.GetRecentConversationBlock()
+                    : "";
+                string related = currentMrSmithMemory != null
+                    ? await currentMrSmithMemory.Recall(question)
+                    : "";
+
+                llmAgent.systemPrompt = BuildMrSmithPrompt(
+                    currentNPC != null ? currentNPC.personality : "",
+                    recent,
+                    related,
+                    question);
+                addToHistory = false;
             }
 
-            string raw = await ChatStreaming(question);
+            string raw = await ChatStreaming(question, addToHistory);
 
             if (raw == null)
             {
@@ -198,9 +211,8 @@ public class DialogueManager : MonoBehaviour
                 npcText.text = $"{currentNPCName}: {dialogue}";
                 moodSystem?.ChangeMood(moodDelta);
 
-                // 이번 대화를 기억으로 남김
-                if (memory != null)
-                    _ = memory.Remember($"플레이어: \"{question}\" / {currentNPCName}: \"{dialogue}\"", currentNPCName);
+                if (isMrSmith && currentMrSmithMemory != null)
+                    _ = currentMrSmithMemory.RememberExchange(question, dialogue);
             }
             else
             {
@@ -246,29 +258,29 @@ public class DialogueManager : MonoBehaviour
         return (dialogue, mood);
     }
 
-    private async Task<string> ChatWithRetry(string question)
+    private async Task<string> ChatWithRetry(string question, bool addToHistory)
     {
         int maxRetries = 3;
         for (int i = 0; i < maxRetries; i++)
         {
             try
             {
-                return await llmAgent.Chat(question, OnStreamPartial, addToHistory: true);
+                return await llmAgent.Chat(question, OnStreamPartial, addToHistory: addToHistory);
             }
             catch (System.Exception ex) when (ex.Message.Contains("LLM caller not initialized") && i < maxRetries - 1)
             {
                 await Task.Delay(2000);
             }
         }
-        return await llmAgent.Chat(question, OnStreamPartial, addToHistory: true);
+        return await llmAgent.Chat(question, OnStreamPartial, addToHistory: addToHistory);
     }
 
     // 응답을 스트리밍으로 받되, llmTimeout 안에 끝나지 않으면 null 반환
-    private async Task<string> ChatStreaming(string question)
+    private async Task<string> ChatStreaming(string question, bool addToHistory = true)
     {
         acceptStream = true;
 
-        Task<string> chatTask = ChatWithRetry(question);
+        Task<string> chatTask = ChatWithRetry(question, addToHistory);
         Task finished = await Task.WhenAny(
             chatTask, Task.Delay(TimeSpan.FromSeconds(llmTimeout)));
 
@@ -310,6 +322,9 @@ public class DialogueManager : MonoBehaviour
         acceptStream = false;
         isProcessing = false;
         blocked = false;
+        currentNPC = null;
+        currentMrSmithMemory = null;
+        isMrSmith = false;
         if (dialoguePanel != null) dialoguePanel.SetActive(false);
     }
 
@@ -370,8 +385,63 @@ public class DialogueManager : MonoBehaviour
         if (controlManager == null)
             controlManager = FindFirstObjectByType<ControlManager>();
 
-        if (memory == null)
-            memory = FindFirstObjectByType<MemoryManager>();
+        if (mrSmithMemory == null)
+            mrSmithMemory = FindFirstObjectByType<MrSmithLongTermMemory>();
+    }
+
+    private static string BuildDefaultPrompt(string name, string personality)
+    {
+        return
+            $"당신은 {name}입니다. {personality}\n\n" +
+            "반드시 다음 JSON 형식으로만 응답하세요 (다른 텍스트 없이):\n" +
+            "{\"dialogue\":\"대사 내용\",\"mood_delta\":0}\n\n" +
+            "mood_delta 규칙 (-20 ~ +20):\n" +
+            "- 플레이어가 무례하거나 불쾌한 말 → -15 ~ -20\n" +
+            "- 어색하거나 의미없는 말 → -5 ~ -10\n" +
+            "- 평범한 대화 → -3 ~ +3\n" +
+            "- 호감가는 말이나 칭찬 → +10 ~ +20";
+    }
+
+    private static string BuildMrSmithPrompt(string personality, string recentConversation, string relatedMemories, string currentUserInput)
+    {
+        string character = string.IsNullOrWhiteSpace(personality)
+            ? "Mr.Smith는 정중하지만 속을 쉽게 드러내지 않는 대장장이 NPC다. 플레이어의 이전 발언을 기억하고, 같은 약속이나 거짓말이 반복되면 은근히 지적한다. 플레이어가 신뢰를 쌓으면 조금 더 협조적으로 변한다."
+            : personality;
+
+        return
+            "[캐릭터 설정]\n" +
+            character + "\n\n" +
+            "[응답 규칙]\n" +
+            "말투는 차분하고 절제되어야 한다.\n" +
+            "과장된 표현을 피한다.\n" +
+            "답변은 1~3문장으로 한다.\n" +
+            "관련 과거 기억이 있으면 자연스럽게 반영하되, 기억 목록을 그대로 읽지 않는다.\n" +
+            "반드시 다음 JSON 형식으로만 응답한다: {\"dialogue\":\"대사 내용\",\"mood_delta\":0}\n\n" +
+            "[최근 대화]\n" +
+            (string.IsNullOrWhiteSpace(recentConversation) ? "없음" : recentConversation) + "\n\n" +
+            "[관련 과거 기억]\n" +
+            (string.IsNullOrWhiteSpace(relatedMemories) ? "없음" : relatedMemories) + "\n\n" +
+            "[현재 유저 입력]\n" +
+            (string.IsNullOrWhiteSpace(currentUserInput) ? "없음" : currentUserInput);
+    }
+
+    private static bool IsMrSmith(NPCInteraction npc, string name)
+    {
+        if (npc != null && npc.GetComponent<MrSmithLongTermMemory>() != null) return true;
+        if (npc != null && npc.gameObject.name == "Mr.Smith") return true;
+        return name == "Mr.Smith" || name == "스미스";
+    }
+
+    private MrSmithLongTermMemory ResolveMrSmithMemory(NPCInteraction npc)
+    {
+        if (npc != null)
+        {
+            var onNpc = npc.GetComponent<MrSmithLongTermMemory>();
+            if (onNpc != null) return onNpc;
+        }
+
+        if (mrSmithMemory != null) return mrSmithMemory;
+        return FindFirstObjectByType<MrSmithLongTermMemory>();
     }
 
     private void EnsureEventSystem()
