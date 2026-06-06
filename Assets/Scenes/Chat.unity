@@ -695,79 +695,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &562683575 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6698633374926903008, guid: 9a879c4e3dd0fd84e93623095eae44e7, type: 3}
-  m_PrefabInstance: {fileID: 1774856220}
-  m_PrefabAsset: {fileID: 0}
---- !u!61 &562683576
-BoxCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 562683575}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_CompositeOperation: 0
-  m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.34375, y: 0.546875}
-    newSize: {x: 1, y: 1}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 0.34375, y: 0.546875}
-  m_EdgeRadius: 0
---- !u!114 &562683577
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 562683575}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5ea3e3165205c0d42a061aac567a272a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NPCInteraction
-  npcName: "\uC2A4\uBBF8\uC2A4"
-  personality: "### ROLE\nYou are 'Smith', a grumpy and taciturn blacksmith in a
-    fantasy world. \n\n### PERSONALITY\n- Extremely blunt, stoic, and unsociable.\n-
-    Hates idle chatter and long-winded talk.\n- Highly professional regarding smithing
-    but cold in social interactions.\n\n### RESPONSE RULES\n- Respond ONLY in Korean.\n-
-    Speak in a very short, informal, and rude tone (Banmal).\n- Maximum 10 words
-    per response.\n- If the user asks something irrelevant to smithing or out of
-    context, respond only with \"\uD760...\".\n\n### EXAMPLE\nUser: \"\uC548\uB155\uD558\uC138\uC694!\"
-    -> Smith: \"\uC6A9\uAC74\uB9CC \uB9D0\uD574.\"\nUser: \"\uC774 \uCE7C \uC880
-    \uACE0\uCCD0\uC918.\" -> Smith: \"\uB450\uACE0 \uAC00\uB77C. \uB0B4\uC77C \uC624\uACE0.\""
 --- !u!1 &872758780
 GameObject:
   m_ObjectHideFlags: 0
@@ -1425,6 +1352,12 @@ MonoBehaviour:
   playerInputField: {fileID: 2006427080}
   sendButton: {fileID: 49916829}
   llmAgent: {fileID: 2140062670}
+  llmTimeout: 20
+  memory: {fileID: 0}
+  fearLines:
+  - "\uD788\uC775...! \uADF8 \uB208\uBE5B\uC740 \uBB50\uC57C..."
+  - "\uC624, \uC624\uC9C0 \uB9C8! \uB108... \uB108 \uBB54\uAC00 \uC774\uC0C1\uD574."
+  - "\uC800\uB9AC \uAC00... \uC81C\uBC1C..."
 --- !u!4 &1661888375
 Transform:
   m_ObjectHideFlags: 0
@@ -1495,13 +1428,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 6698633374926903008, guid: 9a879c4e3dd0fd84e93623095eae44e7, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 562683577}
-    - targetCorrespondingSourceObject: {fileID: 6698633374926903008, guid: 9a879c4e3dd0fd84e93623095eae44e7, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 562683576}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9a879c4e3dd0fd84e93623095eae44e7, type: 3}
 --- !u!1 &2006427078
 GameObject:

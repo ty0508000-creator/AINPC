@@ -15,7 +15,8 @@ public class NPCInteraction : MonoBehaviour
 
         if (dialogueManager == null)
         {
-            Debug.LogError($"{gameObject.name}: DialogueManager를 찾을 수 없습니다.");
+            var managerObject = new GameObject("DialogueManager");
+            dialogueManager = managerObject.AddComponent<DialogueManager>();
         }
 
         Collider2D collider = GetComponent<Collider2D>();
@@ -31,7 +32,7 @@ public class NPCInteraction : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Player"))
+        if (IsPlayer(other))
         {
             if (dialogueManager != null)
             {
@@ -47,7 +48,7 @@ public class NPCInteraction : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (other.CompareTag("Player") && isDialogueOpen)
+        if (IsPlayer(other) && isDialogueOpen)
         {
             if (dialogueManager != null)
             {
@@ -55,5 +56,11 @@ public class NPCInteraction : MonoBehaviour
                 isDialogueOpen = false;
             }
         }
+    }
+
+    private bool IsPlayer(Collider2D other)
+    {
+        return other.GetComponent<Player_Controller>() != null ||
+               other.GetComponentInParent<Player_Controller>() != null;
     }
 }

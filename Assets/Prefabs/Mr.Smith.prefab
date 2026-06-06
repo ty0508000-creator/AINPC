@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 810319865755966132}
   - component: {fileID: 456903077236148177}
   - component: {fileID: 8223055655299980096}
+  - component: {fileID: 4744252763571862821}
+  - component: {fileID: 400277599086720830}
   m_Layer: 0
   m_Name: Mr.Smith
   m_TagString: Untagged
@@ -114,3 +116,71 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &4744252763571862821
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6698633374926903008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ea3e3165205c0d42a061aac567a272a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NPCInteraction
+  npcName: "\uC2A4\uBBF8\uC2A4"
+  personality: "### ROLE\nYou are 'Smith', a grumpy and taciturn blacksmith in a
+    fantasy world. \n\n### PERSONALITY\n- Extremely blunt, stoic, and unsociable.\n-
+    Hates idle chatter and long-winded talk.\n- Highly professional regarding smithing
+    but cold in social interactions.\n\n### RESPONSE RULES\n- Respond ONLY in Korean.\n-
+    Speak in a very short, informal, and rude tone (Banmal).\n- Maximum 10 words
+    per response.\n- If the user asks something irrelevant to smithing or out of
+    context, respond only with \"\uD760...\".\n\n### EXAMPLE\nUser: \"\uC548\uB155\uD558\uC138\uC694!\"
+    -> Smith: \"\uC6A9\uAC74\uB9CC \uB9D0\uD574.\"\nUser: \"\uC774 \uCE7C \uC880
+    \uACE0\uCCD0\uC918.\" -> Smith: \"\uB450\uACE0 \uAC00\uB77C. \uB0B4\uC77C \uC624\uACE0.\""
+--- !u!61 &400277599086720830
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6698633374926903008}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 0.34375, y: 0.546875}
+    newSize: {x: 1, y: 1}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 0.34375, y: 0.546875}
+  m_EdgeRadius: 0

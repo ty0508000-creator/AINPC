@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using LLMUnity;
 using System;
 using System.Text;
@@ -9,11 +10,16 @@ using System.Text.RegularExpressions;
 
 public class DialogueManager : MonoBehaviour
 {
+    public static bool IsDialogueOpen { get; private set; }
+
     [Header("UI References")]
     public GameObject dialoguePanel;
     public TMP_Text npcText;
     public TMP_InputField playerInputField;
     public Button sendButton;
+
+    [Header("Runtime UI Style")]
+    [SerializeField] private TMP_FontAsset runtimeFont;
 
     [Header("LLM References")]
     [SerializeField] private LLMAgent llmAgent;
@@ -48,6 +54,8 @@ public class DialogueManager : MonoBehaviour
 
     void Start()
     {
+        EnsureUI();
+
         if (dialoguePanel == null || npcText == null || playerInputField == null || sendButton == null)
         {
             Debug.LogError("DialogueManager: UI 요소들이 할당되지 않았습니다!");
@@ -55,6 +63,8 @@ public class DialogueManager : MonoBehaviour
         }
 
         dialoguePanel.SetActive(false);
+        ApplyRuntimeFont();
+        sendButton.onClick.RemoveListener(OnSendButtonClick);
         sendButton.onClick.AddListener(OnSendButtonClick);
 
         if (llmAgent == null)
@@ -70,11 +80,20 @@ public class DialogueManager : MonoBehaviour
             memory = FindFirstObjectByType<MemoryManager>();
     }
 
+    void Update()
+    {
+        if (IsDialogueOpen && Input.GetKeyDown(KeyCode.Escape))
+            CloseDialogue();
+    }
+
     public void OpenDialogue(string name, string personality)
     {
-        if (llmAgent == null) return;
+        EnsureUI();
+        ResolveReferences();
 
         currentNPCName = name;
+        IsDialogueOpen = true;
+        dialoguePanel.SetActive(true);
 
         // 어둠이 몸을 제어 중이면 NPC는 대화 대신 공포에 질린다 (실제 대가)
         if (controlManager != null && !controlManager.IsPlayerControlled)
@@ -84,13 +103,19 @@ public class DialogueManager : MonoBehaviour
                 ? fearLines[UnityEngine.Random.Range(0, fearLines.Length)]
                 : "...";
             npcText.text = $"{name}: {fear}";
-            dialoguePanel.SetActive(true);
 
             // 이 사건을 NPC가 기억한다 → 나중에 정상 복귀해도 경계함
             if (memory != null)
                 _ = memory.Remember(
                     $"[어둠 출현] 플레이어 안의 어둠이 드러났을 때, 나({name})는 두려워 떨며 대화를 거부했다.",
                     name);
+            return;
+        }
+
+        if (llmAgent == null)
+        {
+            npcText.text = $"{name}: ...";
+            Debug.LogError("DialogueManager: LLMAgent를 찾을 수 없습니다.");
             return;
         }
 
@@ -107,7 +132,6 @@ public class DialogueManager : MonoBehaviour
         llmAgent.systemPrompt = baseSystemPrompt;
 
         npcText.text = $"{name}: 안녕.";
-        dialoguePanel.SetActive(true);
         playerInputField.ActivateInputField();
 
         _ = PreloadLLMAgent();
@@ -282,7 +306,188 @@ public class DialogueManager : MonoBehaviour
 
     public void CloseDialogue()
     {
+        IsDialogueOpen = false;
         acceptStream = false;
-        dialoguePanel.SetActive(false);
+        isProcessing = false;
+        blocked = false;
+        if (dialoguePanel != null) dialoguePanel.SetActive(false);
+    }
+
+    void OnDestroy()
+    {
+        IsDialogueOpen = false;
+    }
+
+    private void EnsureUI()
+    {
+        if (dialoguePanel != null && npcText != null && playerInputField != null && sendButton != null)
+            return;
+
+        var canvasGO = new GameObject("DialogueCanvas");
+        var canvas = canvasGO.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 250;
+
+        var scaler = canvasGO.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+        scaler.matchWidthOrHeight = 0.5f;
+        canvasGO.AddComponent<GraphicRaycaster>();
+        EnsureEventSystem();
+
+        dialoguePanel = new GameObject("DialoguePanel");
+        dialoguePanel.transform.SetParent(canvasGO.transform, false);
+        var panelImage = dialoguePanel.AddComponent<Image>();
+        panelImage.color = new Color(0.05f, 0.05f, 0.07f, 0.92f);
+        var panelRect = dialoguePanel.GetComponent<RectTransform>();
+        panelRect.anchorMin = new Vector2(0.5f, 0f);
+        panelRect.anchorMax = new Vector2(0.5f, 0f);
+        panelRect.pivot = new Vector2(0.5f, 0f);
+        panelRect.anchoredPosition = new Vector2(0f, 36f);
+        panelRect.sizeDelta = new Vector2(1100f, 300f);
+
+        npcText = CreateText(dialoguePanel.transform, "NPCText", new Vector2(0.5f, 0.66f),
+            new Vector2(980f, 136f), 36f, TextAlignmentOptions.Left);
+        npcText.text = "";
+
+        playerInputField = CreateInput(dialoguePanel.transform);
+        sendButton = CreateButton(dialoguePanel.transform, "SendButton", "말하기",
+            new Vector2(0.84f, 0.22f), new Vector2(160f, 66f));
+
+        var closeButton = CreateButton(dialoguePanel.transform, "CloseButton", "닫기",
+            new Vector2(0.94f, 0.86f), new Vector2(96f, 50f));
+        closeButton.onClick.AddListener(CloseDialogue);
+    }
+
+    private void ResolveReferences()
+    {
+        if (llmAgent == null)
+            llmAgent = FindFirstObjectByType<LLMAgent>();
+
+        if (moodSystem == null)
+            moodSystem = FindFirstObjectByType<MoodSystem>();
+
+        if (controlManager == null)
+            controlManager = FindFirstObjectByType<ControlManager>();
+
+        if (memory == null)
+            memory = FindFirstObjectByType<MemoryManager>();
+    }
+
+    private void EnsureEventSystem()
+    {
+        if (FindFirstObjectByType<EventSystem>() != null) return;
+
+        var eventSystem = new GameObject("EventSystem");
+        eventSystem.AddComponent<EventSystem>();
+        eventSystem.AddComponent<StandaloneInputModule>();
+    }
+
+    private TMP_Text CreateText(Transform parent, string name, Vector2 anchor, Vector2 size, float fontSize, TextAlignmentOptions alignment)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        var text = go.AddComponent<TextMeshProUGUI>();
+        text.fontSize = fontSize;
+        if (runtimeFont != null) text.font = runtimeFont;
+        text.color = Color.white;
+        text.alignment = alignment;
+        text.textWrappingMode = TextWrappingModes.Normal;
+        var rect = go.GetComponent<RectTransform>();
+        rect.anchorMin = rect.anchorMax = anchor;
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = size;
+        return text;
+    }
+
+    private TMP_InputField CreateInput(Transform parent)
+    {
+        var go = new GameObject("PlayerInputField");
+        go.transform.SetParent(parent, false);
+        var image = go.AddComponent<Image>();
+        image.color = new Color(0.12f, 0.12f, 0.16f, 1f);
+        var input = go.AddComponent<TMP_InputField>();
+        var rect = go.GetComponent<RectTransform>();
+        rect.anchorMin = rect.anchorMax = new Vector2(0.42f, 0.22f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = new Vector2(720f, 66f);
+
+        var textArea = new GameObject("TextArea");
+        textArea.transform.SetParent(go.transform, false);
+        textArea.AddComponent<RectMask2D>();
+        var textAreaRect = textArea.GetComponent<RectTransform>();
+        Stretch(textAreaRect, new Vector4(16f, 8f, 16f, 8f));
+
+        var placeholder = CreateChildText(textArea.transform, "Placeholder", "말을 입력하세요...", 28f, new Color(1f, 1f, 1f, 0.42f));
+        placeholder.fontStyle = FontStyles.Italic;
+
+        var text = CreateChildText(textArea.transform, "Text", "", 28f, Color.white);
+
+        input.textViewport = textAreaRect;
+        input.textComponent = text;
+        input.placeholder = placeholder;
+        input.lineType = TMP_InputField.LineType.SingleLine;
+        input.onSubmit.AddListener(_ => OnSendButtonClick());
+        return input;
+    }
+
+    private TMP_Text CreateChildText(Transform parent, string name, string value, float fontSize, Color color)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        var text = go.AddComponent<TextMeshProUGUI>();
+        text.text = value;
+        text.fontSize = fontSize;
+        if (runtimeFont != null) text.font = runtimeFont;
+        text.color = color;
+        text.alignment = TextAlignmentOptions.Left;
+        Stretch(go.GetComponent<RectTransform>(), Vector4.zero);
+        return text;
+    }
+
+    private Button CreateButton(Transform parent, string name, string label, Vector2 anchor, Vector2 size)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        var image = go.AddComponent<Image>();
+        image.color = new Color(0.32f, 0.34f, 0.42f, 1f);
+        var button = go.AddComponent<Button>();
+        var rect = go.GetComponent<RectTransform>();
+        rect.anchorMin = rect.anchorMax = anchor;
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = size;
+
+        var text = CreateChildText(go.transform, "Text", label, 26f, Color.white);
+        text.alignment = TextAlignmentOptions.Center;
+        return button;
+    }
+
+    private void ApplyRuntimeFont()
+    {
+        if (runtimeFont == null) return;
+
+        if (npcText != null) npcText.font = runtimeFont;
+        if (playerInputField != null)
+        {
+            if (playerInputField.textComponent != null)
+                playerInputField.textComponent.font = runtimeFont;
+            if (playerInputField.placeholder is TMP_Text placeholder)
+                placeholder.font = runtimeFont;
+        }
+
+        if (sendButton != null)
+        {
+            TMP_Text buttonText = sendButton.GetComponentInChildren<TMP_Text>();
+            if (buttonText != null) buttonText.font = runtimeFont;
+        }
+    }
+
+    private static void Stretch(RectTransform rect, Vector4 padding)
+    {
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.offsetMin = new Vector2(padding.x, padding.w);
+        rect.offsetMax = new Vector2(-padding.z, -padding.y);
     }
 }

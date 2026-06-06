@@ -25,11 +25,15 @@ public class Player_Controller : MonoBehaviour
 
     void Update()
     {
-        bool blocked = playerAttack.IsInvincible || !controlManager.IsPlayerControlled;
+        bool blocked =
+            (playerAttack != null && playerAttack.IsInvincible) ||
+            (controlManager != null && !controlManager.IsPlayerControlled) ||
+            DialogueManager.IsDialogueOpen;
 
         if (blocked)
         {
             moveInput = Vector2.zero;
+            if (rb != null) rb.linearVelocity = Vector2.zero;
         }
         else
         {
@@ -48,7 +52,14 @@ public class Player_Controller : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (playerAttack.IsInvincible || !controlManager.IsPlayerControlled) return;
+        if ((playerAttack != null && playerAttack.IsInvincible) ||
+            (controlManager != null && !controlManager.IsPlayerControlled) ||
+            DialogueManager.IsDialogueOpen)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
         rb.linearVelocity = moveInput.normalized * moveSpeed;
     }
 }
