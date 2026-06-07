@@ -8,6 +8,10 @@ public class PlayerHUD : MonoBehaviour
     private MoodSystem moodSystem;
     private ControlManager controlManager;
 
+    [Header("HUD")]
+    [SerializeField, Min(0.1f)] private float hudScale = 1.5f;
+    [SerializeField] private TMP_FontAsset koreanFont;
+
     private TMP_Text levelText;
     private TMP_Text hpText;
     private TMP_Text manaText;
@@ -23,12 +27,19 @@ public class PlayerHUD : MonoBehaviour
         moodSystem = GetComponent<MoodSystem>();
         controlManager = GetComponent<ControlManager>();
 
+        if (stats == null || moodSystem == null || controlManager == null)
+        {
+            Debug.LogError("PlayerHUD requires PlayerStats, MoodSystem, and ControlManager on the same GameObject.");
+            enabled = false;
+            return;
+        }
+
         BuildUI();
 
         stats.OnStatsChanged += UpdateStats;
         moodSystem.OnMoodChanged += UpdateMood;
-        controlManager.OnAITakeover += () => UpdateControlLabel(false);
-        controlManager.OnPlayerRestored += () => UpdateControlLabel(true);
+        controlManager.OnAITakeover += HandleAITakeover;
+        controlManager.OnPlayerRestored += HandlePlayerRestored;
 
         UpdateStats();
         UpdateMood(moodSystem.Mood);
@@ -50,19 +61,19 @@ public class PlayerHUD : MonoBehaviour
         canvasGO.AddComponent<GraphicRaycaster>();
 
         // ── 스탯 패널 ──
-        var statsPanel = MakePanel(canvasGO.transform, new Vector2(15f, -15f), new Vector2(220f, 120f));
-        levelText = MakeText(statsPanel, new Vector2(12f, -10f), "Lv. 1", 18, FontStyles.Bold);
-        hpText    = MakeText(statsPanel, new Vector2(12f, -38f), "HP   100 / 100", 15);
-        manaText  = MakeText(statsPanel, new Vector2(12f, -62f), "MP   50 / 50", 15);
-        expText   = MakeText(statsPanel, new Vector2(12f, -86f), "EXP  0 / 100", 15);
+        var statsPanel = MakePanel(canvasGO.transform, Scale(new Vector2(15f, -15f)), Scale(new Vector2(220f, 120f)));
+        levelText = MakeText(statsPanel, Scale(new Vector2(12f, -10f)), "Lv. 1", Scale(18f), FontStyles.Bold);
+        hpText    = MakeText(statsPanel, Scale(new Vector2(12f, -38f)), "HP   100 / 100", Scale(15f));
+        manaText  = MakeText(statsPanel, Scale(new Vector2(12f, -62f)), "MP   50 / 50", Scale(15f));
+        expText   = MakeText(statsPanel, Scale(new Vector2(12f, -86f)), "EXP  0 / 100", Scale(15f));
 
         // ── 기분 패널 ──
-        var moodPanel = MakePanel(canvasGO.transform, new Vector2(15f, -145f), new Vector2(220f, 70f));
+        var moodPanel = MakePanel(canvasGO.transform, Scale(new Vector2(15f, -145f)), Scale(new Vector2(220f, 70f)));
 
-        controlText = MakeText(moodPanel, new Vector2(12f, -8f), "제어권: 플레이어", 14, FontStyles.Bold);
+        controlText = MakeText(moodPanel, Scale(new Vector2(12f, -8f)), "제어권: 플레이어", Scale(14f), FontStyles.Bold);
 
-        MakeText(moodPanel, new Vector2(12f, -30f), "NPC 기분", 13);
-        moodText = MakeText(moodPanel, new Vector2(160f, -30f), "50", 13);
+        MakeText(moodPanel, Scale(new Vector2(12f, -30f)), "NPC 기분", Scale(13f));
+        moodText = MakeText(moodPanel, Scale(new Vector2(160f, -30f)), "50", Scale(13f));
         moodText.GetComponent<RectTransform>().anchorMin = new Vector2(0f, 1f);
         moodText.GetComponent<RectTransform>().anchorMax = new Vector2(0f, 1f);
 
@@ -75,8 +86,8 @@ public class PlayerHUD : MonoBehaviour
         bgRect.anchorMin = new Vector2(0f, 1f);
         bgRect.anchorMax = new Vector2(1f, 1f);
         bgRect.pivot = new Vector2(0f, 1f);
-        bgRect.anchoredPosition = new Vector2(12f, -46f);
-        bgRect.sizeDelta = new Vector2(-24f, 14f);
+        bgRect.anchoredPosition = Scale(new Vector2(12f, -46f));
+        bgRect.sizeDelta = Scale(new Vector2(-24f, 14f));
 
         // 게이지 채움
         var barFill = new GameObject("MoodBarFill");
@@ -111,6 +122,8 @@ public class PlayerHUD : MonoBehaviour
         go.transform.SetParent(parent, false);
         var tmp = go.AddComponent<TextMeshProUGUI>();
         tmp.text = text;
+        if (koreanFont != null)
+            tmp.font = koreanFont;
         tmp.fontSize = size;
         tmp.fontStyle = style;
         tmp.color = Color.white;
@@ -119,9 +132,13 @@ public class PlayerHUD : MonoBehaviour
         rect.anchorMax = new Vector2(1f, 1f);
         rect.pivot = new Vector2(0f, 1f);
         rect.anchoredPosition = pos;
-        rect.sizeDelta = new Vector2(0f, 24f);
+        rect.sizeDelta = new Vector2(0f, Scale(24f));
         return tmp;
     }
+
+    float Scale(float value) => value * hudScale;
+
+    Vector2 Scale(Vector2 value) => value * hudScale;
 
     void UpdateStats()
     {
@@ -153,9 +170,18 @@ public class PlayerHUD : MonoBehaviour
         controlText.color = isPlayer ? Color.white : new Color(1f, 0.4f, 0.4f);
     }
 
+    void HandleAITakeover() => UpdateControlLabel(false);
+
+    void HandlePlayerRestored() => UpdateControlLabel(true);
+
     void OnDestroy()
     {
         if (stats != null) stats.OnStatsChanged -= UpdateStats;
         if (moodSystem != null) moodSystem.OnMoodChanged -= UpdateMood;
+        if (controlManager != null)
+        {
+            controlManager.OnAITakeover -= HandleAITakeover;
+            controlManager.OnPlayerRestored -= HandlePlayerRestored;
+        }
     }
 }
