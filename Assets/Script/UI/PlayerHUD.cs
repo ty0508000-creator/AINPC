@@ -121,6 +121,8 @@ public class PlayerHUD : MonoBehaviour
         var go = new GameObject("Text");
         go.transform.SetParent(parent, false);
         var tmp = go.AddComponent<TextMeshProUGUI>();
+        if (text.StartsWith("NPC "))
+            text = "페르소나";
         tmp.text = text;
         if (koreanFont != null)
             tmp.font = koreanFont;
