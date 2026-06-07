@@ -42,14 +42,31 @@ public class MemoryManager : MonoBehaviour
         {
             if (rag == null) rag = GetComponent<RAG>();
             if (rag == null) rag = gameObject.AddComponent<RAG>();
-            if (llm == null) llm = FindFirstObjectByType<LLM>();
+            if (llm == null) llm = FindEmbeddingLLM();
+            llm?.RefreshModelMetadata();
 
             if (llm == null)
-                Debug.LogWarning("[Memory] LLM을 찾지 못했습니다. 임베딩 불가 → 기억 비활성.");
+            {
+                Debug.LogWarning("[Memory] 임베딩용 LLM을 찾지 못했습니다. 기억 비활성.");
+                Ready = false;
+                return;
+            }
+
+            while (!llm.started && !llm.failed)
+            {
+                await Task.Yield();
+            }
+
+            if (llm.failed)
+            {
+                Debug.LogWarning($"[Memory] 임베딩용 LLM '{llm.name}' 시작 실패로 기억 비활성. model={llm.model}");
+                Ready = false;
+                return;
+            }
 
             rag.Init(searchMethod, ChunkingMethods.NoChunking, llm);
             await rag.Load(saveFileName);   // 파일 없으면 false, 무시
-            Ready = llm != null;
+            Ready = true;
             Debug.Log($"[Memory] 준비됨 (기존 기억 {rag.Count()}개)");
         }
         catch (System.Exception e)
@@ -58,6 +75,25 @@ public class MemoryManager : MonoBehaviour
             Ready = false;
         }
         initializing = false;
+    }
+
+    private LLM FindEmbeddingLLM()
+    {
+        foreach (LLM candidate in FindObjectsByType<LLM>(FindObjectsSortMode.None))
+        {
+            if (candidate == null) continue;
+            candidate.RefreshModelMetadata();
+            if (candidate.name == "Embedding_Server") return candidate;
+        }
+
+        foreach (LLM candidate in FindObjectsByType<LLM>(FindObjectsSortMode.None))
+        {
+            if (candidate == null) continue;
+            candidate.RefreshModelMetadata();
+            if (candidate.embeddingsOnly) return candidate;
+        }
+
+        return null;
     }
 
     /// <summary>기억 한 줄을 저장. group 으로 화자/맥락을 분리(예: NPC 이름, "inner").</summary>

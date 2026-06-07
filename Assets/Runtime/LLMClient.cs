@@ -242,7 +242,12 @@ namespace LLMUnity
         #region Initialization
         protected virtual async Task CheckCaller(bool checkConnection = true)
         {
-            // 초기화 완료 대기: 최대 30초 (60회 × 500ms)
+            if (!remote && llm != null && llm.failed)
+            {
+                LLMUnitySetup.LogError($"{GetType().Name} '{name}' cannot call LLM because assigned {DescribeAssignedLLM()}", true);
+            }
+
+            // 초기화 완료 대기: 최대 30초 (60회 x 500ms)
             int maxWaitAttempts = 60;
             int waitIntervalMs = 500;
             int attemptCount = 0;
@@ -261,7 +266,7 @@ namespace LLMUnity
 
             if (GetCaller() == null)
             {
-                string errorMsg = $"LLM caller not initialized (waited {maxWaitAttempts * waitIntervalMs}ms)";
+                string errorMsg = $"LLM caller not initialized for {GetType().Name} '{name}' (waited {maxWaitAttempts * waitIntervalMs}ms), assigned={DescribeAssignedLLM()}";
                 LLMUnitySetup.LogError(errorMsg, true);
             }
 
@@ -297,7 +302,7 @@ namespace LLMUnity
                 if (!remote)
                 {
                     if (llm != null) await llm.WaitUntilReady();
-                    if (llm?.llmService == null) LLMUnitySetup.LogError("Local LLM service is not available", true);
+                    if (llm?.llmService == null) LLMUnitySetup.LogError($"Local LLM service is not available for {DescribeAssignedLLM()}", true);
                     llmClient = new UndreamAI.LlamaLib.LLMClient(llm.llmService);
                 }
                 else
@@ -307,7 +312,6 @@ namespace LLMUnity
             }
             catch (Exception ex)
             {
-                LLMUnitySetup.LogError(ex.Message);
                 exceptionMessage = ex.Message;
             }
             finally
@@ -317,10 +321,18 @@ namespace LLMUnity
 
             if (llmClient == null || exceptionMessage != "")
             {
-                string error = "llmClient not initialized";
+                string error = $"{GetType().Name} '{name}' client not initialized";
                 if (exceptionMessage != "") error += ", error: " + exceptionMessage;
+                error += $", assigned={DescribeAssignedLLM()}";
                 LLMUnitySetup.LogError(error, true);
             }
+        }
+
+        private string DescribeAssignedLLM()
+        {
+            if (remote) return $"remote host={host}, port={port}";
+            if (llm == null) return "local LLM=null";
+            return $"local LLM '{llm.name}', model={llm.model}, started={llm.started}, failed={llm.failed}, embeddingsOnly={llm.embeddingsOnly}, embeddingLength={llm.embeddingLength}";
         }
 
         /// <summary>

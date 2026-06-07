@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 456903077236148177}
   - component: {fileID: 8223055655299980096}
   - component: {fileID: 4744252763571862821}
+  - component: {fileID: 5928471288427093101}
   - component: {fileID: 400277599086720830}
   m_Layer: 0
   m_Name: Mr.Smith
@@ -126,18 +127,33 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5ea3e3165205c0d42a061aac567a272a, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::NPCInteraction
   npcName: "\uC2A4\uBBF8\uC2A4"
-  personality: "### ROLE\nYou are 'Smith', a grumpy and taciturn blacksmith in a
-    fantasy world. \n\n### PERSONALITY\n- Extremely blunt, stoic, and unsociable.\n-
-    Hates idle chatter and long-winded talk.\n- Highly professional regarding smithing
-    but cold in social interactions.\n\n### RESPONSE RULES\n- Respond ONLY in Korean.\n-
-    Speak in a very short, informal, and rude tone (Banmal).\n- Maximum 10 words
-    per response.\n- If the user asks something irrelevant to smithing or out of
-    context, respond only with \"\uD760...\".\n\n### EXAMPLE\nUser: \"\uC548\uB155\uD558\uC138\uC694!\"
-    -> Smith: \"\uC6A9\uAC74\uB9CC \uB9D0\uD574.\"\nUser: \"\uC774 \uCE7C \uC880
-    \uACE0\uCCD0\uC918.\" -> Smith: \"\uB450\uACE0 \uAC00\uB77C. \uB0B4\uC77C \uC624\uACE0.\""
+  personality: "Mr.Smith는 정중하지만 속을 쉽게 드러내지 않는 대장장이 NPC다.\n플레이어의 이전 발언을 기억하고, 같은 약속이나 거짓말이 반복되면 은근히 지적한다.\n플레이어가 신뢰를 쌓으면 조금 더 협조적으로 변한다."
+--- !u!114 &5928471288427093101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6698633374926903008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b9356212d01452a9f5d8f941c7a4796, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MrSmithLongTermMemory
+  embeddingLLM: {fileID: 0}
+  embeddingModel: Models/all-MiniLM-L12-v2.Q4_K_M.gguf
+  expectedEmbeddingLength: 384
+  rag: {fileID: 0}
+  searchMethod: 1
+  saveFileName: mr_smith_memory.zip
+  recallCount: 3
+  maxDistance: 1
+  autoSaveOnRemember: 1
+  logRecall: 1
+  recentTurnsToKeep: 4
 --- !u!61 &400277599086720830
 BoxCollider2D:
   m_ObjectHideFlags: 0
