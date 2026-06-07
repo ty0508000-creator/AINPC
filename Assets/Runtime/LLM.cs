@@ -324,6 +324,7 @@ namespace LLMUnity
         public LoraManager loraManager = new LoraManager();
         string loraPre = "";
         string loraWeightsPre = "";
+        private string lastStartupDiagnostics = "";
         /// \endcond
         #endregion
 
@@ -349,6 +350,8 @@ namespace LLMUnity
         public async void Awake()
         {
             if (!enabled) return;
+
+            RefreshModelMetadata();
 
 #if !UNITY_EDITOR
             modelSetupFailed = !await LLMManager.Setup();
@@ -430,13 +433,13 @@ namespace LLMUnity
             }
             catch (LLMUnityException ex)
             {
-                LLMUnitySetup.LogError(ex.Message);
+                LLMUnitySetup.LogError($"{name} failed to create LLM service. {lastStartupDiagnostics} error={ex.Message}");
                 failed = true;
                 return;
             }
             catch (Exception ex)
             {
-                LLMUnitySetup.LogError($"Failed to create LLM service: {ex.Message}");
+                LLMUnitySetup.LogError($"{name} failed to create LLM service. {lastStartupDiagnostics} error={ex.Message}");
                 Destroy();
                 failed = true;
                 return;
@@ -462,7 +465,29 @@ namespace LLMUnity
 #endif
             }
             bool useGPU = numGPULayers > 0;
-            llmlib = new LlamaLib(useGPU);
+            List<string> previousExclusion = null;
+            if (embeddingsOnly && !useGPU)
+            {
+                previousExclusion = new List<string>(LlamaLib.libraryExclusion ?? new List<string>());
+                LlamaLib.libraryExclusion = new List<string>(previousExclusion);
+                if (!LlamaLib.libraryExclusion.Any(keyword => keyword == "avx512"))
+                {
+                    LlamaLib.libraryExclusion.Add("avx512");
+                }
+                LLMUnitySetup.Log($"{name} is an embeddings-only CPU model; skipping avx512 backend for stability.");
+            }
+
+            try
+            {
+                llmlib = new LlamaLib(useGPU);
+            }
+            finally
+            {
+                if (previousExclusion != null)
+                {
+                    LlamaLib.libraryExclusion = previousExclusion;
+                }
+            }
         }
 
         /// <summary>
@@ -500,6 +525,9 @@ namespace LLMUnity
                 effectiveThreads = LLMUnitySetup.AndroidGetNumBigCores();
             }
 
+            lastStartupDiagnostics = BuildStartupDiagnostics(modelPath, numSlots, effectiveThreads, loraPaths);
+            LLMUnitySetup.Log($"{name} preparing LLM service. {lastStartupDiagnostics}");
+
             string processorType = SystemInfo.processorType;
             await Task.Run(() =>
             {
@@ -532,6 +560,33 @@ namespace LLMUnity
             });
         }
 
+        private string BuildStartupDiagnostics(string modelPath, int numSlots, int effectiveThreads, List<string> loraPaths)
+        {
+            string exists = File.Exists(modelPath).ToString();
+            string bytes = "missing";
+            string ggufArch = "unknown";
+            string ggufContext = "unknown";
+            string ggufEmbeddingLength = "unknown";
+
+            try
+            {
+                if (File.Exists(modelPath))
+                {
+                    bytes = new FileInfo(modelPath).Length.ToString();
+                    GGUFReader reader = new GGUFReader(modelPath);
+                    ggufArch = reader.GetStringField("general.architecture") ?? "missing";
+                    ggufContext = reader.GetIntField($"{ggufArch}.context_length").ToString();
+                    ggufEmbeddingLength = reader.GetIntField($"{ggufArch}.embedding_length").ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                ggufArch = $"read-error:{ex.Message}";
+            }
+
+            return $"model={model}, modelPath={modelPath}, exists={exists}, bytes={bytes}, backend={architecture}, numSlots={numSlots}, numThreads={effectiveThreads}, numGPULayers={numGPULayers}, contextSize={contextSize}, batchSize={batchSize}, embeddingsOnly={embeddingsOnly}, embeddingLength={embeddingLength}, ggufArch={ggufArch}, ggufContext={ggufContext}, ggufEmbeddingLength={ggufEmbeddingLength}, loraCount={loraPaths?.Count ?? 0}";
+        }
+
         #endregion
 
         #region Public Methods
@@ -548,7 +603,7 @@ namespace LLMUnity
 
             if (failed)
             {
-                LLMUnitySetup.LogError("LLM failed to start", true);
+                throw new LLMUnityException($"{name} failed to start. {lastStartupDiagnostics}");
             }
         }
 
@@ -584,10 +639,24 @@ namespace LLMUnity
             _model = GetLLMManagerAsset(path);
             if (string.IsNullOrEmpty(model)) return;
 
-            ModelEntry modelEntry = LLMManager.Get(model) ?? new ModelEntry(GetLLMManagerAssetRuntime(model));
+            RefreshModelMetadata();
+
+#if UNITY_EDITOR
+            if (!EditorApplication.isPlaying) EditorUtility.SetDirty(this);
+#endif
+        }
+
+        public void RefreshModelMetadata()
+        {
+            if (string.IsNullOrEmpty(model)) return;
+
+            string modelPath = GetLLMManagerAssetRuntime(model);
+            if (!File.Exists(modelPath)) return;
+
+            ModelEntry modelEntry = new ModelEntry(modelPath);
 
             maxContextLength = modelEntry.contextLength;
-            if (contextSize > maxContextLength)
+            if (maxContextLength > 0 && contextSize > maxContextLength)
             {
                 contextSize = maxContextLength;
             }
@@ -596,7 +665,7 @@ namespace LLMUnity
 
             if (contextSize == 0 && modelEntry.contextLength > 32768)
             {
-                LLMUnitySetup.LogWarning($"Model {path} has large context size ({modelEntry.contextLength}). Consider setting contextSize to ≤32768 to avoid excessive memory usage.");
+                LLMUnitySetup.LogWarning($"Model {model} has large context size ({modelEntry.contextLength}). Consider setting contextSize to 32768 or lower to avoid excessive memory usage.");
             }
 
 #if UNITY_EDITOR
@@ -887,6 +956,20 @@ namespace LLMUnity
         {
             if (string.IsNullOrEmpty(path)) return path;
 
+            // Use direct paths and explicit StreamingAssets-relative paths before any
+            // model manager lookup so stale PlayerPrefs mappings cannot redirect them.
+            if (Path.IsPathRooted(path) && File.Exists(path)) return path;
+
+            string assetPath = LLMUnitySetup.GetAssetPath(path);
+            string downloadPath = LLMUnitySetup.GetDownloadAssetPath(path);
+            bool explicitRelativePath = path.Contains("/") || path.Contains("\\");
+
+            if (explicitRelativePath)
+            {
+                if (File.Exists(assetPath)) return assetPath;
+                if (File.Exists(downloadPath)) return downloadPath;
+            }
+
             // Try LLMManager path
             string managerPath = LLMManager.GetAssetPath(path);
             if (!string.IsNullOrEmpty(managerPath) && File.Exists(managerPath))
@@ -895,11 +978,9 @@ namespace LLMUnity
             }
 
             // Try StreamingAssets
-            string assetPath = LLMUnitySetup.GetAssetPath(path);
             if (File.Exists(assetPath)) return assetPath;
 
             // Try download path
-            string downloadPath = LLMUnitySetup.GetDownloadAssetPath(path);
             if (File.Exists(downloadPath)) return downloadPath;
 
             return path;

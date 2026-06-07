@@ -36,7 +36,7 @@ public class NPCInteraction : MonoBehaviour
         {
             if (dialogueManager != null)
             {
-                dialogueManager.OpenDialogue(npcName, personality);
+                dialogueManager.OpenDialogue(npcName, personality, this);
                 isDialogueOpen = true;
             }
             else
