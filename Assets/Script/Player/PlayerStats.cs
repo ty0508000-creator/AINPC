@@ -15,6 +15,12 @@ public class PlayerStats : MonoBehaviour, IDamageable
     [Header("EXP")]
     public float MaxEXP = 100f;
 
+    [Header("Level Growth")]
+    [SerializeField, Min(0f)] private float hpIncreasePerLevel = 20f;
+    [SerializeField, Min(0f)] private float manaIncreasePerLevel = 10f;
+    [SerializeField, Min(1f)] private float expRequirementMultiplier = 1.5f;
+    [SerializeField] private bool healToFullOnLevelUp = true;
+
     public float HP { get; private set; }
     public float Mana { get; private set; }
     public float EXP { get; private set; }
@@ -71,11 +77,16 @@ public class PlayerStats : MonoBehaviour, IDamageable
     void LevelUp()
     {
         Level++;
-        MaxHP += 20f;
-        MaxMana += 10f;
-        MaxEXP = Mathf.Round(MaxEXP * 1.5f);
-        HP = MaxHP;
-        Mana = MaxMana;
+        MaxHP += hpIncreasePerLevel;
+        MaxMana += manaIncreasePerLevel;
+        MaxEXP = Mathf.Round(MaxEXP * expRequirementMultiplier);
+
+        if (healToFullOnLevelUp)
+        {
+            HP = MaxHP;
+            Mana = MaxMana;
+        }
+
         SaveSystem.SavePlayer(this);
     }
 

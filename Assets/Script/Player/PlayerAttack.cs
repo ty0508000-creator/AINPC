@@ -100,6 +100,12 @@ public class Player_Attack : MonoBehaviour
 
     void Update()
     {
+        if (DialogueManager.IsDialogueOpen)
+        {
+            CancelCharge();
+            return;
+        }
+
         if (IsInvincible) return;
 
         if (Mouse.current.leftButton.wasPressedThisFrame && Time.time - lastAttackTime >= attackCooldown)
@@ -180,6 +186,16 @@ public class Player_Attack : MonoBehaviour
         }
     }
 
+    void CancelCharge()
+    {
+        if (!isCharging) return;
+
+        isCharging = false;
+        chargeTime = 0f;
+        if (chargeIndicator != null)
+            chargeIndicator.SetActive(false);
+    }
+
     void UpdateChargeIndicator()
     {
         float ratio = Mathf.Clamp01(chargeTime / maxChargeTime);
@@ -235,6 +251,7 @@ public class Player_Attack : MonoBehaviour
     // AI가 직접 호출하는 대시 공격. desiredDistance(적까지 거리)로 충전량을 맞춘다.
     public void ForceDash(Vector2 direction, float desiredDistance)
     {
+        if (DialogueManager.IsDialogueOpen) return;
         if (IsInvincible || Time.time - lastDashTime < dashCooldown) return;
 
         lastDashTime = Time.time;
@@ -245,6 +262,7 @@ public class Player_Attack : MonoBehaviour
     // AI가 직접 호출하는 공격 메서드
     public void ForceAttack(Vector2 direction)
     {
+        if (DialogueManager.IsDialogueOpen) return;
         if (Time.time - lastAttackTime < attackCooldown) return;
         lastAttackTime = Time.time;
         TrySetTrigger("Attack");
