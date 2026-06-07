@@ -25,6 +25,10 @@ public class TakeoverEffect : MonoBehaviour
     [SerializeField] private AudioClip takeoverSfx;
     [SerializeField] private AudioClip restoreSfx;
 
+    [Header("Text")]
+    [SerializeField] private TMP_FontAsset koreanFont;
+    [SerializeField] private float lineFontSize = 84f;
+
     [Header("Lines")]
     [SerializeField] private string[] takeoverLines =
     {
@@ -156,7 +160,9 @@ public class TakeoverEffect : MonoBehaviour
         lineGO.transform.SetParent(canvasGO.transform, false);
         lineText = lineGO.AddComponent<TextMeshProUGUI>();
         lineText.text = "";
-        lineText.fontSize = 42f;
+        if (koreanFont != null)
+            lineText.font = koreanFont;
+        lineText.fontSize = lineFontSize;
         lineText.fontStyle = FontStyles.Bold | FontStyles.Italic;
         lineText.alignment = TextAlignmentOptions.Center;
         lineText.color = new Color(1f, 0.85f, 0.85f, 0f);
@@ -165,7 +171,7 @@ public class TakeoverEffect : MonoBehaviour
         lr.anchorMin = new Vector2(0.5f, 0.62f);
         lr.anchorMax = new Vector2(0.5f, 0.62f);
         lr.pivot = new Vector2(0.5f, 0.5f);
-        lr.sizeDelta = new Vector2(1200f, 90f);
+        lr.sizeDelta = new Vector2(1600f, 180f);
     }
 
     void OnDestroy()
