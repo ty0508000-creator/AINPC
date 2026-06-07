@@ -4,6 +4,8 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using LLMUnity;
 using System;
+using System.Globalization;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
@@ -25,6 +27,11 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] private LLMAgent llmAgent;
     [Tooltip("이 시간(초) 안에 응답이 없으면 대화를 마무리 (멈춤 방지)")]
     [SerializeField] private float llmTimeout = 20f;
+
+    [Header("LLM Metrics")]
+    [SerializeField] private bool recordLLMMetrics = true;
+    [SerializeField] private string llmMetricsFileName = "llm_response_metrics.csv";
+    [SerializeField, Min(0)] private int llmMetricsWarmupSamplesToSkip = 1;
 
     [Header("Legacy Memory (사용 안 함 — 기존 연결 보존용)")]
     [SerializeField] private MemoryManager memory;
@@ -52,6 +59,7 @@ public class DialogueManager : MonoBehaviour
     private ControlManager controlManager;
     private string lastMrSmithInput = "";
     private int repeatedMrSmithInputCount = 0;
+    private int llmMetricsSampleIndex = 0;
 
     [System.Serializable]
     private class NPCResponseData
@@ -219,7 +227,20 @@ public class DialogueManager : MonoBehaviour
                 addToHistory = false;
             }
 
-            string raw = await ChatStreaming(question, addToHistory);
+            string raw;
+            var llmStopwatch = System.Diagnostics.Stopwatch.StartNew();
+            try
+            {
+                raw = await ChatStreaming(question, addToHistory);
+                llmStopwatch.Stop();
+                RecordLLMMetric(question, raw, llmStopwatch.Elapsed.TotalSeconds, raw == null, false, "");
+            }
+            catch (System.Exception ex)
+            {
+                llmStopwatch.Stop();
+                RecordLLMMetric(question, "", llmStopwatch.Elapsed.TotalSeconds, false, true, ex.Message);
+                throw;
+            }
 
             if (raw == null)
             {
@@ -347,6 +368,57 @@ public class DialogueManager : MonoBehaviour
         string d = ExtractStreamingDialogue(partial);
         if (!string.IsNullOrEmpty(d))
             npcText.text = $"{currentNPCName}: {d}";
+    }
+
+    private void RecordLLMMetric(string question, string response, double seconds, bool timedOut, bool failed, string errorMessage)
+    {
+        if (!recordLLMMetrics)
+            return;
+
+        llmMetricsSampleIndex++;
+        bool skippedWarmup = llmMetricsSampleIndex <= llmMetricsWarmupSamplesToSkip;
+
+        string metricsPath = Path.Combine(Application.persistentDataPath, llmMetricsFileName);
+        bool writeHeader = !File.Exists(metricsPath);
+        string prompt = llmAgent != null ? llmAgent.systemPrompt : "";
+
+        if (writeHeader)
+        {
+            File.AppendAllText(metricsPath,
+                "timestamp,npc,sample_index,skipped_warmup,response_time_seconds,timed_out,failed,question_chars,prompt_chars,response_chars,error\n",
+                Encoding.UTF8);
+        }
+
+        string line =
+            $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}," +
+            $"{EscapeCsv(currentNPCName)}," +
+            $"{llmMetricsSampleIndex}," +
+            $"{skippedWarmup}," +
+            $"{seconds.ToString("F3", CultureInfo.InvariantCulture)}," +
+            $"{timedOut}," +
+            $"{failed}," +
+            $"{(question != null ? question.Length : 0)}," +
+            $"{(prompt != null ? prompt.Length : 0)}," +
+            $"{(response != null ? response.Length : 0)}," +
+            $"{EscapeCsv(errorMessage)}\n";
+
+        File.AppendAllText(metricsPath, line, Encoding.UTF8);
+
+        Debug.Log(
+            $"[LLM Metrics] sample={llmMetricsSampleIndex}, skippedWarmup={skippedWarmup}, " +
+            $"npc={currentNPCName}, responseTime={seconds:F3}s, timeout={timedOut}, failed={failed}, csv={metricsPath}");
+    }
+
+    private static string EscapeCsv(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return "";
+
+        bool mustQuote = value.Contains(",") || value.Contains("\"") || value.Contains("\n") || value.Contains("\r");
+        if (!mustQuote)
+            return value;
+
+        return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 
     // 아직 닫히지 않은 부분 JSON에서 dialogue 문자열만 뽑아냄

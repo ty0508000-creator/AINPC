@@ -14,6 +14,7 @@ public class InnerVoiceManager : MonoBehaviour
     [Header("Trigger")]
     [SerializeField] private float checkInterval = 30f;
     [SerializeField] private float triggerChance = 0.1f;
+    [SerializeField] private KeyCode testOpenKey = KeyCode.I;
 
     [Header("LLM (내면 전용 LLMAgent 별도 연결)")]
     [SerializeField] private LLMAgent llmAgent;
@@ -80,6 +81,12 @@ public class InnerVoiceManager : MonoBehaviour
         EnsureEventSystem();
         BuildUI();
         StartCoroutine(TriggerLoop());
+    }
+
+    void Update()
+    {
+        if (testOpenKey != KeyCode.None && Input.GetKeyDown(testOpenKey) && !DialogueManager.IsDialogueOpen && !isActive && !isProcessing && !isTransitioning)
+            _ = OpenDialogue();
     }
 
     // ── 트리거 루프 ──────────────────────────────────────────────
