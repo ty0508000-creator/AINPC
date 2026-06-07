@@ -50,6 +50,8 @@ public class DialogueManager : MonoBehaviour
     private bool blocked = false;
     private MoodSystem moodSystem;
     private ControlManager controlManager;
+    private string lastMrSmithInput = "";
+    private int repeatedMrSmithInputCount = 0;
 
     [System.Serializable]
     private class NPCResponseData
@@ -100,6 +102,12 @@ public class DialogueManager : MonoBehaviour
         currentNPCName = name;
         currentNPC = npc;
         isMrSmith = IsMrSmith(npc, name);
+        if (isMrSmith)
+        {
+            lastMrSmithInput = "";
+            repeatedMrSmithInputCount = 0;
+        }
+
         currentMrSmithMemory = isMrSmith
             ? ResolveMrSmithMemory(npc)
             : null;
@@ -184,6 +192,18 @@ public class DialogueManager : MonoBehaviour
             bool addToHistory = true;
             if (isMrSmith)
             {
+                if (ShouldSmithDismiss(question))
+                {
+                    string dialogue = "흠...";
+                    npcText.text = $"{currentNPCName}: {dialogue}";
+                    moodSystem?.ChangeMood(-1);
+
+                    if (currentMrSmithMemory != null)
+                        _ = currentMrSmithMemory.RememberExchange(question, dialogue);
+
+                    return;
+                }
+
                 string recent = currentMrSmithMemory != null
                     ? currentMrSmithMemory.GetRecentConversationBlock()
                     : "";
@@ -273,6 +293,36 @@ public class DialogueManager : MonoBehaviour
             }
         }
         return await llmAgent.Chat(question, OnStreamPartial, addToHistory: addToHistory);
+    }
+
+    private bool ShouldSmithDismiss(string input)
+    {
+        string normalized = NormalizeSmithInput(input);
+        if (string.IsNullOrEmpty(normalized))
+            return true;
+
+        bool repeated = normalized == lastMrSmithInput;
+        repeatedMrSmithInputCount = repeated ? repeatedMrSmithInputCount + 1 : 1;
+        lastMrSmithInput = normalized;
+
+        if (repeatedMrSmithInputCount >= 3)
+            return true;
+
+        if (normalized.Length <= 1)
+            return true;
+
+        if (Regex.IsMatch(normalized, "^(ㅋ+|ㅎ+|ㅇ+|ㄴ+|ㅁㄴㅇㄹ)$"))
+            return true;
+
+        return false;
+    }
+
+    private static string NormalizeSmithInput(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return "";
+
+        return Regex.Replace(input.ToLowerInvariant(), @"[\s\p{P}\p{S}]+", "");
     }
 
     // 응답을 스트리밍으로 받되, llmTimeout 안에 끝나지 않으면 null 반환
@@ -405,16 +455,18 @@ public class DialogueManager : MonoBehaviour
     private static string BuildMrSmithPrompt(string personality, string recentConversation, string relatedMemories, string currentUserInput)
     {
         string character = string.IsNullOrWhiteSpace(personality)
-            ? "Mr.Smith는 정중하지만 속을 쉽게 드러내지 않는 대장장이 NPC다. 플레이어의 이전 발언을 기억하고, 같은 약속이나 거짓말이 반복되면 은근히 지적한다. 플레이어가 신뢰를 쌓으면 조금 더 협조적으로 변한다."
+            ? "Mr.Smith는 무뚝뚝하고 말수가 적은 마을 대장장이다. 플레이어에게는 반말을 쓰며, 속을 쉽게 드러내지 않는다. 쓸데없는 말이나 반복되는 말을 들으면 대답 대신 \"흠...\"이라고 짧게 넘긴다."
             : personality;
 
         return
             "[캐릭터 설정]\n" +
             character + "\n\n" +
             "[응답 규칙]\n" +
-            "말투는 차분하고 절제되어야 한다.\n" +
-            "과장된 표현을 피한다.\n" +
-            "답변은 1~3문장으로 한다.\n" +
+            "플레이어에게 반드시 반말을 쓴다.\n" +
+            "말수는 적게 유지한다. 보통 1문장, 길어도 2문장만 말한다.\n" +
+            "대장장이답게 무기, 철, 불, 망치, 수리, 광석에 관한 감각을 자연스럽게 드러낸다.\n" +
+            "친절하게 설명하려 들지 말고, 필요한 말만 한다.\n" +
+            "플레이어가 같은 말을 지나치게 반복하거나 의미 없는 말을 하면 dialogue를 정확히 \"흠...\"으로만 응답한다.\n" +
             "관련 과거 기억이 있으면 자연스럽게 반영하되, 기억 목록을 그대로 읽지 않는다.\n" +
             "반드시 다음 JSON 형식으로만 응답한다: {\"dialogue\":\"대사 내용\",\"mood_delta\":0}\n\n" +
             "[최근 대화]\n" +
