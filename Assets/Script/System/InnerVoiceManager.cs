@@ -33,6 +33,10 @@ public class InnerVoiceManager : MonoBehaviour
     [SerializeField] private Sprite avatarSprite;   // 선택: 어둠 인격 실루엣/초상
     [SerializeField] private float transitionTime = 0.55f;
 
+    [Header("Text")]
+    [SerializeField] private TMP_FontAsset koreanFont;
+    [SerializeField] private float fontScale = 2f;
+
     private MoodSystem moodSystem;
     private PlayerStats playerStats;
     private ControlManager controlManager;
@@ -446,13 +450,13 @@ public class InnerVoiceManager : MonoBehaviour
 
         // 입력창
         inputField = CreateInputField(contentGO.transform,
-            new Vector2(0.5f, 0.13f), new Vector2(900f, 64f), "말을 걸어보세요...");
+            new Vector2(0.5f, 0.13f), new Vector2(900f, 64f * fontScale), "말을 걸어보세요...");
         inputField.onSubmit.AddListener(OnInputSubmit);
 
         // 전송 버튼
         sendButton = CreateButton(contentGO.transform, "말하기",
-            new Vector2(0.5f, 0.13f), new Vector2(150f, 64f),
-            new Vector2(540f, 0f), accentColor);
+            new Vector2(0.5f, 0.13f), new Vector2(240f, 64f * fontScale),
+            new Vector2(570f, 0f), accentColor);
         sendButton.onClick.AddListener(OnSend);
 
         overlayRoot.SetActive(false);
@@ -489,13 +493,15 @@ public class InnerVoiceManager : MonoBehaviour
         go.transform.SetParent(parent, false);
         var tmp = go.AddComponent<TextMeshProUGUI>();
         tmp.text = text;
-        tmp.fontSize = size;
+        if (koreanFont != null)
+            tmp.font = koreanFont;
+        tmp.fontSize = size * fontScale;
         tmp.color = color;
         tmp.raycastTarget = false;
         var r = go.GetComponent<RectTransform>();
         r.anchorMin = r.anchorMax = anchor;
         r.pivot = new Vector2(0.5f, 0.5f);
-        r.sizeDelta = new Vector2(width, size * 2.4f);
+        r.sizeDelta = new Vector2(width, size * fontScale * 2.4f);
         return tmp;
     }
 
@@ -525,7 +531,9 @@ public class InnerVoiceManager : MonoBehaviour
         phGO.transform.SetParent(ta.transform, false);
         var ph = phGO.AddComponent<TextMeshProUGUI>();
         ph.text = placeholder;
-        ph.fontSize = 22f;
+        if (koreanFont != null)
+            ph.font = koreanFont;
+        ph.fontSize = 22f * fontScale;
         ph.color = new Color(1f, 1f, 1f, 0.4f);
         ph.fontStyle = FontStyles.Italic;
         ph.alignment = TextAlignmentOptions.Left;
@@ -535,7 +543,9 @@ public class InnerVoiceManager : MonoBehaviour
         var txtGO = new GameObject("Text");
         txtGO.transform.SetParent(ta.transform, false);
         var txt = txtGO.AddComponent<TextMeshProUGUI>();
-        txt.fontSize = 22f;
+        if (koreanFont != null)
+            txt.font = koreanFont;
+        txt.fontSize = 22f * fontScale;
         txt.color = Color.white;
         txt.alignment = TextAlignmentOptions.Left;
         Stretch(txtGO.GetComponent<RectTransform>(), Vector4.zero);
@@ -566,7 +576,9 @@ public class InnerVoiceManager : MonoBehaviour
         txtGO.transform.SetParent(go.transform, false);
         var txt = txtGO.AddComponent<TextMeshProUGUI>();
         txt.text = label;
-        txt.fontSize = 20f;
+        if (koreanFont != null)
+            txt.font = koreanFont;
+        txt.fontSize = 20f * fontScale;
         txt.color = Color.white;
         txt.alignment = TextAlignmentOptions.Center;
         Stretch(txtGO.GetComponent<RectTransform>(), Vector4.zero);
