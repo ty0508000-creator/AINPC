@@ -5,6 +5,7 @@ public class Player_Controller : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
 
+    public float MoveSpeed => moveSpeed;
     public Vector2 LastMoveDir { get; private set; } = Vector2.right;
 
     private Animator animator;

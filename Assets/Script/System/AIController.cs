@@ -7,12 +7,13 @@ public class AIController : MonoBehaviour
     [SerializeField] private float aiMoveSpeed = 5f;
     [SerializeField] private float detectionRadius = 10f;
     [SerializeField] private float attackTriggerRange = 1.5f;
+    [SerializeField] private float attackRangeTolerance = 0.15f;
     [SerializeField] private float actionInterval = 2f;
     [SerializeField] private LayerMask enemyLayer;
 
-    [Header("Reckless (제어권 상실의 대가)")]
-    [Tooltip("이 거리 안에 적이 있으면 AI가 몸을 함부로 굴려 얻어맞는다 (공격 정지 거리 이상 권장)")]
-    [SerializeField] private float contactRange = 1.6f;
+    [Header("Reckless")]
+    [Tooltip("If an enemy is within this range during AI control, the body gets hit for being reckless.")]
+    [SerializeField] private float contactRange = 0.75f;
     [SerializeField] private int recklessDamage = 5;
     [SerializeField] private float recklessInterval = 1f;
 
@@ -20,6 +21,7 @@ public class AIController : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private ControlManager controlManager;
     private Player_Attack playerAttack;
+    private Player_Controller playerController;
     private PlayerStats playerStats;
 
     private Coroutine behaviorCoroutine;
@@ -32,6 +34,7 @@ public class AIController : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         controlManager = GetComponent<ControlManager>();
         playerAttack = GetComponent<Player_Attack>();
+        playerController = GetComponent<Player_Controller>();
         playerStats = GetComponent<PlayerStats>();
 
         if (spriteRenderer != null) baseColor = spriteRenderer.color;
@@ -62,7 +65,6 @@ public class AIController : MonoBehaviour
         if (spriteRenderer != null) spriteRenderer.color = baseColor;
     }
 
-    // AI가 몸을 함부로 굴려 적에게 그대로 얻어맞는다 (제어권을 잃은 대가)
     IEnumerator RecklessLoop()
     {
         var wait = new WaitForSeconds(recklessInterval);
@@ -95,16 +97,14 @@ public class AIController : MonoBehaviour
     {
         while (true)
         {
-            // 돌진 중이면 대기
             while (playerAttack.IsInvincible)
                 yield return new WaitForFixedUpdate();
 
             Collider2D target = FindNearest();
 
-            // nested IEnumerator (StartCoroutine 아님) → 제어권 회복 시 함께 중단됨
             if (target != null)
             {
-                yield return ChaseAndAttack(target);   // 적을 처치/이탈할 때까지 연속 전투
+                yield return KeepRangeAndAttack(target);
             }
             else
             {
@@ -129,51 +129,81 @@ public class AIController : MonoBehaviour
         return nearest;
     }
 
-    // 적이 죽거나(파괴) 탐지 범위 밖으로 도망칠 때까지 추격하며 연속 공격
-    IEnumerator ChaseAndAttack(Collider2D target)
+    IEnumerator KeepRangeAndAttack(Collider2D target)
     {
         while (target != null)
         {
             while (playerAttack.IsInvincible)
                 yield return new WaitForFixedUpdate();
 
-            if (target == null) break;   // 대기 중 적이 죽었을 수 있음
+            if (target == null) break;
 
-            Vector2 tpos = target.transform.position;
-            Vector2 dir = (tpos - rb.position).normalized;
-            float dist = Vector2.Distance(rb.position, tpos);
+            Vector2 offset = (Vector2)target.transform.position - rb.position;
+            float dist = offset.magnitude;
+            Vector2 dir = GetDirectionToTarget(offset);
+            float preferredRange = GetPreferredAttackRange();
+            float moveSpeed = GetAIMoveSpeed();
 
-            // 적이 탐지 범위 밖으로 벗어나면 재탐색
             if (dist > detectionRadius)
             {
                 rb.linearVelocity = Vector2.zero;
                 yield break;
             }
 
-            spriteRenderer.flipX = dir.x < 0;
+            if (spriteRenderer != null)
+                spriteRenderer.flipX = dir.x < 0;
 
-            if (dist <= attackTriggerRange)
+            if (dist < preferredRange - attackRangeTolerance)
             {
-                // 근거리: 일반 공격 (쿨다운은 Player_Attack 내부에서 관리)
+                rb.linearVelocity = -dir * moveSpeed;
+                if (dist <= attackTriggerRange)
+                    playerAttack.ForceAttack(dir);
+            }
+            else if (dist <= attackTriggerRange)
+            {
                 rb.linearVelocity = Vector2.zero;
                 playerAttack.ForceAttack(dir);
             }
-            else if (playerAttack.DashReady && dist <= playerAttack.MaxDashRange)
+            else if (dist > preferredRange + attackRangeTolerance)
             {
-                // 원거리(대시 사거리 안 + 쿨다운 완료): 대시 공격으로 파고듦
-                rb.linearVelocity = Vector2.zero;
-                playerAttack.ForceDash(dir, dist);
+                rb.linearVelocity = dir * moveSpeed;
             }
             else
             {
-                // 대시 사거리 밖이거나 쿨다운 중: 걸어서 접근
-                rb.linearVelocity = dir * aiMoveSpeed;
+                rb.linearVelocity = Vector2.zero;
             }
 
             yield return new WaitForFixedUpdate();
         }
 
         rb.linearVelocity = Vector2.zero;
+    }
+
+    Vector2 GetDirectionToTarget(Vector2 offset)
+    {
+        if (offset.sqrMagnitude > 0.0001f)
+            return offset.normalized;
+
+        if (playerController != null && playerController.LastMoveDir.sqrMagnitude > 0.0001f)
+            return playerController.LastMoveDir;
+
+        return Vector2.right;
+    }
+
+    float GetPreferredAttackRange()
+    {
+        if (playerAttack == null)
+            return attackTriggerRange;
+
+        return Mathf.Max(0.1f, playerAttack.NormalAttackRange, attackTriggerRange);
+    }
+
+    float GetAIMoveSpeed()
+    {
+        if (playerController == null)
+            return aiMoveSpeed;
+
+        return playerController.MoveSpeed;
     }
 
     IEnumerator Wander()
@@ -184,8 +214,9 @@ public class AIController : MonoBehaviour
 
         while (timer < duration)
         {
-            rb.linearVelocity = dir * aiMoveSpeed;
-            spriteRenderer.flipX = dir.x < 0;
+            rb.linearVelocity = dir * GetAIMoveSpeed();
+            if (spriteRenderer != null)
+                spriteRenderer.flipX = dir.x < 0;
             timer += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
         }
@@ -207,5 +238,8 @@ public class AIController : MonoBehaviour
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, contactRange);
+
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, GetPreferredAttackRange());
     }
 }

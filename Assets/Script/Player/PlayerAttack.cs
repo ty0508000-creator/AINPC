@@ -247,6 +247,7 @@ public class Player_Attack : MonoBehaviour
     // ── AI용 인터페이스 ───────────────────────────────────────────
     public bool DashReady => Time.time - lastDashTime >= dashCooldown;
     public float MaxDashRange => maxDashDistance;
+    public float NormalAttackRange => attackRange;
 
     // AI가 직접 호출하는 대시 공격. desiredDistance(적까지 거리)로 충전량을 맞춘다.
     public void ForceDash(Vector2 direction, float desiredDistance)
