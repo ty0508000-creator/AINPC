@@ -1,9 +1,12 @@
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public abstract class MonsterBase : MonoBehaviour, IDamageable
 {
     [SerializeField] private MonsterData monsterData;
+    [SerializeField] private Color hitFlashColor = Color.red;
+    [SerializeField, Min(0.01f)] private float hitFlashDuration = 0.12f;
 
     public MonsterData Data => monsterData;
     public bool IsDead { get; private set; }
@@ -16,11 +19,15 @@ public abstract class MonsterBase : MonoBehaviour, IDamageable
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
     private MonsterSpawnPoint spawnPoint;
+    private Coroutine hitFlashCoroutine;
+    private Color baseColor = Color.white;
 
     protected virtual void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+            baseColor = spriteRenderer.color;
     }
 
     protected virtual void Start()
@@ -88,6 +95,8 @@ public abstract class MonsterBase : MonoBehaviour, IDamageable
             return;
 
         currentHP = Mathf.Max(0f, currentHP - damage);
+        PlayHitFlash();
+
         if (currentHP <= 0f)
             Die();
     }
@@ -149,6 +158,28 @@ public abstract class MonsterBase : MonoBehaviour, IDamageable
             spriteRenderer.flipX = true;
         else if (direction.x > 0.01f)
             spriteRenderer.flipX = false;
+    }
+
+    private void PlayHitFlash()
+    {
+        if (spriteRenderer == null || hitFlashDuration <= 0f)
+            return;
+
+        if (hitFlashCoroutine != null)
+            StopCoroutine(hitFlashCoroutine);
+
+        hitFlashCoroutine = StartCoroutine(HitFlashCoroutine());
+    }
+
+    private IEnumerator HitFlashCoroutine()
+    {
+        spriteRenderer.color = hitFlashColor;
+        yield return new WaitForSeconds(hitFlashDuration);
+
+        if (spriteRenderer != null)
+            spriteRenderer.color = baseColor;
+
+        hitFlashCoroutine = null;
     }
 
     private void OnDestroy()
