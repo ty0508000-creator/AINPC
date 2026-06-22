@@ -26,15 +26,19 @@ public class Player_Controller : MonoBehaviour
 
     void Update()
     {
+        bool isAIControlled = controlManager != null && !controlManager.IsPlayerControlled;
         bool blocked =
             (playerAttack != null && playerAttack.IsInvincible) ||
-            (controlManager != null && !controlManager.IsPlayerControlled) ||
             DialogueManager.IsDialogueOpen;
 
         if (blocked)
         {
             moveInput = Vector2.zero;
             if (rb != null) rb.linearVelocity = Vector2.zero;
+        }
+        else if (isAIControlled)
+        {
+            moveInput = Vector2.zero;
         }
         else
         {
@@ -43,23 +47,29 @@ public class Player_Controller : MonoBehaviour
                 LastMoveDir = moveInput.normalized;
         }
 
-        animator.SetFloat("Speed", moveInput.magnitude);
+        float speed = isAIControlled && rb != null
+            ? rb.linearVelocity.magnitude
+            : moveInput.magnitude;
+        animator.SetFloat("Speed", speed);
 
-        if (moveInput.x < 0)
+        if (!isAIControlled && moveInput.x < 0)
             spriteRenderer.flipX = true;
-        else if (moveInput.x > 0)
+        else if (!isAIControlled && moveInput.x > 0)
             spriteRenderer.flipX = false;
     }
 
     void FixedUpdate()
     {
+        bool isAIControlled = controlManager != null && !controlManager.IsPlayerControlled;
         if ((playerAttack != null && playerAttack.IsInvincible) ||
-            (controlManager != null && !controlManager.IsPlayerControlled) ||
             DialogueManager.IsDialogueOpen)
         {
             rb.linearVelocity = Vector2.zero;
             return;
         }
+
+        if (isAIControlled)
+            return;
 
         rb.linearVelocity = moveInput.normalized * moveSpeed;
     }
