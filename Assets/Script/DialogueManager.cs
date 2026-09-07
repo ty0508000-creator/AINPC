@@ -31,6 +31,10 @@ public class DialogueManager : MonoBehaviour
     [Header("LLM Metrics")]
     [SerializeField] private bool recordLLMMetrics = true;
     [SerializeField] private string llmMetricsFileName = "llm_response_metrics.csv";
+
+    [Header("Fallback")]
+    [Tooltip("(A-3) LLM 응답 파싱 실패 시 화면에 대신 띄울 대사. 원문은 절대 노출하지 않는다.")]
+    [SerializeField] private string parseFailFallbackLine = "흠...";
     [SerializeField, Min(0)] private int llmMetricsWarmupSamplesToSkip = 1;
 
     [Header("Legacy Memory (사용 안 함 — 기존 연결 보존용)")]
@@ -61,12 +65,6 @@ public class DialogueManager : MonoBehaviour
     private int repeatedMrSmithInputCount = 0;
     private int llmMetricsSampleIndex = 0;
 
-    [System.Serializable]
-    private class NPCResponseData
-    {
-        public string dialogue;
-        public int mood_delta;
-    }
 
     void Start()
     {
@@ -248,12 +246,28 @@ public class DialogueManager : MonoBehaviour
             }
             else if (!string.IsNullOrEmpty(raw))
             {
-                var (dialogue, moodDelta) = ParseResponse(raw);
-                npcText.text = $"{currentNPCName}: {dialogue}";
-                moodSystem?.ChangeMood(moodDelta);
+                // (A-3) 파싱에 실패해도 원문을 화면에 흘리지 않는다.
+                //       화면에는 페르소나 폴백 대사, 실패 사실은 로그에만 남긴다.
+                var parsed = LLMResponseParser.Parse(raw, parseFailFallbackLine);
+                npcText.text = $"{currentNPCName}: {parsed.Dialogue}";
 
-                if (isMrSmith && currentMrSmithMemory != null)
-                    _ = currentMrSmithMemory.RememberExchange(question, dialogue);
+                // (A-2) mood_delta는 이미 -20~+20으로 클램프된 값이다.
+                moodSystem?.ChangeMood(parsed.MoodDelta);
+
+                if (!parsed.ParseOk)
+                {
+                    Debug.LogWarning(
+                        $"[Dialogue] JSON 파싱 실패({parsed.FailureReason}) npc={currentNPCName} raw={Truncate(raw, 300)}");
+                }
+                else if (parsed.MoodDeltaRaw != parsed.MoodDelta)
+                {
+                    Debug.LogWarning(
+                        $"[Dialogue] mood_delta 클램프 {parsed.MoodDeltaRaw} → {parsed.MoodDelta} (npc={currentNPCName})");
+                }
+
+                // 파싱에 실패한 턴은 기억에 남기지 않는다. 폴백 대사를 사실처럼 기억하면 다음 턴이 오염된다.
+                if (parsed.ParseOk && isMrSmith && currentMrSmithMemory != null)
+                    _ = currentMrSmithMemory.RememberExchange(question, parsed.Dialogue);
             }
             else
             {
@@ -272,31 +286,10 @@ public class DialogueManager : MonoBehaviour
         }
     }
 
-    private (string dialogue, int moodDelta) ParseResponse(string raw)
+    private static string Truncate(string text, int max)
     {
-        // JSON 블록 추출 시도
-        int start = raw.IndexOf('{');
-        int end = raw.LastIndexOf('}');
-        if (start >= 0 && end > start)
-        {
-            try
-            {
-                string json = raw.Substring(start, end - start + 1);
-                var data = JsonUtility.FromJson<NPCResponseData>(json);
-                if (!string.IsNullOrEmpty(data.dialogue))
-                    return (data.dialogue, data.mood_delta);
-            }
-            catch { }
-        }
-
-        // Regex 폴백
-        var dMatch = Regex.Match(raw, "\"dialogue\"\\s*:\\s*\"([^\"]+)\"");
-        var mMatch = Regex.Match(raw, "\"mood_delta\"\\s*:\\s*(-?\\d+)");
-
-        string dialogue = dMatch.Success ? dMatch.Groups[1].Value : raw;
-        int mood = mMatch.Success ? int.Parse(mMatch.Groups[1].Value) : 0;
-
-        return (dialogue, mood);
+        if (string.IsNullOrEmpty(text) || text.Length <= max) return text;
+        return text.Substring(0, max) + "…";
     }
 
     private async Task<string> ChatWithRetry(string question, bool addToHistory)

@@ -46,8 +46,12 @@ public class MrSmithLongTermMemory : MonoBehaviour
     private bool initialized;
     private bool memoryEnabled;
 
+    // (A-4) 쓰기 가능한 persistentDataPath 아래 절대경로. 초기화 때 한 번 확정한다.
+    private string resolvedSavePath;
+
     public bool MemoryEnabled => memoryEnabled;
     public string SaveFileName => saveFileName;
+    public string ResolvedSavePath => resolvedSavePath;
 
     private async void Start()
     {
@@ -113,11 +117,12 @@ public class MrSmithLongTermMemory : MonoBehaviour
                 return;
             }
 
-            await rag.Load(saveFileName);
+            resolvedSavePath = MemoryPaths.Resolve(saveFileName);
+            await rag.Load(resolvedSavePath);
 
             memoryEnabled = true;
             await SeedInitialMemoriesIfNeeded();
-            Debug.Log($"[MrSmithMemory] ready. model={embeddingLLM.model}, embeddingsOnly={embeddingLLM.embeddingsOnly}, embeddingLength={embeddingLLM.embeddingLength}, file={saveFileName}, count={rag.Count()}");
+            Debug.Log($"[MrSmithMemory] ready. model={embeddingLLM.model}, embeddingsOnly={embeddingLLM.embeddingsOnly}, embeddingLength={embeddingLLM.embeddingLength}, file={resolvedSavePath}, count={rag.Count()}");
         }
         catch (System.Exception ex)
         {
@@ -243,7 +248,7 @@ public class MrSmithLongTermMemory : MonoBehaviour
 
         try
         {
-            rag.Save(saveFileName);
+            rag.Save(resolvedSavePath);
         }
         catch (System.Exception ex)
         {
