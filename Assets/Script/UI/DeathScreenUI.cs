@@ -1,8 +1,6 @@
 using System;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 /// <summary>
@@ -127,18 +125,7 @@ public class DeathScreenUI : MonoBehaviour
         respawnButton = MakeButton(canvasGo.transform,
             hasKorean ? "부활" : "RESPAWN", new Vector2(0f, -140f));
 
-        EnsureEventSystem();
-    }
-
-    private void EnsureEventSystem()
-    {
-        // 버튼을 누르려면 EventSystem 이 있어야 한다. 씬에 없으면 만들어 준다.
-        if (EventSystem.current != null)
-            return;
-
-        var go = new GameObject("EventSystem");
-        go.AddComponent<EventSystem>();
-        go.AddComponent<InputSystemUIInputModule>();
+        UiBootstrap.EnsureEventSystem();
     }
 
     private static void Stretch(RectTransform rect)
