@@ -51,6 +51,7 @@ Shader "AINPC/Water Frame Scroll"
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
+            float4 _MainTex_TexelSize;
             fixed4 _Color;
             float _FrameCount;
             float _FrameStepU;
@@ -72,6 +73,11 @@ Shader "AINPC/Water Frame Scroll"
                 float frame = fmod(floor(_Time.y * _FPS), frames);
 
                 float2 uv = i.uv + float2(frame * _FrameStepU, 0.0);
+
+                // 픽셀 아트라 텍셀 한가운데에서 뽑아야 한다.
+                // 프레임 경계에 딱 걸치면 옆 프레임 끝줄이 1픽셀 새어 들어와 이음새가 보인다.
+                uv = (floor(uv * _MainTex_TexelSize.zw) + 0.5) * _MainTex_TexelSize.xy;
+
                 return tex2D(_MainTex, uv) * i.color * _Color;
             }
             ENDCG
