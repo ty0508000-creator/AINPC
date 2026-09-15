@@ -171,6 +171,7 @@ namespace AINPC.MapGen
         private static int SpawnProps(Transform root, MapPlan plan)
         {
             var groups = new System.Collections.Generic.Dictionary<string, Transform>();
+            var houses = new System.Collections.Generic.Dictionary<int, Transform>();
             int spawned = 0;
 
             foreach (var prop in plan.props)
@@ -184,6 +185,10 @@ namespace AINPC.MapGen
                     parent = groupGo.transform;
                     groups[prop.group] = parent;
                 }
+
+                // 조각으로 조립된 집은 한 채씩 부모로 묶어 통째로 흐려질 수 있게 한다
+                if (prop.groupId >= 0)
+                    parent = GetHouseRoot(houses, parent, prop);
 
                 var go = new GameObject(prop.sprite.name);
                 go.transform.SetParent(parent, false);
@@ -199,6 +204,22 @@ namespace AINPC.MapGen
             }
 
             return spawned;
+        }
+
+        /// <summary>집 한 채의 부모를 찾거나 만든다. 부모에는 가림 투명 처리를 붙여 둔다.</summary>
+        private static Transform GetHouseRoot(
+            System.Collections.Generic.Dictionary<int, Transform> houses, Transform parent, PropPlan prop)
+        {
+            if (houses.TryGetValue(prop.groupId, out Transform existing))
+                return existing;
+
+            var houseGo = new GameObject("House_" + prop.groupId);
+            houseGo.transform.SetParent(parent, false);
+            houseGo.transform.position = new Vector3(prop.bottomCenter.x, prop.bottomCenter.y, 0f);
+            houseGo.AddComponent<FadeWhenPlayerBehind>();
+
+            houses[prop.groupId] = houseGo.transform;
+            return houseGo.transform;
         }
 
         /// <summary>스프라이트 바닥 중앙을 원하는 지점에 맞추기 위한 트랜스폼 위치.</summary>

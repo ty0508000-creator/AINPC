@@ -81,6 +81,9 @@ namespace AINPC.MapGen
                 settings.villageX = EditorGUILayout.Slider("마을 위치", settings.villageX, 0.05f, 0.95f);
                 settings.blockSize = EditorGUILayout.IntSlider("거리 간격", settings.blockSize, 10, 40);
                 EditorGUILayout.LabelField(" ", "거리 간격이 좁을수록 집이 촘촘해집니다", EditorStyles.miniLabel);
+                settings.houseGap = EditorGUILayout.IntSlider("집 간격", settings.houseGap, 1, 12);
+                settings.houseChance = EditorGUILayout.Slider("집 채우는 비율", settings.houseChance, 0.1f, 1f);
+                EditorGUILayout.LabelField(" ", "간격을 넓히고 비율을 낮추면 집이 성기게 들어섭니다", EditorStyles.miniLabel);
             }
 
             EditorGUILayout.Space();

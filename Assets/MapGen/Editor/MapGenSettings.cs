@@ -28,6 +28,8 @@ namespace AINPC.MapGen
         public int villageHeight = 28;
         public float villageX = 0.64f;   // 마을 중심 위치(가로 비율)
         public int blockSize = 18;       // 거리 간격 — 이 칸수마다 가로/세로 거리를 하나씩 깐다
+        public int houseGap = 3;         // 집과 집 사이에 비워 둘 최소 칸수
+        public float houseChance = 0.7f; // 자리마다 실제로 집을 세울 확률 (낮출수록 빈 터가 는다)
 
         // 자연물
         public float treeDensity = 0.10f;
