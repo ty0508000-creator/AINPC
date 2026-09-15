@@ -31,6 +31,7 @@ public class Player_Attack : MonoBehaviour
     public bool IsInvincible { get; private set; }
 
     private Player_Controller playerController;
+    private PlayerStats playerStats;
     private Animator animator;
     private Rigidbody2D rb;
     private AudioSource audioSource;
@@ -48,6 +49,7 @@ public class Player_Attack : MonoBehaviour
     void Start()
     {
         playerController = GetComponent<Player_Controller>();
+        playerStats = GetComponent<PlayerStats>();
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
 
@@ -100,7 +102,7 @@ public class Player_Attack : MonoBehaviour
 
     void Update()
     {
-        if (DialogueManager.IsDialogueOpen)
+        if (DialogueManager.IsDialogueOpen || IsPlayerDead)
         {
             CancelCharge();
             return;
@@ -255,7 +257,7 @@ public class Player_Attack : MonoBehaviour
     // AI가 직접 호출하는 대시 공격. desiredDistance(적까지 거리)로 충전량을 맞춘다.
     public void ForceDash(Vector2 direction, float desiredDistance)
     {
-        if (DialogueManager.IsDialogueOpen) return;
+        if (DialogueManager.IsDialogueOpen || IsPlayerDead) return;
         if (IsInvincible || Time.time - lastDashTime < dashCooldown) return;
 
         lastDashTime = Time.time;
@@ -264,9 +266,21 @@ public class Player_Attack : MonoBehaviour
     }
 
     // AI가 직접 호출하는 공격 메서드
+    /// <summary>죽은 뒤에는 공격이 나가지 않는다 (AI 가 불러도 마찬가지).</summary>
+    private bool IsPlayerDead
+    {
+        get
+        {
+            if (playerStats == null)
+                playerStats = GetComponent<PlayerStats>();
+
+            return playerStats != null && playerStats.IsDead;
+        }
+    }
+
     public void ForceAttack(Vector2 direction)
     {
-        if (DialogueManager.IsDialogueOpen) return;
+        if (DialogueManager.IsDialogueOpen || IsPlayerDead) return;
         if (Time.time - lastAttackTime < attackCooldown) return;
         lastAttackTime = Time.time;
         TrySetTrigger("Attack");

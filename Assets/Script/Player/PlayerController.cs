@@ -14,6 +14,10 @@ public class Player_Controller : MonoBehaviour
     private Vector2 moveInput;
     private Player_Attack playerAttack;
     private ControlManager controlManager;
+    private PlayerStats playerStats;
+
+    /// <summary>죽었으면 조작을 받지 않는다.</summary>
+    private bool IsDead => playerStats != null && playerStats.IsDead;
 
     void Start()
     {
@@ -22,12 +26,14 @@ public class Player_Controller : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         playerAttack = GetComponent<Player_Attack>();
         controlManager = GetComponent<ControlManager>();
+        playerStats = GetComponent<PlayerStats>();
     }
 
     void Update()
     {
         bool isAIControlled = controlManager != null && !controlManager.IsPlayerControlled;
         bool blocked =
+            IsDead ||
             (playerAttack != null && playerAttack.IsInvincible) ||
             DialogueManager.IsDialogueOpen;
 
@@ -61,7 +67,8 @@ public class Player_Controller : MonoBehaviour
     void FixedUpdate()
     {
         bool isAIControlled = controlManager != null && !controlManager.IsPlayerControlled;
-        if ((playerAttack != null && playerAttack.IsInvincible) ||
+        if (IsDead ||
+            (playerAttack != null && playerAttack.IsInvincible) ||
             DialogueManager.IsDialogueOpen)
         {
             rb.linearVelocity = Vector2.zero;
