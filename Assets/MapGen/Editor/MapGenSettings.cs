@@ -46,6 +46,10 @@ namespace AINPC.MapGen
             public const string PathRuleTile   = "Assets/MapTileSet/ground_textures/transitions/New Rule Tile 1.asset";
             public const string WaterRuleTile  = "Assets/MapTileSet/ground_textures/water/riverRule.asset";
 
+            // 셰이더로 프레임을 돌리는 쪽. 있으면 이걸 쓴다 (칸마다 애니메이션 기록이 안 남는다)
+            public const string WaterStaticTile = "Assets/MapTileSet/ground_textures/water/riverRule_Static.asset";
+            public const string WaterMaterial   = "Assets/MapTileSet/ground_textures/water/WaterFrameScroll.mat";
+
             public const string BlockTile      = "Assets/MapGen/BlockTile.asset";
             public const string PlayerPrefab   = "Assets/Prefabs/Player.prefab";
 
