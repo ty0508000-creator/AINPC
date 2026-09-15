@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -62,6 +63,26 @@ public class GameFlow : MonoBehaviour
     private CanvasGroup fade;
     [SerializeField] private float fadeDuration = 0.35f;
 
+    /// <summary>자동 저장 간격(초).</summary>
+    public const float AutoSaveInterval = 60f;
+
+    private const string AutoSaveKey = "settings.autosave";
+
+    /// <summary>자동 저장을 쓸지. 설정 메뉴에서 끌 수 있다.</summary>
+    public static bool AutoSaveEnabled
+    {
+        get => PlayerPrefs.GetInt(AutoSaveKey, 1) == 1;
+        set
+        {
+            PlayerPrefs.SetInt(AutoSaveKey, value ? 1 : 0);
+            PlayerPrefs.Save();
+        }
+    }
+
+    private float autoSaveTimer;
+    private TMP_Text notice;
+    private float noticeTimer;
+
     void Awake()
     {
         if (instance != null && instance != this)
@@ -85,6 +106,63 @@ public class GameFlow : MonoBehaviour
     {
         if (instance == this)
             SceneManager.sceneLoaded -= HandleSceneLoaded;
+    }
+
+    void Update()
+    {
+        TickAutoSave();
+        TickNotice();
+    }
+
+    /// <summary>일정 시간마다 알아서 저장한다. 메뉴를 보거나 죽어 있을 때는 미룬다.</summary>
+    private void TickAutoSave()
+    {
+        if (!AutoSaveEnabled || IsLoading || PauseMenuUI.IsOpen)
+            return;
+
+        // 메뉴에서 시간이 멈춰도 흘러가야 하므로 unscaled 로 센다
+        autoSaveTimer += Time.unscaledDeltaTime;
+        if (autoSaveTimer < AutoSaveInterval)
+            return;
+
+        autoSaveTimer = 0f;
+
+        var stats = FindFirstObjectByType<PlayerStats>();
+        if (stats == null || stats.IsDead)
+            return;   // 타이틀 화면이거나 죽어 있으면 이번 차례는 거른다
+
+        SaveNow();
+        ShowNotice("자동 저장됨");
+    }
+
+    private void TickNotice()
+    {
+        if (notice == null || noticeTimer <= 0f)
+            return;
+
+        noticeTimer -= Time.unscaledDeltaTime;
+
+        // 마지막 0.6초 동안 서서히 사라진다
+        Color c = notice.color;
+        c.a = Mathf.Clamp01(noticeTimer / 0.6f);
+        notice.color = c;
+
+        if (noticeTimer <= 0f)
+            notice.text = string.Empty;
+    }
+
+    /// <summary>화면 구석에 잠깐 뜨는 알림.</summary>
+    public void ShowNotice(string message, float duration = 2f)
+    {
+        if (notice == null)
+            return;
+
+        notice.text = message;
+        noticeTimer = duration;
+
+        Color c = notice.color;
+        c.a = 1f;
+        notice.color = c;
     }
 
     // ── 진행 표시 ───────────────────────────────────────────────
@@ -232,6 +310,9 @@ public class GameFlow : MonoBehaviour
             return;
 
         SaveSystem.SaveProgress(stats, SceneManager.GetActiveScene().name, stats.transform.position, FlagList());
+
+        // 방금 저장했으니 자동 저장 시계도 처음부터 다시 센다
+        autoSaveTimer = 0f;
     }
 
     // ── 화면 암전 ───────────────────────────────────────────────
@@ -258,6 +339,33 @@ public class GameFlow : MonoBehaviour
         rect.anchorMax = Vector2.one;
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
+
+        BuildNotice(canvasGo.transform);
+    }
+
+    /// <summary>오른쪽 아래에 잠깐 뜨는 알림 글자. 암전과 달리 입력을 막지 않는다.</summary>
+    private void BuildNotice(Transform parent)
+    {
+        var go = new GameObject("Notice");
+        go.transform.SetParent(parent, false);
+
+        notice = go.AddComponent<TextMeshProUGUI>();
+        notice.text = string.Empty;
+        notice.fontSize = 22f;
+        notice.color = new Color(0.85f, 0.85f, 0.9f, 0f);
+        notice.alignment = TextAlignmentOptions.BottomRight;
+        notice.raycastTarget = false;
+
+        TMP_FontAsset font = UiBootstrap.FindSceneFont();
+        if (font != null)
+            notice.font = font;
+
+        var rect = go.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(1f, 0f);
+        rect.anchorMax = new Vector2(1f, 0f);
+        rect.pivot = new Vector2(1f, 0f);
+        rect.anchoredPosition = new Vector2(-40f, 40f);
+        rect.sizeDelta = new Vector2(400f, 40f);
     }
 
     private IEnumerator Fade(float target)

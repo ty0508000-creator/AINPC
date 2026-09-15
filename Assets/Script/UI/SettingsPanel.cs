@@ -72,15 +72,32 @@ public static class SettingsPanel
             fullscreenLabel.text = next ? "켜짐" : "꺼짐";
         });
 
+        // ── 자동 저장 ──
+        Label(parent, "자동 저장", 22f, new Vector2(-260f, -10f), new Color(0.75f, 0.75f, 0.8f), font, TextAlignmentOptions.Left);
+
+        TMP_Text autoSaveLabel = null;
+        Button autoSaveButton = MakeButton(parent, GameFlow.AutoSaveEnabled ? "켜짐" : "꺼짐",
+            new Vector2(200f, -10f), new Vector2(160f, 46f), font, out autoSaveLabel);
+
+        autoSaveButton.onClick.AddListener(() =>
+        {
+            bool next = !GameFlow.AutoSaveEnabled;
+            GameFlow.AutoSaveEnabled = next;
+            autoSaveLabel.text = next ? "켜짐" : "꺼짐";
+        });
+
+        Label(parent, Mathf.RoundToInt(GameFlow.AutoSaveInterval) + "초마다", 16f, new Vector2(200f, -48f),
+            new Color(0.5f, 0.5f, 0.55f), font, TextAlignmentOptions.Center);
+
         // ── 해상도 ──
-        Label(parent, "해상도", 22f, new Vector2(-260f, -30f), new Color(0.75f, 0.75f, 0.8f), font, TextAlignmentOptions.Left);
+        Label(parent, "해상도", 22f, new Vector2(-260f, -100f), new Color(0.75f, 0.75f, 0.8f), font, TextAlignmentOptions.Left);
 
         float x = -40f;
         foreach (Vector2Int res in Resolutions)
         {
             Vector2Int captured = res;
             TMP_Text unused;
-            Button button = MakeButton(parent, res.x + "x" + res.y, new Vector2(x, -30f), new Vector2(170f, 44f), font, out unused);
+            Button button = MakeButton(parent, res.x + "x" + res.y, new Vector2(x, -100f), new Vector2(170f, 44f), font, out unused);
 
             button.onClick.AddListener(() =>
             {
@@ -93,7 +110,7 @@ public static class SettingsPanel
             x += 180f;
         }
 
-        Label(parent, "조작키 변경은 아직 없습니다", 18f, new Vector2(0f, -150f),
+        Label(parent, "조작키 변경은 아직 없습니다", 18f, new Vector2(0f, -180f),
             new Color(0.5f, 0.5f, 0.55f), font, TextAlignmentOptions.Center);
     }
 
