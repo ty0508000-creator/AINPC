@@ -39,6 +39,17 @@ public class GameFlow : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 씬을 직접 실행해도(에디터에서 던전 씬만 열고 플레이) 메뉴창과 씬 전환이 준비되게 한다.
+    /// </summary>
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Bootstrap()
+    {
+        GameFlow ready = Instance;
+        if (ready == null)
+            Debug.LogWarning("[GameFlow] 준비하지 못했습니다.");
+    }
+
     /// <summary>씬을 넘어가는 중인가. 이동/입력을 막을 때 쓴다.</summary>
     public bool IsLoading { get; private set; }
 
@@ -62,6 +73,10 @@ public class GameFlow : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
         BuildFadeCanvas();
+
+        // ESC 메뉴창도 여기 얹어 둔다. 씬마다 따로 배치할 필요가 없어진다.
+        if (GetComponent<PauseMenuUI>() == null)
+            gameObject.AddComponent<PauseMenuUI>();
 
         SceneManager.sceneLoaded += HandleSceneLoaded;
     }

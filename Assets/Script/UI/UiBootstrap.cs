@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -14,5 +15,23 @@ public static class UiBootstrap
         var go = new GameObject("EventSystem");
         go.AddComponent<EventSystem>();
         go.AddComponent<InputSystemUIInputModule>();
+    }
+
+    /// <summary>
+    /// 씬에서 이미 쓰고 있는 글꼴을 빌려 온다.
+    /// 런타임에 만드는 UI 는 인스펙터로 폰트를 받을 데가 없어서, HUD 같은 데
+    /// 이미 지정된 한글 폰트를 따라가게 한다. 못 찾으면 기본 폰트.
+    /// </summary>
+    public static TMP_FontAsset FindSceneFont()
+    {
+        TMP_FontAsset fallback = TMP_Settings.defaultFontAsset;
+
+        foreach (TMP_Text text in Object.FindObjectsByType<TMP_Text>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (text.font != null && text.font != fallback)
+                return text.font;
+        }
+
+        return fallback;
     }
 }

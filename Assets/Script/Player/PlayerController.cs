@@ -34,6 +34,7 @@ public class Player_Controller : MonoBehaviour
         bool isAIControlled = controlManager != null && !controlManager.IsPlayerControlled;
         bool blocked =
             IsDead ||
+            PauseMenuUI.IsOpen ||
             (playerAttack != null && playerAttack.IsInvincible) ||
             DialogueManager.IsDialogueOpen;
 
@@ -68,6 +69,7 @@ public class Player_Controller : MonoBehaviour
     {
         bool isAIControlled = controlManager != null && !controlManager.IsPlayerControlled;
         if (IsDead ||
+            PauseMenuUI.IsOpen ||
             (playerAttack != null && playerAttack.IsInvincible) ||
             DialogueManager.IsDialogueOpen)
         {

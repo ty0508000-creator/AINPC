@@ -102,7 +102,7 @@ public class Player_Attack : MonoBehaviour
 
     void Update()
     {
-        if (DialogueManager.IsDialogueOpen || IsPlayerDead)
+        if (DialogueManager.IsDialogueOpen || PauseMenuUI.IsOpen || IsPlayerDead)
         {
             CancelCharge();
             return;
