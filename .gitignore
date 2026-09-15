@@ -109,3 +109,6 @@ Assets/StreamingAssets/Ollama/
 LLMUnity-3.0.3/
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,unity
+
+# Unity MCP 로컬 설정 (머신마다 경로가 달라 커밋 제외)
+.mcp.json
