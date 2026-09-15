@@ -35,7 +35,9 @@ public class BatMonster : MonsterBase
         SpriteRenderer spriteRenderer = projectileObject.AddComponent<SpriteRenderer>();
         spriteRenderer.sprite = GetProjectileSprite();
         spriteRenderer.color = projectileColor;
-        spriteRenderer.sortingOrder = 20;
+
+        // 투사체도 소품과 같은 기준으로 정렬 (발밑이 없으므로 중심 기준)
+        YSortRenderer.Attach(projectileObject, 0f);
 
         Rigidbody2D rb = projectileObject.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;

@@ -77,7 +77,7 @@ public class Player_Attack : MonoBehaviour
         var sr = attackIndicator.AddComponent<SpriteRenderer>();
         sr.sprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
         sr.color = new Color(1f, 0f, 0f, 0.5f);
-        sr.sortingOrder = 10;
+        sr.sortingOrder = YSortRenderer.WorldOverlayOrder;
 
         attackIndicator.SetActive(false);
     }
@@ -93,7 +93,7 @@ public class Player_Attack : MonoBehaviour
         var sr = chargeIndicator.AddComponent<SpriteRenderer>();
         sr.sprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
         sr.color = new Color(1f, 1f, 1f, 0.3f);
-        sr.sortingOrder = 10;
+        sr.sortingOrder = YSortRenderer.WorldOverlayOrder;
 
         chargeIndicator.SetActive(false);
     }

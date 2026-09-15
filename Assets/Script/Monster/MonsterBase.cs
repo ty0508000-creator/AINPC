@@ -28,6 +28,9 @@ public abstract class MonsterBase : MonoBehaviour, IDamageable
         spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
             baseColor = spriteRenderer.color;
+
+        // 맵 소품(나무·집)과 같은 기준으로 앞뒤 정렬 — 없으면 소품 뒤에 통째로 가려진다
+        YSortRenderer.Attach(gameObject);
     }
 
     protected virtual void Start()

@@ -11,6 +11,9 @@ public class NPCInteraction : MonoBehaviour
 
     void Start()
     {
+        // 맵 소품(나무·집)과 같은 기준으로 앞뒤 정렬
+        YSortRenderer.Attach(gameObject);
+
         dialogueManager = FindFirstObjectByType<DialogueManager>();
 
         if (dialogueManager == null)
