@@ -76,12 +76,25 @@ public class AIController : MonoBehaviour
 
         controlManager.OnAITakeover += StartAI;
         controlManager.OnPlayerRestored += StopAI;
+
+        if (playerStats != null)
+            playerStats.OnDied += HandleDeath;
     }
 
     void StartAI()
     {
+        // 죽은 몸으로는 싸우지 않는다. 기분이 다시 떨어져도 마찬가지다.
+        if (playerStats != null && playerStats.IsDead)
+            return;
+
         behaviorCoroutine = StartCoroutine(BehaviorLoop());
         recklessCoroutine = StartCoroutine(RecklessLoop());
+    }
+
+    /// <summary>플레이어가 죽으면 AI 도 손을 뗀다 (제어권은 그대로 AI 에 있어도 몸은 멈춘다).</summary>
+    void HandleDeath()
+    {
+        StopAI();
     }
 
     void StopAI()
@@ -362,6 +375,9 @@ public class AIController : MonoBehaviour
 
     void OnDestroy()
     {
+        if (playerStats != null)
+            playerStats.OnDied -= HandleDeath;
+
         if (controlManager == null) return;
         controlManager.OnAITakeover -= StartAI;
         controlManager.OnPlayerRestored -= StopAI;

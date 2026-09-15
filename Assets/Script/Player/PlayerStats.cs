@@ -25,7 +25,13 @@ public class PlayerStats : MonoBehaviour, IDamageable
     public float Mana { get; private set; }
     public float EXP { get; private set; }
 
+    /// <summary>HP 가 0 이 된 뒤인가. 죽은 몸으로는 더 맞지도, 싸우지도 않는다.</summary>
+    public bool IsDead { get; private set; }
+
     public event Action OnStatsChanged;
+
+    /// <summary>죽는 순간 한 번 호출된다. AI 조종처럼 몸을 쓰던 쪽이 손을 떼는 신호.</summary>
+    public event Action OnDied;
 
     private Player_Attack playerAttack;
 
@@ -37,6 +43,7 @@ public class PlayerStats : MonoBehaviour, IDamageable
 
     public void TakeDamage(int damage)
     {
+        if (IsDead) return;
         if (playerAttack != null && playerAttack.IsInvincible) return;
 
         HP = Mathf.Max(0f, HP - damage);
@@ -92,7 +99,11 @@ public class PlayerStats : MonoBehaviour, IDamageable
 
     void OnDeath()
     {
+        if (IsDead) return;
+
+        IsDead = true;
         Debug.Log("Player died");
+        OnDied?.Invoke();
     }
 
     public void Save() => SaveSystem.SavePlayer(this);
