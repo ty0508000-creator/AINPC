@@ -29,6 +29,10 @@ public class MemoryManager : MonoBehaviour
     public bool Ready { get; private set; }
     private bool initializing;
 
+    // (A-4) StreamingAssets가 아니라 쓰기 가능한 persistentDataPath 아래로 저장한다.
+    // Start에서 한 번만 확정하고 Load/Save가 같은 경로를 쓰게 한다.
+    private string resolvedSavePath;
+
     async void Start()
     {
         await Initialize();
@@ -65,9 +69,10 @@ public class MemoryManager : MonoBehaviour
             }
 
             rag.Init(searchMethod, ChunkingMethods.NoChunking, llm);
-            await rag.Load(saveFileName);   // 파일 없으면 false, 무시
+            resolvedSavePath = MemoryPaths.Resolve(saveFileName);
+            await rag.Load(resolvedSavePath);   // 파일 없으면 false, 무시
             Ready = true;
-            Debug.Log($"[Memory] 준비됨 (기존 기억 {rag.Count()}개)");
+            Debug.Log($"[Memory] 준비됨 (기존 기억 {rag.Count()}개, 저장 경로 {resolvedSavePath})");
         }
         catch (System.Exception e)
         {
@@ -138,7 +143,7 @@ public class MemoryManager : MonoBehaviour
     public void Persist()
     {
         if (!Ready) return;
-        try { rag.Save(saveFileName); }
+        try { rag.Save(resolvedSavePath); }
         catch (System.Exception e) { Debug.LogWarning($"[Memory] 파일 저장 실패: {e.Message}"); }
     }
 

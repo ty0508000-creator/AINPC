@@ -20,6 +20,8 @@ public class InnerVoiceManager : MonoBehaviour
     [SerializeField] private LLMAgent llmAgent;
     [Tooltip("이 시간(초) 안에 응답이 없으면 침묵 속에 종료 (소프트락 방지)")]
     [SerializeField] private float llmTimeout = 20f;
+    [Tooltip("(A-3) 응답 파싱 실패 시 화면에 대신 띄울 어둠의 대사. 원문은 절대 노출하지 않는다.")]
+    [SerializeField] private string parseFailFallbackLine = "…";
 
     [Header("Memory (선택 — 비우면 자동 탐색)")]
     [SerializeField] private MemoryManager memory;
@@ -63,12 +65,6 @@ public class InnerVoiceManager : MonoBehaviour
     private TMP_InputField inputField;
     private Button sendButton;
 
-    [System.Serializable]
-    private class InnerResponse
-    {
-        public string dialogue;
-        public int mood_delta;
-    }
 
     void Start()
     {
@@ -209,8 +205,10 @@ public class InnerVoiceManager : MonoBehaviour
             return;
         }
 
-        var (dialogue, _) = Parse(raw);
-        aiText.text = $"\"{dialogue}\"";
+        var opening = LLMResponseParser.Parse(raw, parseFailFallbackLine);
+        if (!opening.ParseOk)
+            Debug.LogWarning($"[InnerVoice] 첫 대사 파싱 실패({opening.FailureReason}) raw={Truncate(raw, 300)}");
+        aiText.text = $"\"{opening.Dialogue}\"";
         statusText.text = "";
 
         SetInputInteractable(true);
@@ -252,15 +250,26 @@ public class InnerVoiceManager : MonoBehaviour
             return;
         }
 
-        var (dialogue, moodDelta) = Parse(raw);
+        // (A-3) 파싱 실패 시 원문을 화면에 노출하지 않는다. 어둠의 침묵으로 대신한다.
+        var parsed = LLMResponseParser.Parse(raw, parseFailFallbackLine);
+        string dialogue = parsed.Dialogue;
+
+        // (A-2) mood_delta는 -20~+20으로 클램프된 뒤에만 적용된다.
+        //       이상값 한 번으로 제어권이 즉시 넘어가는 일을 막는다.
+        int moodDelta = parsed.MoodDelta;
 
         aiText.text = $"\"{dialogue}\"";
         moodSystem.ChangeMood(moodDelta);
 
+        if (!parsed.ParseOk)
+            Debug.LogWarning($"[InnerVoice] JSON 파싱 실패({parsed.FailureReason}) raw={Truncate(raw, 300)}");
+        else if (parsed.MoodDeltaRaw != moodDelta)
+            Debug.LogWarning($"[InnerVoice] mood_delta 클램프 {parsed.MoodDeltaRaw} → {moodDelta}");
+
         string sign = moodDelta >= 0 ? "+" : "";
 
-        // 이번 협상을 기억으로 남김
-        if (memory != null)
+        // 이번 협상을 기억으로 남김. 파싱 실패한 턴은 폴백 대사가 사실로 굳으므로 기록하지 않는다.
+        if (memory != null && parsed.ParseOk)
             _ = memory.Remember(
                 $"플레이어: \"{playerSpeech}\" → 나(어둠): \"{dialogue}\" (기분 {sign}{moodDelta})",
                 "inner");
@@ -394,27 +403,12 @@ public class InnerVoiceManager : MonoBehaviour
     }
 
     // ── 파싱 ─────────────────────────────────────────────────────
+    // 실제 파싱은 DialogueManager와 공유하는 LLMResponseParser에 있다.
 
-    (string dialogue, int moodDelta) Parse(string raw)
+    private static string Truncate(string text, int max)
     {
-        int s = raw.IndexOf('{'), e = raw.LastIndexOf('}');
-        if (s >= 0 && e > s)
-        {
-            try
-            {
-                var data = JsonUtility.FromJson<InnerResponse>(raw.Substring(s, e - s + 1));
-                if (!string.IsNullOrEmpty(data.dialogue))
-                    return (data.dialogue, data.mood_delta);
-            }
-            catch { }
-        }
-
-        var dm = Regex.Match(raw, "\"dialogue\"\\s*:\\s*\"([^\"]+)\"");
-        var mm = Regex.Match(raw, "\"mood_delta\"\\s*:\\s*(-?\\d+)");
-        return (
-            dm.Success ? dm.Groups[1].Value : raw,
-            mm.Success ? int.Parse(mm.Groups[1].Value) : 0
-        );
+        if (string.IsNullOrEmpty(text) || text.Length <= max) return text;
+        return text.Substring(0, max) + "…";
     }
 
     // ── UI 빌드 ──────────────────────────────────────────────────
