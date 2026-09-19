@@ -42,6 +42,9 @@ public class InnerVoiceManager : MonoBehaviour
     private PlayerStats playerStats;
     private ControlManager controlManager;
 
+    // 퀘스트가 강제로 열 때 인격에게 넘길 상황 설명 (1회용)
+    private string pendingStoryContext = "";
+
     private bool isActive = false;
     private bool isProcessing = false;
     private bool isTransitioning = false;
@@ -80,6 +83,7 @@ public class InnerVoiceManager : MonoBehaviour
 
         EnsureEventSystem();
         BuildUI();
+        BuildTriggerButton();
         StartCoroutine(TriggerLoop());
     }
 
@@ -90,6 +94,41 @@ public class InnerVoiceManager : MonoBehaviour
     }
 
     // ── 트리거 루프 ──────────────────────────────────────────────
+
+    /// <summary>
+    /// 스토리(퀘스트)에서 내면 세계를 강제로 연다.
+    /// storyContext 는 방금 무슨 일이 있었는지 — 인격이 이걸 물고 늘어진다.
+    /// </summary>
+    public void ForceOpen(string storyContext = "")
+    {
+        if (isActive || isTransitioning) return;
+        pendingStoryContext = storyContext ?? "";
+
+        // UI 생성(Start) 전에 퀘스트가 먼저 부를 수 있다 → 준비될 때까지 미룬다
+        if (overlayRoot == null || llmAgent == null)
+        {
+            StartCoroutine(OpenWhenReady());
+            return;
+        }
+
+        _ = OpenDialogue();
+    }
+
+    IEnumerator OpenWhenReady()
+    {
+        float deadline = Time.realtimeSinceStartup + 10f;
+        while ((overlayRoot == null || llmAgent == null) && Time.realtimeSinceStartup < deadline)
+            yield return null;
+
+        if (overlayRoot == null || llmAgent == null)
+        {
+            Debug.LogWarning("[InnerVoice] 준비되지 않아 강제 진입을 건너뜁니다.");
+            pendingStoryContext = "";
+            yield break;
+        }
+
+        if (!isActive && !isTransitioning) _ = OpenDialogue();
+    }
 
     IEnumerator TriggerLoop()
     {
@@ -141,6 +180,11 @@ public class InnerVoiceManager : MonoBehaviour
                 memBlock = "\n[너는 지난 일들을 기억한다]\n" + mem + "\n";
         }
 
+        string storyBlock = "";
+        if (!string.IsNullOrWhiteSpace(pendingStoryContext))
+            storyBlock = "\n[방금 바깥에서 벌어진 일]\n" + pendingStoryContext + "\n";
+        pendingStoryContext = "";   // 1회용
+
         llmAgent.systemPrompt =
             "너는 이 캐릭터의 또 다른 인격이야. " +
             "지금 둘은 현실에서 벗어난 내면의 공간에서 마주보고 있어. " +
@@ -149,6 +193,7 @@ public class InnerVoiceManager : MonoBehaviour
             "{\"dialogue\":\"대사\",\"mood_delta\":0}\n" +
             "mood_delta: 플레이어가 설득하거나 달래면 양수(+), 반항하거나 무시하면 음수(-).\n" +
             memBlock +
+            storyBlock +
             $"현재 상황: {context}";
 
         // AI 인격이 먼저 말 걸기 (스트리밍 + 타임아웃)
@@ -240,13 +285,13 @@ public class InnerVoiceManager : MonoBehaviour
         acceptStream = true;
         streamStarted = false;
 
-        Task<string> chatTask = llmAgent.Chat(query, OnStreamPartial);
-        Task finished = await Task.WhenAny(
-            chatTask, Task.Delay(TimeSpan.FromSeconds(llmTimeout)));
+        // 내면 협상은 매번 새 상황이고, 장기 기억은 RAG(MemoryManager)가 담당하므로
+        // 대화 히스토리에 누적하지 않는다 (프롬프트가 길어져 점점 느려지는 것 방지 + 대장장이와의 맥락 오염 차단)
+        // 타임아웃 없이 응답을 끝까지 기다린다 (CPU 추론이 느려도 도중에 잘리지 않도록)
+        string result = await llmAgent.Chat(query, OnStreamPartial, addToHistory: false);
 
-        acceptStream = false;            // 늦게 도착하는 토큰 무시
-        if (finished != chatTask) return null;   // 타임아웃
-        return await chatTask;
+        acceptStream = false;
+        return result;
     }
 
     // 누적 부분 응답 콜백 (메인 스레드) — JSON 중 dialogue 값만 타자기처럼 표시
@@ -376,11 +421,21 @@ public class InnerVoiceManager : MonoBehaviour
 
     void EnsureEventSystem()
     {
-        if (FindFirstObjectByType<EventSystem>() == null)
+        var existing = FindFirstObjectByType<EventSystem>();
+        if (existing == null)
         {
             var es = new GameObject("EventSystem");
             es.AddComponent<EventSystem>();
-            es.AddComponent<StandaloneInputModule>();
+            es.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+            return;
+        }
+
+        // 새 Input System 환경에서 옛 StandaloneInputModule 이면 입력이 안 먹으므로 교체
+        if (existing.GetComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>() == null)
+        {
+            var old = existing.GetComponent<StandaloneInputModule>();
+            if (old != null) Destroy(old);
+            existing.gameObject.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
         }
     }
 
@@ -473,6 +528,31 @@ public class InnerVoiceManager : MonoBehaviour
     {
         if (inputField != null) inputField.interactable = on;
         if (sendButton != null) sendButton.interactable = on;
+    }
+
+    // 화면에 항상 떠 있는 '내면 대화' 수동 트리거 버튼 (우하단)
+    void BuildTriggerButton()
+    {
+        var canvasGO = new GameObject("InnerVoiceTriggerCanvas");
+        var canvas = canvasGO.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 250;   // 내면 오버레이(300)보다 아래 -> 대화 중엔 가려져 중복 방지
+        var scaler = canvasGO.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+        scaler.matchWidthOrHeight = 0.5f;
+        canvasGO.AddComponent<GraphicRaycaster>();
+
+        var btn = CreateButton(canvasGO.transform, "내면 대화",
+            new Vector2(1f, 0f),          // 우하단 기준
+            new Vector2(180f, 64f),
+            new Vector2(-110f, 70f),      // 가장자리에서 안쪽으로
+            accentColor);
+        btn.onClick.AddListener(() =>
+        {
+            if (!isActive && !isTransitioning)
+                _ = OpenDialogue();
+        });
     }
 
     // ── UI 헬퍼 ──────────────────────────────────────────────────

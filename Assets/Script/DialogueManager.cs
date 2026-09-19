@@ -570,11 +570,22 @@ public class DialogueManager : MonoBehaviour
 
     private void EnsureEventSystem()
     {
-        if (FindFirstObjectByType<EventSystem>() != null) return;
+        var existing = FindFirstObjectByType<EventSystem>();
+        if (existing == null)
+        {
+            var eventSystem = new GameObject("EventSystem");
+            eventSystem.AddComponent<EventSystem>();
+            eventSystem.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+            return;
+        }
 
-        var eventSystem = new GameObject("EventSystem");
-        eventSystem.AddComponent<EventSystem>();
-        eventSystem.AddComponent<StandaloneInputModule>();
+        // 새 Input System 환경에서 옛 StandaloneInputModule 이면 입력이 안 먹으므로 교체
+        if (existing.GetComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>() == null)
+        {
+            var old = existing.GetComponent<StandaloneInputModule>();
+            if (old != null) Destroy(old);
+            existing.gameObject.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+        }
     }
 
     private TMP_Text CreateText(Transform parent, string name, Vector2 anchor, Vector2 size, float fontSize, TextAlignmentOptions alignment)

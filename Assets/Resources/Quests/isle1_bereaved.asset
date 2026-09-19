@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3db1c08f823ba104da20d85a88ac6e67, type: 3}
+  m_Name: isle1_bereaved
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: isle1_bereaved
+  title: "\uB0A8\uACA8\uC9C4 \uC0AC\uB78C"
+  summary: "\uADF8\uB0A0 \uC8FD\uC740 \uB3D9\uB8CC\uC758 \uC81C\uC790\uAC00 \uC774
+    \uC12C\uC5D0 \uC788\uB2E4. \uC2A4\uC2B9\uC758 \uC774\uB984\uC744 \uAEBC\uB0B4\uBA74
+    \uC5BC\uAD74\uC774 \uAD73\uB294\uB2E4."
+  isleIndex: 1
+  isMainQuest: 0
+  isInnerVoiceDemand: 0
+  prerequisiteQuestIds:
+  - isle1_village
+  autoStart: 0
+  objectives:
+  - description: "\uD558\uC5F0\uACFC \uC774\uC57C\uAE30\uD55C\uB2E4"
+    type: 1
+    targetId: "\uD558\uC5F0"
+    requiredCount: 1
+    hidden: 0
+  - description: "\uC2A4\uC2B9\uC758 \uAC80\uC744 \uB418\uCC3E\uC544\uC628\uB2E4"
+    type: 2
+    targetId: isle1_master_sword
+    requiredCount: 1
+    hidden: 0
+  - description: "\uD558\uC5F0\uC5D0\uAC8C \uAC80\uC744 \uAC74\uB128\uB2E4"
+    type: 4
+    targetId: isle1_sword_returned
+    requiredCount: 1
+    hidden: 0
+  onComplete:
+    moodDelta: 10
+    expReward: 90
+    memoryLine: "\uD50C\uB808\uC774\uC5B4\uB294 \uC8FD\uC740 \uB3D9\uB8CC\uC758 \uC81C\uC790
+      \uD558\uC5F0\uC5D0\uAC8C \uC2A4\uC2B9\uC758 \uAC80\uC744 \uB3CC\uB824\uC92C\uB2E4.
+      \uD558\uC5F0\uC740 \uC6D0\uB9DD\uC744 \uAC70\uB450\uC9C0 \uC54A\uC558\uC9C0\uB9CC
+      \uAC80\uC740 \uBC1B\uC558\uB2E4."
+    triggerInnerVoice: 0
+    innerVoiceContext: 
+    unlockQuestIds: []
+  canFail: 0
+  timeLimit: 0
+  onFail:
+    moodDelta: 0
+    expReward: 0
+    memoryLine: 
+    triggerInnerVoice: 0
+    innerVoiceContext: 
+    unlockQuestIds: []
+  startLine: 
+  completeLine: 
+  failLine: 

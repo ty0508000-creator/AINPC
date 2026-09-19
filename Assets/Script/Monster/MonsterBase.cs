@@ -98,7 +98,10 @@ public abstract class MonsterBase : MonoBehaviour, IDamageable
         PlayHitFlash();
 
         if (currentHP <= 0f)
+        {
             Die();
+            return;
+        }
     }
 
     protected virtual void Attack(PlayerStats player)
@@ -119,6 +122,10 @@ public abstract class MonsterBase : MonoBehaviour, IDamageable
 
         if (targetStats != null && monsterData != null)
             targetStats.AddEXP(monsterData.ExpReward);
+
+        // 퀘스트 진행 보고 (Kill 목표의 targetId 는 MonsterData 의 monsterName)
+        if (monsterData != null)
+            QuestManager.Instance?.ReportKill(monsterData.MonsterName);
 
         spawnPoint?.Clear(this);
         Destroy(gameObject);
