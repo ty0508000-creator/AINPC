@@ -8,4 +8,9 @@ public class PlayerSaveData
     public float maxMana;
     public float exp;
     public float maxEXP;
+    public int progressionVersion;
+    public int statPoints;
+    public int skillPoints;
+    public int[] attributeRanks;
+    public int[] skillRanks;
 }

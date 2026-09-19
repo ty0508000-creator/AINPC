@@ -14,6 +14,7 @@ public class Player_Controller : MonoBehaviour
     private Vector2 moveInput;
     private Player_Attack playerAttack;
     private ControlManager controlManager;
+    private PlayerStats stats;
 
     void Start()
     {
@@ -22,6 +23,7 @@ public class Player_Controller : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         playerAttack = GetComponent<Player_Attack>();
         controlManager = GetComponent<ControlManager>();
+        stats = GetComponent<PlayerStats>();
     }
 
     void Update()
@@ -29,7 +31,7 @@ public class Player_Controller : MonoBehaviour
         bool isAIControlled = controlManager != null && !controlManager.IsPlayerControlled;
         bool blocked =
             (playerAttack != null && playerAttack.IsInvincible) ||
-            DialogueManager.IsDialogueOpen;
+            DialogueManager.IsDialogueOpen || RpgUI.IsOpen || (stats != null && stats.HP <= 0f);
 
         if (blocked)
         {
@@ -62,7 +64,7 @@ public class Player_Controller : MonoBehaviour
     {
         bool isAIControlled = controlManager != null && !controlManager.IsPlayerControlled;
         if ((playerAttack != null && playerAttack.IsInvincible) ||
-            DialogueManager.IsDialogueOpen)
+            DialogueManager.IsDialogueOpen || RpgUI.IsOpen || (stats != null && stats.HP <= 0f))
         {
             rb.linearVelocity = Vector2.zero;
             return;

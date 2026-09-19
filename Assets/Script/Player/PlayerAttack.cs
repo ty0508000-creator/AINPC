@@ -29,6 +29,8 @@ public class Player_Attack : MonoBehaviour
     [SerializeField] private float pitchVariation = 0.1f;
 
     public bool IsInvincible { get; private set; }
+    public int AttackPower => attackDamage + (GetComponent<PlayerStats>()?.AttackBonus ?? 0);
+    public LayerMask EnemyLayer => enemyLayer;
 
     private Player_Controller playerController;
     private Animator animator;
@@ -100,7 +102,10 @@ public class Player_Attack : MonoBehaviour
 
     void Update()
     {
-        if (DialogueManager.IsDialogueOpen)
+        if (DialogueManager.IsDialogueOpen || RpgUI.IsOpen || Time.timeScale == 0f ||
+            (GetComponent<PlayerStats>() != null && GetComponent<PlayerStats>().HP <= 0f) ||
+            Mouse.current == null || (GetComponent<ControlManager>() != null && !GetComponent<ControlManager>().IsPlayerControlled) ||
+            (UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject()))
         {
             CancelCharge();
             return;
@@ -135,12 +140,14 @@ public class Player_Attack : MonoBehaviour
         PlayClip(swingSfx);
 
         Collider2D[] hits = Physics2D.OverlapBoxAll(center, boxSize, angle, enemyLayer);
+        var damaged = new HashSet<IDamageable>();
         bool hitAny = false;
         foreach (var hit in hits)
         {
-            if (hit.TryGetComponent<IDamageable>(out var damageable))
+            var damageable = hit.GetComponentInParent<IDamageable>();
+            if (damageable != null && damaged.Add(damageable))
             {
-                damageable.TakeDamage(attackDamage);
+                damageable.TakeDamage(AttackPower);
                 hitAny = true;
             }
         }
@@ -214,17 +221,18 @@ public class Player_Attack : MonoBehaviour
         PlayClip(dashSfx);
 
         float dashDistance = Mathf.Lerp(minDashDistance, maxDashDistance, ratio);
-        int damage = Mathf.RoundToInt(Mathf.Lerp(minDashDamage, maxDashDamage, ratio));
+        int damage = Mathf.RoundToInt(Mathf.Lerp(minDashDamage, maxDashDamage, ratio)) + (GetComponent<PlayerStats>()?.AttackBonus ?? 0);
 
         RaycastHit2D[] hits = Physics2D.BoxCastAll(
             rb.position, new Vector2(attackWidth, attackWidth), 0f,
             dir, dashDistance, enemyLayer);
 
-        HashSet<Collider2D> hitSet = new HashSet<Collider2D>();
+        HashSet<IDamageable> hitSet = new HashSet<IDamageable>();
         bool hitAny = false;
         foreach (var hit in hits)
         {
-            if (hitSet.Add(hit.collider) && hit.collider.TryGetComponent<IDamageable>(out var damageable))
+            var damageable = hit.collider.GetComponentInParent<IDamageable>();
+            if (damageable != null && hitSet.Add(damageable))
             {
                 damageable.TakeDamage(damage);
                 hitAny = true;
@@ -277,12 +285,14 @@ public class Player_Attack : MonoBehaviour
         PlayClip(swingSfx);
 
         Collider2D[] hits = Physics2D.OverlapBoxAll(center, boxSize, angle, enemyLayer);
+        var damaged = new HashSet<IDamageable>();
         bool hitAny = false;
         foreach (var hit in hits)
         {
-            if (hit.TryGetComponent<IDamageable>(out var damageable))
+            var damageable = hit.GetComponentInParent<IDamageable>();
+            if (damageable != null && damaged.Add(damageable))
             {
-                damageable.TakeDamage(attackDamage);
+                damageable.TakeDamage(AttackPower);
                 hitAny = true;
             }
         }
@@ -291,6 +301,7 @@ public class Player_Attack : MonoBehaviour
 
     void TrySetTrigger(string triggerName)
     {
+        if (animator == null) return;
         foreach (var param in animator.parameters)
         {
             if (param.type == AnimatorControllerParameterType.Trigger && param.name == triggerName)

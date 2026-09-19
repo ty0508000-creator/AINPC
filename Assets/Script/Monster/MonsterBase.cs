@@ -91,7 +91,7 @@ public abstract class MonsterBase : MonoBehaviour, IDamageable
 
     public virtual void TakeDamage(int damage)
     {
-        if (IsDead || monsterData == null)
+        if (damage <= 0 || IsDead || monsterData == null)
             return;
 
         currentHP = Mathf.Max(0f, currentHP - damage);

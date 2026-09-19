@@ -23,6 +23,7 @@ public class PlayerHUD : MonoBehaviour
 
     void Start()
     {
+        if (GetComponent<RpgUI>() != null) return;
         stats = GetComponent<PlayerStats>();
         moodSystem = GetComponent<MoodSystem>();
         controlManager = GetComponent<ControlManager>();
