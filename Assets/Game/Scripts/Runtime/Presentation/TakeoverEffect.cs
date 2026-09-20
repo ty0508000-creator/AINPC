@@ -52,6 +52,7 @@ public class TakeoverEffect : MonoBehaviour
     };
 
     private ControlManager controlManager;
+    private GameObject ownedCanvas;
     private CameraFollow cameraFollow;
     private AudioSource audioSource;
 
@@ -218,6 +219,7 @@ public class TakeoverEffect : MonoBehaviour
     void BuildUI()
     {
         var canvasGO = new GameObject("TakeoverCanvas");
+        ownedCanvas = canvasGO;
         var canvas = canvasGO.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 400;   // 내면 오버레이(300)보다 위
@@ -290,6 +292,7 @@ public class TakeoverEffect : MonoBehaviour
 
     void OnDestroy()
     {
+        if (ownedCanvas != null) Destroy(ownedCanvas);
         if (controlManager == null) return;
         controlManager.OnAITakeover     -= HandleTakeover;
         controlManager.OnPlayerRestored -= HandleRestored;

@@ -64,6 +64,21 @@ public static class RpgPlayVerification
         running = false; EditorApplication.update -= Tick;
         try
         {
+            var lifecycleMood = stats.GetComponent<MoodSystem>();
+            var lifecycleControl = stats.GetComponent<ControlManager>();
+            var lifecycleAI = stats.GetComponent<AIController>();
+            lifecycleAI.enabled = false;
+            typeof(ControlManager).GetMethod("OnDestroy", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(lifecycleControl, null);
+            Set(lifecycleMood, "isAIControlled", true);
+            typeof(ControlManager).GetMethod("Start", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(lifecycleControl, null);
+            Check(!lifecycleControl.IsPlayerControlled, "late control subscription synchronizes current mood state");
+            lifecycleAI.enabled = true;
+            var routine = typeof(AIController).GetField("behaviorCoroutine", BindingFlags.Instance | BindingFlags.NonPublic);
+            Check(routine.GetValue(lifecycleAI) != null, "reenabled AI synchronizes current control state");
+            lifecycleAI.enabled = false;
+            Check(routine.GetValue(lifecycleAI) == null, "disabled AI stops behavior coroutine");
+            lifecycleMood.ReleaseControlForRecovery();
+            lifecycleAI.enabled = true;
             Check(stats.LearnSkill(0) && stats.LearnSkill(3) && stats.LearnSkill(6), "learn active skills");
             stats.TakeDamage(40);
             float hp = stats.HP, mana = stats.Mana;

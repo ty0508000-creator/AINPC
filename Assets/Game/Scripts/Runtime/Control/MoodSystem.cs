@@ -18,6 +18,7 @@ public class MoodSystem : MonoBehaviour
     public float AITakeoverThreshold => aiTakeoverThreshold;
     public float PlayerRestoreThreshold => playerRestoreThreshold;
     public bool InCombat { get; private set; }
+    public bool IsAIControlled => isAIControlled;
 
     public event Action<float> OnMoodChanged;
     public event Action OnAITakeover;

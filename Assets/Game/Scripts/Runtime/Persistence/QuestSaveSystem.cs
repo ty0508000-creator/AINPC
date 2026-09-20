@@ -26,9 +26,17 @@ public static class QuestSaveSystem
         SaveSystem.SaveGame(manager.Player, manager);
     }
 
-    public static QuestSaveData Capture(QuestManager manager)
+    public static QuestSaveData Capture(QuestManager manager, QuestSaveData previous = null)
     {
         var data = new QuestSaveData();
+        // A scene may only contain one island's catalog. Preserve other islands.
+        if (previous != null)
+            foreach (var entry in previous.entries)
+                if (manager.Get(entry.questId) == null)
+                    data.entries.Add(new QuestSaveEntry {
+                        questId = entry.questId, state = entry.state,
+                        progress = (int[])entry.progress.Clone(), elapsedSeconds = entry.elapsedSeconds
+                    });
         foreach (var r in manager.All())
         {
             if (r.State == QuestState.Locked) continue;
@@ -81,7 +89,7 @@ public static class QuestSaveSystem
         if (manager == null) return false;
         try
         {
-            var saved = SaveSystem.LoadPlayer();
+            if (!SaveSystem.TryLoadPlayer(out var saved)) return false;
             var data = saved?.snapshotVersion == 1 ? saved.quests : ReadLegacy();
             Validate(data);
             foreach (var e in data.entries)

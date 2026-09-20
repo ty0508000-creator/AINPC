@@ -50,6 +50,8 @@ GGUF는 Git에서 제외됩니다. 저장소만 내려받아서는 LLM 준비가
 
 `Training/`에 학습 코드와 노트북이 있습니다. 학습은 게임 실행과 별도 작업이며 GPU·패키지·모델 이용 조건 확인이 필요합니다.
 
+이 PC의 학습용 원본 GGUF는 프로젝트 밖 `C:/AINPC-ModelArchive/Meta-Llama-3-8B-Instruct-Q4_K_M.gguf`에 보관합니다. 게임 실행용 darkness 모델은 위 StreamingAssets 경로를 유지합니다. 모델 보관 위치와 정리 상태는 [로컬 용량 관리](docs/LOCAL_STORAGE.md)를 참고하세요.
+
 목표 PC에서 RAM/VRAM, 첫 응답 및 완료 시간은 아직 측정하지 않았습니다. 기존 문서의 RAM 수치와 경량화 속도 배수는 보장 사양이 아닙니다.
 
 ## 조작과 성장
@@ -67,7 +69,7 @@ GGUF는 Git에서 제외됩니다. 저장소만 내려받아서는 LLM 준비가
 
 ## 코드의 역할
 
-`Assets/Script/Player/PlayerStats.cs`는 성장 데이터를 보유합니다. `UI/RpgUI.cs`는 표시와 투자 API 호출, `RpgSkillCatalog`는 정의, `RpgSkillController`는 비용·쿨타임·효과를 담당합니다.
+게임 코드는 `Assets/Game/Scripts/Runtime`에 역할별로 분리되어 있습니다. `Player/PlayerStats.cs`는 성장 데이터, `Presentation/RpgUI.cs`는 표시와 투자 API 호출, `Progression/RpgSkillCatalog.cs`는 정의, `Progression/RpgSkillController.cs`는 비용·쿨타임·효과를 담당합니다. 편집기 도구와 검증 코드는 `Assets/Game/Scripts/Editor`에 있습니다. 자세한 경계와 주의점은 [프로젝트 구조](docs/PROJECT_STRUCTURE.md)를 참고하세요.
 
 `MoodSystem`이 전환 조건을 판단하고 `ControlManager`가 중계합니다. `AIController`는 가까운 적을 추적·공격합니다. **기억에 따라 전투 성향을 바꾸는 기능은 아직 연결되어 있지 않습니다.**
 

@@ -35,7 +35,7 @@ public static class SaveSystem
             var data = stats != null ? Capture(stats) : previous;
             if (data == null) throw new InvalidOperationException("플레이어 준비 전에는 통합 저장할 수 없습니다.");
             data.quests = manager != null && manager.IsSaveReady
-                ? QuestSaveSystem.Capture(manager)
+                ? QuestSaveSystem.Capture(manager, previous?.quests ?? QuestSaveSystem.ReadLegacy())
                 : previous?.quests ?? QuestSaveSystem.ReadLegacy();
             data.snapshotVersion = 1;
             data.revision = checked((previous?.revision ?? 0) + 1);
@@ -88,12 +88,20 @@ public static class SaveSystem
 
     public static PlayerSaveData LoadPlayer()
     {
-        try { return ReadExisting(); }
+        TryLoadPlayer(out var data);
+        return data;
+    }
+
+    // A missing slot is a successful read with null data; corruption is a failure.
+    public static bool TryLoadPlayer(out PlayerSaveData data)
+    {
+        data = null;
+        try { data = ReadExisting(); LastError = null; return true; }
         catch (Exception e)
         {
             LastError = e.Message;
             Debug.LogWarning("[SaveSystem] 저장 복구 실패 (원본 보존): " + LastError);
-            return null;
+            return false;
         }
     }
 

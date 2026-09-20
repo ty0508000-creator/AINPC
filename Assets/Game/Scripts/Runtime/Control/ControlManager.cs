@@ -16,6 +16,7 @@ public class ControlManager : MonoBehaviour
         if (moodSystem == null) return;
         moodSystem.OnAITakeover += HandleAITakeover;
         moodSystem.OnPlayerRestored += HandlePlayerRestored;
+        if (moodSystem.IsAIControlled) HandleAITakeover();
     }
 
     void HandleAITakeover()

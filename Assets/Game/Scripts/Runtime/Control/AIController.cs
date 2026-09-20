@@ -39,12 +39,22 @@ public class AIController : MonoBehaviour
 
         if (spriteRenderer != null) baseColor = spriteRenderer.color;
 
+        if (controlManager == null) return;
         controlManager.OnAITakeover += StartAI;
         controlManager.OnPlayerRestored += StopAI;
+        if (!controlManager.IsPlayerControlled) StartAI();
     }
+
+    void OnEnable()
+    {
+        if (controlManager != null && !controlManager.IsPlayerControlled) StartAI();
+    }
+
+    void OnDisable() => StopForRecovery();
 
     void StartAI()
     {
+        if (!isActiveAndEnabled || rb == null || playerAttack == null) return;
         if (playerStats != null && !playerStats.IsAlive) return;
         StopAI();
         behaviorCoroutine = StartCoroutine(BehaviorLoop());

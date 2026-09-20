@@ -20,6 +20,12 @@ public static class RecoverySaveVerification
         try
         {
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            foreach (string scriptPath in new[] {
+                "Assets/Game/Scripts/Runtime/Player/Player_Attack.cs",
+                "Assets/Game/Scripts/Runtime/Player/Player_Controller.cs",
+                "Assets/Game/Scripts/Runtime/Dialogue/NPCInteraction.cs" })
+                Check(AssetDatabase.LoadAssetAtPath<MonoScript>(scriptPath)?.GetClass() != null,
+                    "renamed MonoBehaviour resolves: " + scriptPath);
             var player = new GameObject("Recovery verification player");
             var mood = player.AddComponent<MoodSystem>();
             Invoke(mood, "Awake");
@@ -122,6 +128,7 @@ public static class RecoverySaveVerification
             var future = SaveSystem.LoadPlayer(); future.snapshotVersion = 99;
             string futureJson = JsonUtility.ToJson(future);
             File.WriteAllText(path, futureJson);
+            Check(!QuestSaveSystem.Load(manager), "future snapshot blocks quest fallback to new game");
             Check(!SaveSystem.SaveGame(stats, manager) && File.ReadAllText(path) == futureJson, "future schema cannot be overwritten using older backup");
 
             // Old split-save migration in a second isolated slot.
@@ -147,6 +154,13 @@ public static class RecoverySaveVerification
             File.WriteAllText(Path.Combine(legacySlot, "player_save.json"), "{}");
             File.WriteAllText(Path.Combine(legacySlot, "player_save.json.bak"), "{}");
             Check(!SaveSystem.SaveGame(stats, manager), "unrecoverable slot refuses destructive overwrite");
+            Check(!SaveSystem.TryLoadPlayer(out _) && !QuestSaveSystem.Load(manager), "corruption is not a new game");
+            var otherIsland = new QuestSaveData();
+            otherIsland.entries.Add(new QuestSaveEntry { questId = "other_island", state = QuestState.Completed, progress = new[] { 1 } });
+            var merged = QuestSaveSystem.Capture(manager, otherIsland);
+            Check(merged.entries.Any(e => e.questId == "other_island" && e.state == QuestState.Completed), "partial catalog preserves other island progress");
+            merged.entries.Single(e => e.questId == "other_island").progress[0] = 2;
+            Check(otherIsland.entries[0].progress[0] == 1, "merged snapshot owns independent progress arrays");
             Check(File.ReadAllText(Path.Combine(legacySlot, "player_save.json")) == "{}", "damaged source retained for manual recovery");
             File.WriteAllText(Path.Combine(output, "result.txt"), $"PASS: {count} recovery/save assertions\n");
             Debug.Log($"RECOVERY_SAVE_VERIFY_PASS: {count}");

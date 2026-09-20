@@ -79,7 +79,10 @@ public class MemoryManager : MonoBehaviour
             Debug.LogWarning($"[Memory] 초기화 실패 → 기억 비활성: {e.Message}");
             Ready = false;
         }
-        initializing = false;
+        finally
+        {
+            initializing = false;
+        }
     }
 
     private LLM FindEmbeddingLLM()
