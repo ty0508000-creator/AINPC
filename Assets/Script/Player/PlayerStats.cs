@@ -3,6 +3,14 @@ using System;
 
 public class PlayerStats : MonoBehaviour, IDamageable
 {
+    public enum LifeState { Alive, Dead, Respawning }
+    public LifeState State { get; private set; } = LifeState.Alive;
+    public bool IsAlive => State == LifeState.Alive && HP > 0f;
+    public Vector3 CheckpointPosition { get; private set; }
+    public string CheckpointScene { get; private set; }
+    public event Action OnDied;
+    public event Action OnRespawned;
+    float protectedUntil;
     [Header("Level")]
     public int Level = 1;
 
@@ -40,6 +48,8 @@ public class PlayerStats : MonoBehaviour, IDamageable
     void Awake()
     {
         playerAttack = GetComponent<Player_Attack>();
+        CheckpointPosition = transform.position;
+        CheckpointScene = gameObject.scene.path;
         Load();
         if (GetComponent<RpgSkillController>() == null) gameObject.AddComponent<RpgSkillController>();
         if (GetComponent<RpgUI>() == null) gameObject.AddComponent<RpgUI>();
@@ -47,7 +57,7 @@ public class PlayerStats : MonoBehaviour, IDamageable
 
     public void TakeDamage(int damage)
     {
-        if (damage <= 0 || HP <= 0f) return;
+        if (damage <= 0 || !IsAlive || Time.time < protectedUntil) return;
         if (playerAttack != null && playerAttack.IsInvincible) return;
         var skills = GetComponent<RpgSkillController>();
         float reduction = skills != null ? skills.DamageMultiplier : 1f;
@@ -82,14 +92,28 @@ public class PlayerStats : MonoBehaviour, IDamageable
     public void AddEXP(float amount)
     {
         if (amount <= 0f || float.IsNaN(amount) || float.IsInfinity(amount)) return;
+        int before = Level;
+        ApplyExperience(amount);
+        Save();
+        NotifyExperience(before);
+    }
+
+    // QuestManager commits the completed quest and this reward BEFORE notifying listeners.
+    internal void ApplyExperience(float amount)
+    {
+        if (amount <= 0f || float.IsNaN(amount) || float.IsInfinity(amount)) return;
         EXP += amount;
         while (EXP >= MaxEXP)
         {
             EXP -= MaxEXP;
             LevelUp();
         }
+    }
+
+    internal void NotifyExperience(int previousLevel)
+    {
         OnStatsChanged?.Invoke();
-        Save();
+        for (int level = previousLevel + 1; level <= Level; level++) OnLevelUp?.Invoke(level);
     }
 
     void LevelUp()
@@ -101,25 +125,68 @@ public class PlayerStats : MonoBehaviour, IDamageable
         MaxMana += manaIncreasePerLevel;
         MaxEXP = Mathf.Round(MaxEXP * expRequirementMultiplier);
 
-        if (healToFullOnLevelUp)
+        if (healToFullOnLevelUp && IsAlive)
         {
             HP = MaxHP;
             Mana = MaxMana;
         }
 
-        SaveSystem.SavePlayer(this);
-        OnLevelUp?.Invoke(Level);
     }
 
     void OnDeath()
     {
-        Debug.Log("Player died");
+        if (State != LifeState.Alive) return;
+        State = LifeState.Dead;
+        StopCombat();
+        FindFirstObjectByType<DialogueManager>()?.CloseDialogue();
+        GetComponent<InnerVoiceManager>()?.CloseForDeath();
+        Save();
+        OnDied?.Invoke();
+    }
+
+    void StopCombat()
+    {
+        GetComponent<AIController>()?.StopForRecovery();
+        GetComponent<Player_Attack>()?.CancelActions();
+        var body = GetComponent<Rigidbody2D>();
+        if (body != null) { body.linearVelocity = Vector2.zero; body.angularVelocity = 0f; }
+    }
+
+    public bool SetCheckpoint(Vector3 position)
+    {
+        if (!IsAlive || !float.IsFinite(position.x) || !float.IsFinite(position.y) || !float.IsFinite(position.z)) return false;
+        CheckpointPosition = position;
+        CheckpointScene = gameObject.scene.path;
+        Save();
+        return true;
+    }
+
+    public bool Respawn()
+    {
+        if (State != LifeState.Dead) return false;
+        State = LifeState.Respawning;
+        StopCombat();
+        transform.position = CheckpointPosition;
+        var body = GetComponent<Rigidbody2D>();
+        if (body != null) body.position = CheckpointPosition;
+        GetComponent<MoodSystem>()?.ReleaseControlForRecovery();
+        GetComponent<ControlManager>()?.RestoreForRecovery();
+        GetComponent<RpgSkillController>()?.ResetForRecovery();
+        HP = MaxHP; Mana = MaxMana;
+        protectedUntil = Time.time + 2f;
+        State = LifeState.Alive;
+        Physics2D.SyncTransforms();
+        Save();
+        OnStatsChanged?.Invoke();
+        OnRespawned?.Invoke();
+        return true;
     }
 
     public void Save() => SaveSystem.SavePlayer(this);
 
     public bool UpgradeAttribute(RpgAttribute attribute)
     {
+        if (!IsAlive) return false;
         int id = (int)attribute;
         if (StatPoints < 1 || id < 0 || id >= AttributeRanks.Length) return false;
         StatPoints--; AttributeRanks[id]++;
@@ -130,6 +197,7 @@ public class PlayerStats : MonoBehaviour, IDamageable
 
     public string SkillLockReason(int id)
     {
+        if (!IsAlive) return "재도전 후 수련할 수 있습니다.";
         if (id < 0 || id >= RpgSkillCatalog.All.Length) return "존재하지 않는 무공";
         var skill = RpgSkillCatalog.All[id];
         if (SkillRanks[id] >= skill.MaxRank) return "최고 단계";
@@ -170,6 +238,9 @@ public class PlayerStats : MonoBehaviour, IDamageable
         Level  = Mathf.Max(1, data.level);
         MaxHP  = Mathf.Max(1f, data.maxHP);
         HP     = Mathf.Clamp(data.hp, 0f, MaxHP);
+        State = HP <= 0f ? LifeState.Dead : LifeState.Alive;
+        if (data.hasCheckpoint && data.checkpointScene == gameObject.scene.path)
+            CheckpointPosition = data.checkpointPosition;
         MaxMana = Mathf.Max(1f, data.maxMana);
         Mana   = Mathf.Clamp(data.mana, 0f, MaxMana);
         MaxEXP = Mathf.Max(1f, data.maxEXP);

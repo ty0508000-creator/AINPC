@@ -1,208 +1,117 @@
-# AINPC — 내면의 대화 액션
+# AINPC — 귀환자의 수련록
 
-> 플레이어가 캐릭터를 조종하지만, 캐릭터의 **「내면」이 조작권을 빼앗아 가는** 2D 탑뷰 액션 RPG.
-> NPC 대화와 내면의 협상을 **기기에서 직접 도는 로컬 LLM**으로 생성한다. 외부 API 호출은 0회.
+천마를 쓰러뜨린 뒤 고향과 동료를 잃은 검객이 수십 년 후 다시 강호로 돌아오는 **2D 탑뷰 무협 액션 RPG 프로토타입**입니다. 플레이어와 내면의 존재가 몸의 조작권을 공유하고, 로컬 LLM 대화가 Mood와 조작권에 영향을 줍니다.
 
-한신대학교 2026-1학기 PD학기제 과제 · 개발 2인 (김정현, 이정택) · 16주
+한신대학교 PD학기제 프로젝트 · 개발 김정현, 이정택.
 
----
+> 상태 기준: 2026-09-20. 사천왕의 네 섬과 천마의 마지막 섬은 전체 이야기의 목표이며, 다섯 섬이 완성된 게임은 아닙니다. 우선 목표는 첫 섬에서 전투·성장·대화·선택·보스를 연결하는 짧은 데모입니다.
 
-## 핵심 아이디어
+## 문서
 
-대부분의 게임에서 페널티는 **체력 감소**다. 이 게임의 페널티는 **조작권 상실**이다.
+- [비판점·개선안·담당별 실행계획](docs/DEVELOPMENT_REVIEW_AND_PLAN.md)
+- [게임 기획서·단계별 제작계획·선택지](docs/GAME_DESIGN_AND_EXECUTION_PLAN.md)
+- [1섬 제작 기획서·퀘스트표·보스 목표](docs/FIRST_ISLAND_PRODUCTION_PLAN.md)
+- [이번 프로젝트 목표·마일스톤·우선순위](docs/GOALS_AND_MILESTONES.md)
+- [게임 시작 프롤로그 시네마틱 기획](docs/PROLOGUE_CINEMATIC_PLAN.md)
+- [RPG UI 사용법·검증](docs/RPG_UI.md)
+- [Main 씬 수동 플레이 검사 기록지](docs/MANUAL_PLAYTEST.md)
+- [사망 복구·통합 저장 사용법](docs/RECOVERY_AND_SAVE.md)
+- [자료구조·알고리즘 코드 설명](docs/RPG_CODE_EXPLAINED.md)
+- [기존 2학기 계획 — 과거 분석과 일정](docs/2학기_개선계획.md)
 
-캐릭터에게는 기분(Mood) 게이지가 있고, 전투 중 이 값이 바닥나면 「어둠(Darkness)」이라는 또 다른 인격이 표면으로 올라와 몸을 가져간다. 그동안 플레이어의 입력은 먹히지 않고 AI가 알아서 싸운다. 플레이어는 「내면의 공간」에서 어둠과 대화로 협상해 조작권을 되찾아야 한다.
+## 현재 구현
 
-```
-Mood ≥ 70  ─────▶  플레이어가 조종 (조작권 반환)
-Mood ≤ 20  ─────▶  AI가 조종   (조작권 강탈)
-              └─ 단, 전투 중일 때만 강탈된다
+- 이동, 일반 공격, 충전 대시, 몬스터 전투.
+- 체력·공격력·방어력·내력 투자, 레벨업, 성장 저장과 이전 저장 마이그레이션.
+- 사망 화면과 재도전(R), 체크포인트 복귀, 플레이어·퀘스트·Mood 통합 저장.
+- 검술·호신·내공의 9개 무공 노드와 월영참·금강호신·운기조식.
+- 밝은 종이 패널, 목재 버튼, 옥색 선택 표시를 사용하는 수련 UI.
+- Mood와 전투 상태에 따른 플레이어/AI 조작권 전환.
+- NPC/내면 대화, 로컬 LLM 스트리밍, 기억 검색을 위한 연결 코드.
+- 첫 섬 퀘스트 데이터 9개와 진행·저장 시스템. 일부 완료 조건은 임시 트리거입니다.
 
-[대화] ──mood_delta──▶ [기분 수치] ──조건 판정──▶ [조작권] ──▶ [대화]
-```
+![목재 무공 화면](docs/RpgScreenshots/skills.png)
 
-LLM의 대화 결과가 게임 수치를 바꾸고, 그 수치가 다시 조작권을 결정하는 **순환 구조**가 이 프로젝트의 핵심이다. AI는 강하지만 몸을 사리지 않아 스스로 피해를 입기 때문에, "AI에게 몸을 맡기면 적은 잘 잡지만 대신 몸이 상한다"는 트레이드오프가 성립한다.
+## 실행 준비
 
----
+1. Unity Hub에서 **Unity 6000.3.10f1**로 프로젝트를 엽니다.
+2. 패키지 복원과 임포트를 기다립니다.
+3. `Assets/Scenes/Main.unity`를 엽니다. 빌드의 첫 활성 씬도 Main입니다.
+4. 아래 모델 연결을 확인한 뒤 Play를 실행합니다.
 
-## 실행 방법
+### 모델 파일
 
-### 요구 사항
+GGUF는 Git에서 제외됩니다. 저장소만 내려받아서는 LLM 준비가 완료되지 않습니다.
 
-| 항목 | 버전 |
-|---|---|
-| Unity | 6000.3.10f1 |
-| 언어 | C# |
-| LLM 런타임 | LLMUnity (임베디드 llama.cpp) |
-| 권장 사양 | GGUF 8B 모델 로드가 가능한 메모리 (16GB 이상 권장) |
+- Main의 `LLM_Server`와 `InnerVoice_LLM_Server`는 현재 모두 `Models/darkness-Q4_K_M.gguf`를 참조합니다.
+- 프로젝트 내 위치: `Assets/StreamingAssets/Models/darkness-Q4_K_M.gguf`.
+- `Embedding_Server`는 `all-MiniLM-L12-v2.Q4_K_M.gguf`를 참조합니다. 실제 모델 해석 경로를 LLMUnity 설정에서 확인해야 합니다.
+- 이번 로컬 점검에서는 darkness 파일을 확인했지만 StreamingAssets 아래에서 임베딩 GGUF는 확인하지 못했습니다. 다른 캐시 경로의 존재나 기억 검색 성공까지 검증한 것은 아닙니다.
 
-### 모델 파일 배치
+`Training/`에 학습 코드와 노트북이 있습니다. 학습은 게임 실행과 별도 작업이며 GPU·패키지·모델 이용 조건 확인이 필요합니다.
 
-**GGUF 모델은 용량 문제로 저장소에 포함되어 있지 않다** (`.gitignore`에서 `*.gguf` 제외). 아래 경로에 직접 넣어야 게임이 동작한다.
+목표 PC에서 RAM/VRAM, 첫 응답 및 완료 시간은 아직 측정하지 않았습니다. 기존 문서의 RAM 수치와 경량화 속도 배수는 보장 사양이 아닙니다.
 
-```
-Assets/StreamingAssets/Models/darkness-Q4_K_M.gguf   # 약 4.9GB, 「어둠」 페르소나 파인튜닝 모델
-```
+## 조작과 성장
 
-`darkness-Q4_K_M.gguf`는 [`Training/`](Training/) 의 파이프라인으로 직접 만들 수 있다 (아래 참조). 일반 NPC 대화용으로 베이스 모델(`Meta-Llama-3-8B-Instruct-Q4_K_M.gguf`)을 함께 쓸 수 있다.
+- `WASD`: 이동.
+- 좌클릭: 일반 공격. 우클릭 길게 누르기: 충전 대시.
+- `C`: 능력치 투자. `K`: 무공 트리.
+- `1 / 2 / 3`: 습득한 월영참 / 금강호신 / 운기조식.
+- `Escape`: 수련 화면 닫기.
+- NPC 근처 이동: 대화 진입. 일부 퀘스트도 근접 트리거 방식입니다.
 
-### 실행
+**수련 화면을 열어도 전투는 계속됩니다.** 이동·공격 입력은 차단되므로 안전한 곳에서 여세요. 내면 대화는 별도로 게임 시간을 정지시킵니다.
 
-1. Unity Hub에서 프로젝트를 연다 (6000.3.10f1).
-2. 위 경로에 GGUF 파일을 넣는다.
-3. 메인 씬을 열고 Play.
+새 캐릭터는 능력치 5점·무공 3점, 레벨업마다 능력치 3점·무공 1점을 받습니다. 아이콘은 기존 코드 기반 문양을 유지하며 이미지 제작은 후속 작업입니다.
 
-| 조작 | 동작 |
-|---|---|
-| `WASD` | 이동 |
-| 좌클릭 | 일반 공격 |
-| 우클릭 (길게) | 충전 대시 공격 — 누른 시간에 비례해 사거리·피해 증가, 대시 중 무적 |
-| NPC 근접 | 대화창 자동 활성화 |
+## 코드의 역할
 
----
+`Assets/Script/Player/PlayerStats.cs`는 성장 데이터를 보유합니다. `UI/RpgUI.cs`는 표시와 투자 API 호출, `RpgSkillCatalog`는 정의, `RpgSkillController`는 비용·쿨타임·효과를 담당합니다.
 
-## 아키텍처
+`MoodSystem`이 전환 조건을 판단하고 `ControlManager`가 중계합니다. `AIController`는 가까운 적을 추적·공격합니다. **기억에 따라 전투 성향을 바꾸는 기능은 아직 연결되어 있지 않습니다.**
 
-직접 작성한 코드는 [`Assets/Script/`](Assets/Script/) 아래 26개 파일이다.
-`Assets/Runtime/`, `Assets/Editor/LLM*` 는 [LLMUnity(undreamai)](https://github.com/undreamai/LLMUnity) 오픈소스 패키지다.
+`DialogueManager`와 `InnerVoiceManager`가 대화를 처리하고 `LLMResponseParser`가 대사와 Mood 변화량을 읽습니다. 프롬프트만으로 JSON 준수를 완전히 보장하지는 않습니다.
 
-### 조작권 전환 — 판단 · 중계 · 실행의 분리
+`QuestManager`는 게임 이벤트로 목표 진행도를 갱신합니다. `Resources/Quests`에 첫 섬 정의가 있습니다. LLM의 말이 아니라 게임 로직이 퀘스트 완료·보상을 판정하도록 유지해야 합니다.
 
-조작권 시스템을 하나의 스크립트로 만들지 않고 역할별로 쪼갰다. 판단이 바뀌어도 실행부를 건드릴 필요가 없다.
+## 저장
 
-| 파일 | 역할 |
-|---|---|
-| [`System/MoodSystem.cs`](Assets/Script/System/MoodSystem.cs) | 기분 수치(0~100, 시작 50) 관리 + 강탈/반환 **조건 판정**. `CombatWatch` 코루틴이 0.5초 주기로 반경 12 내 적을 검사 |
-| [`System/ControlManager.cs`](Assets/Script/System/ControlManager.cs) | 이벤트를 받아 `IsPlayerControlled` 플래그를 갱신하고 **재발행**. 입력·AI·연출이 서로를 모르게 하는 느슨한 결합 지점 |
-| [`System/AIController.cs`](Assets/Script/System/AIController.cs) | 강탈 시 가장 가까운 적을 추격·공격. 거리에 따라 근접 / 대시 / 걷기로 분기 |
-| [`System/TakeoverEffect.cs`](Assets/Script/System/TakeoverEffect.cs) | 적색 플래시 · 카메라 흔들림 · 프리셋 대사 · 효과음 |
+실제 저장은 `Application.persistentDataPath`를 사용합니다. 현재 Windows 기본 경로는 `%USERPROFILE%/AppData/LocalLow/DefaultCompany/AINPC`입니다.
 
-**히스테리시스** — 강탈(20)과 반환(70)의 임계값을 크게 벌려놨다. 같은 값이면 게이지가 경계에서 흔들릴 때 조작권이 초당 몇 번씩 오가며 게임이 망가진다.
+- `player_save.json`: 플레이어 성장·체크포인트·Mood·퀘스트 상태를 하나의 스냅샷으로 저장합니다. 임시 파일 검증/교체와 이전 백업을 사용합니다.
+- 기존 `quest_save.json`: 첫 통합 저장 시 가져오며 원본을 삭제하지 않습니다. 통합 이후에는 별도로 쓰지 않습니다.
+- 검증: 실제 저장과 분리한 `VerificationResults` 아래 폴더.
 
-**전투 게이트** — 한적한 곳에서 게이지가 낮다고 조작권을 뺏으면 그냥 불편하기만 하다. 적이 주변에 있을 때만 강탈되고, 전투가 끝나면 기분이 낮아도 즉시 반환된다. 플레이어에게 항상 탈출 경로가 있어야 한다.
+주 파일이 손상되거나 없어도 백업을 확인합니다. 복구 불가능한 저장이나 더 최신 형식은 기본값으로 덮어쓰지 않습니다. 저장 실패 시 현재 진행은 메모리에 남지만 종료하면 마지막 정상 저장으로 돌아갑니다. 테스트 목적으로 실제 저장을 삭제하지 마세요.
 
-### LLM 대화
+## 검증
 
-| 파일 | 역할 |
-|---|---|
-| [`System/InnerVoiceManager.cs`](Assets/Script/System/InnerVoiceManager.cs) | **내면의 공간** — `Time.timeScale = 0`으로 게임을 정지시키고 어둠과 협상. 결과가 `mood_delta`만큼 기분을 움직인다 |
-| [`DialogueManager.cs`](Assets/Script/DialogueManager.cs) | **마을 NPC 대화** — NPC별 페르소나 부여. 어둠이 몸을 제어 중이면 NPC가 대화를 거부하고 공포 반응을 보이며, 그 사건을 기억에 남긴다 |
-| [`System/MemoryManager.cs`](Assets/Script/System/MemoryManager.cs) · [`Npc/MrSmithLongTermMemory.cs`](Assets/Script/Npc/MrSmithLongTermMemory.cs) | **RAG 장기 기억** — 임베딩 기반 벡터 검색(usearch), NPC별 독립 기억 파일 |
+실행 명령은 [RPG UI 문서](docs/RPG_UI.md)에 있습니다. 검증은 빈 씬을 만들므로 **작업 씬을 저장하고 에디터를 종료하거나 별도 프로젝트 복사본에서 실행**하세요.
 
-**구조화된 출력** — 시스템 프롬프트로 항상 JSON 응답을 강제해, 한 번의 추론으로 대사와 감정 변화량을 동시에 받는다.
+- `RpgVerification.Run`: 성장·저장·목재 연결·실제 버튼 콜백과 Unity 캡처.
+- `RpgPlayVerification.Run`: Play 모드 피해·회복·방어·마나·쿨타임·중복 피격·메뉴 입력 차단.
+- `RecoverySaveVerification.Run`: 사망/복귀, 저장 중단 주입, 보상 중복 방지, 백업, 분리 저장 마이그레이션.
+- 산출물은 `VerificationResults/`에 보존하고 Git에서는 제외합니다. 선별한 화면은 `docs/RpgScreenshots/`에 있습니다.
 
-```json
-{"dialogue": "...무슨 말을 하든, 네 손은 이미 떨리고 있잖아.", "mood_delta": -8}
-```
+이 검사는 실제 LLM 품질, 첫 섬 완주, 실사용 마우스 조작, 배포 빌드, 보스 밸런스를 보장하지 않습니다.
 
-파싱은 2단계 방어다 — `JsonUtility` 우선, 실패하면 정규식 폴백. 로컬 소형 모델은 형식을 종종 깨뜨리기 때문에 파싱 실패로 게임이 멈추면 안 된다.
+## 먼저 해결할 제한
 
-**소프트락 방지** — LLM을 게임에 붙일 때 진짜 문제는 품질이 아니라 지연이다. 양쪽 대화 모두 `Task.WhenAny`로 20초 타임아웃을 걸어, 응답이 오지 않으면 "침묵 속에 종료"시킨다. 응답은 토큰 단위 스트리밍으로 받아 **미완성 JSON에서 `dialogue` 값만 뽑아** 타자기 효과로 출력하므로, 완성을 기다리지 않는다.
-
-**상황 인지** — 현재 HP · 기분 수치 · 주변 적 수 · 조작 주체를 시스템 프롬프트에 주입한다.
-
-### 데이터 주도형 설계
-
-몬스터 능력치는 코드가 아니라 [`Monster/MonsterData.cs`](Assets/Script/Monster/MonsterData.cs) (`ScriptableObject`)에 있다. 공통 행동은 추상 클래스 [`MonsterBase.cs`](Assets/Script/Monster/MonsterBase.cs)에 두고 [고블린](Assets/Script/Monster/GoblinMonster.cs) · [버섯](Assets/Script/Monster/MushroomMonster.cs) · [해골](Assets/Script/Monster/SkeletonMonster.cs) · [박쥐](Assets/Script/Monster/BatMonster.cs) 4종이 상속한다. 새 몬스터는 코드 수정 없이 데이터 에셋 교체만으로 추가된다.
-
-### 게임 수학
-
-조작감·판정·성장 곡선은 감이 아니라 명시적 수식에 근거해 설계했다.
-
-- **벡터 정규화** — 대각선 입력 `(1,1)`은 크기가 `√2 ≈ 1.414`라, 보정 없이는 대각 이동이 1.4배 빠르다. `v̂ = v / |v|`로 정규화 후 속도를 곱해 전 방향 속도를 고정
-- **선형보간 / 역보간** — 대시 충전 비율 `r`로 사거리 `lerp(1, 7, r)`, 피해 `lerp(5, 25, r)`. AI가 대시할 때는 반대로 적까지의 거리에서 `InverseLerp`로 충전량을 역산
-- **삼각함수** — `θ = SignedAngle(↑, dir)`만큼 공격 판정 박스를 회전
-- **기하 충돌 질의** — 전투 감지는 `OverlapCircle`, 근접 공격은 회전된 `OverlapBox`, 대시는 경로를 쓸어 검사하는 `BoxCast`
-- **등비수열** — 다음 레벨 요구 경험치 `Eₙ = 100 · 1.5ⁿ⁻¹`, 최대 HP/마나는 `+20`/`+10` 등차
-- **운동학 적분 · 이징** — `FixedUpdate`에서 `p ← p + v̂ · s · Δt`로 적분해 프레임률 독립성 확보, 화면 전환에는 SmoothStep `s(t) = 3t² − 2t³`
-
----
-
-## 「어둠」 인격 파인튜닝
-
-프롬프트만으로는 톤과 출력 형식이 흔들려, 전용 모델을 직접 학습시켰다. 전체 파이프라인은 [`Training/`](Training/) 에 있다.
-
-```
-gen_data.py  ─▶  train.py (QLoRA)  ─▶  어댑터 병합  ─▶  GGUF(Q4_K_M)  ─▶  LLMUnity 인프로세스 로드
-  약 1,000개        Colab T4             llama.cpp        약 4.9GB          외부 API 0회
-```
-
-| 파일 | 역할 |
-|---|---|
-| [`Training/gen_data.py`](Training/gen_data.py) | 규칙 기반 학습 데이터 생성기 |
-| [`Training/train.py`](Training/train.py) | QLoRA 학습 (Unsloth + TRL `SFTTrainer`) |
-| [`Training/AINPC_finetune_colab.ipynb`](Training/AINPC_finetune_colab.ipynb) | Colab 실행용 노트북 |
-| [`Training/Modelfile`](Training/Modelfile) | 시스템 프롬프트 및 추론 파라미터 |
-| [`Training/data/train_data.jsonl`](Training/data/train_data.jsonl) | 생성된 학습 데이터 |
-
-**데이터 생성** — HP · 기분 · 적 수 · 조작 주체를 무작위 조합해 멀티턴 샘플 약 1,000개를 자동 생성한다. 플레이어 발화를 항복 · 반항 · 달램 · 거래 · 모욕 · 협력 등 12개 카테고리로 나누고 `(발화 ↔ 반응 ↔ mood_delta 범위)`를 짝지어 감정의 방향성을 일관화했다. 시드를 42로 고정해 재현성을 확보하고, **학습 데이터의 시스템 프롬프트를 런타임과 똑같은 형식**으로 맞춰 학습-추론 분포 불일치를 줄였다.
-
-**학습 설정**
-
-| 항목 | 값 |
-|---|---|
-| 베이스 모델 | `unsloth/Meta-Llama-3.1-8B-Instruct` (4bit 로드) |
-| 기법 | QLoRA — 저랭크 어댑터만 학습 |
-| LoRA rank / alpha | 16 / 16 |
-| Epochs | 4 |
-| Learning rate | 2e-4 (cosine) |
-| 유효 배치 | 8 |
-| Max sequence length | 2048 |
-| 환경 | Google Colab T4 (무료 GPU) |
-
-**배포** — 어댑터를 병합해 `Q4_K_M`으로 양자화하고 LLMUnity의 LLM 컴포넌트에 직접 로드한다. temperature 등 추론 파라미터를 고정해 캐릭터 톤이 흔들리지 않게 했다.
-
-```bash
-cd Training
-pip install -r requirements.txt
-python gen_data.py     # 학습 데이터 생성
-python train.py        # QLoRA 학습
-```
-
----
-
-## 왜 로컬 LLM인가
-
-처음에는 구현이 쉬운 외부 API 연동을 전제로 기획했지만, 세 가지가 걸려 방향을 틀었다.
-
-1. **비용** — 플레이어 1인당 추론 비용이 계속 발생한다. 학생 개발 환경에서는 치명적이다.
-2. **지연** — 네트워크 왕복이 그대로 몰입 저하로 이어진다.
-3. **배포·보안** — 오프라인 실행이 불가능하고, 플레이어의 입력이 외부 서버로 나간다.
-
-로컬 LLM은 초기 구성 난도가 훨씬 높지만, 판매 이후 운영비가 0에 수렴하고 대화 데이터가 기기 밖으로 나가지 않는다.
-
----
-
-## 프로젝트 구조
-
-```
-Assets/Script/
-├── System/          MoodSystem · ControlManager · AIController · TakeoverEffect
-│                    InnerVoiceManager · MemoryManager
-├── Player/          PlayerAttack · PlayerController · PlayerStats
-├── Monster/         MonsterBase · MonsterData · MonsterSpawnArea/Point
-│                    MonsterProjectile · Bat/Goblin/Mushroom/Skeleton
-├── Npc/             MrSmithLongTermMemory · NpcInteraction
-├── Save/            SaveSystem · PlayerSaveData
-├── UI/              PlayerHUD
-└── (루트)            DialogueManager · IDamageable · CameraFollow
-
-Training/            파인튜닝 파이프라인
-docs/                설계 문서
-```
-
----
-
-## 알려진 한계
-
-- **로컬 추론 속도** — 8B 모델의 로컬 추론에는 지연이 있다. 타임아웃으로 소프트락은 막았지만 근본 속도는 모델 경량화와 하드웨어에 달려 있다.
-- **`timeScale = 0`과 코루틴** — 내면대화 중 강탈이 발동하면 코루틴이 정지해, AI 행동이 대화 종료 후로 밀린다.
-- **미구현** — 인벤토리 시스템, 오브젝트 풀링 최적화.
-- **배포 용량** — 양자화 모델이 약 4.9GB라 패키징 전략(빌드 포함 vs 최초 실행 시 다운로드)이 남아 있다.
-
----
-
-## 라이선스 및 크레딧
-
-- 베이스 모델: **Meta Llama 3.1** — Llama 3.1 Community License 적용. 상업적 이용 시 **"Built with Llama"** 표기와 라이선스 동봉 등 조건을 준수해야 한다.
-- LLM 런타임: [LLMUnity](https://github.com/undreamai/LLMUnity) (undreamai)
+1. 사망 복구 구현 완료: R/재도전 버튼으로 복귀합니다. 씬별 안전 체크포인트 배치와 Main 플레이 검증은 남아 있습니다.
+2. 내면 대화에 실제 타임아웃이 연결되어 있지 않습니다. NPC 타임아웃도 오래된 요청 취소와는 다릅니다.
+3. 일부 선택 퀘스트는 구역에 들어가기만 하면 완료됩니다. 선택·보스 처치·조작권 조건으로 교체해야 합니다.
+4. 첫 섬 보스가 해금하는 `isle2_arrival` 데이터가 없어 다음 섬으로 이어지지 않습니다.
+5. 플레이어·퀘스트·Mood 통합 저장 구현 완료. RAG 기억 기록과 연출은 파일 트랜잭션 밖이며, 과거에 이미 어긋난 분리 저장을 자동 판별하지는 못합니다.
+6. 목재 스타일은 성장 UI에 적용했습니다. 대화·퀘스트·내면 UI 통합은 남아 있습니다.
+
+사망 복구와 저장 안정성은 후속 작업으로 개선했습니다. 나머지 항목은 미해결이며 [개선 계획](docs/DEVELOPMENT_REVIEW_AND_PLAN.md)에 범위를 구분했습니다.
+
+## 외부 에셋과 크레딧
+
+- 추론 런타임: [LLMUnity / undreamai](https://github.com/undreamai/LLMUnity). 포함 라이선스를 확인하세요.
+- 목재/종이 UI: Black Hammer, **Fantasy Wooden GUI : Free 2.1**. 공식 패키지 PNG 6개. [출처 기록](Assets/Resources/RpgWooden/README.md).
+- 글꼴: 프로젝트의 Paperlogy TMP 에셋. 배포 전 원본 이용 조건과 고지 파일 점검이 필요합니다.
+- 학습 코드의 베이스 모델: Meta Llama 3.1 계열. 실제 배포 모델과 파생 모델의 이용 조건·고지를 확인해야 합니다.
+
+외부 아트는 프로젝트 자체 저작물이 아닙니다. 독립 재배포와 공개 저장소 포함 여부는 배포 전에 확인해야 합니다.

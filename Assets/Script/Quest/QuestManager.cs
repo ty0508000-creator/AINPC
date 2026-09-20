@@ -50,6 +50,8 @@ public class QuestManager : MonoBehaviour
     [SerializeField] private bool verboseLog = true;
 
     private readonly Dictionary<string, QuestRuntime> table = new();
+    public bool IsSaveReady { get; private set; }
+    public PlayerStats Player => playerStats;
 
     public event Action<QuestRuntime> OnQuestStarted;
     public event Action<QuestRuntime, int> OnObjectiveProgress;   // (퀘스트, objective 인덱스)
@@ -90,11 +92,18 @@ public class QuestManager : MonoBehaviour
         if (innerVoice == null)  innerVoice  = FindFirstObjectByType<InnerVoiceManager>();
         if (playerStats == null) playerStats = FindFirstObjectByType<PlayerStats>();
 
-        QuestSaveSystem.Load(this);
+        IsSaveReady = QuestSaveSystem.Load(this);
+        if (!IsSaveReady) return;
         foreach (var r in table.Values)
             if (r.State == QuestState.Active && r.Data.canFail && r.Data.timeLimit > 0f)
                 StartCoroutine(TimeLimitWatch(r));
         RefreshAvailability();
+        // A crash after the reward commit may leave an unlocked auto-start quest available.
+        foreach (var r in new List<QuestRuntime>(table.Values))
+        {
+            if (r.State == QuestState.Available && r.Data.autoStart) StartQuest(r.Data.questId);
+            else if (r.State == QuestState.Active && r.AllObjectivesDone()) CompleteQuest(r.Data.questId);
+        }
     }
 
     // ── 조회 ────────────────────────────────────────────────────
@@ -149,6 +158,7 @@ public class QuestManager : MonoBehaviour
 
     public bool StartQuest(string questId)
     {
+        if (!IsSaveReady) return false;
         var r = Get(questId);
         if (r == null)
         {
@@ -179,11 +189,7 @@ public class QuestManager : MonoBehaviour
         var r = Get(questId);
         if (r == null || r.State == QuestState.Completed || r.State == QuestState.Failed) return;
 
-        Log($"거절: {r.Data.title}");
-        r.State = QuestState.Failed;
-        ApplyOutcome(r.Data.onFail, r.Data.failLine);
-        OnQuestFailed?.Invoke(r);
-        Persist();
+        FinishQuest(r, QuestState.Failed, r.Data.onFail, r.Data.failLine);
     }
 
     // ── 진행 보고 ───────────────────────────────────────────────
@@ -198,6 +204,7 @@ public class QuestManager : MonoBehaviour
 
     private void Report(ObjectiveType type, string targetId, int count)
     {
+        if (!IsSaveReady) return;
         if (string.IsNullOrWhiteSpace(targetId) || count <= 0) return;
 
         // 순회 중 완료가 나면 상태가 바뀌므로 복사본으로 돈다
@@ -237,14 +244,7 @@ public class QuestManager : MonoBehaviour
         var r = Get(questId);
         if (r == null || r.State != QuestState.Active) return;
 
-        r.State = QuestState.Completed;
-        Log($"완료: {r.Data.title}");
-
-        ApplyOutcome(r.Data.onComplete, r.Data.completeLine);
-        OnQuestCompleted?.Invoke(r);
-
-        RefreshAvailability();
-        Persist();
+        FinishQuest(r, QuestState.Completed, r.Data.onComplete, r.Data.completeLine);
     }
 
     public void FailQuest(string questId)
@@ -252,13 +252,43 @@ public class QuestManager : MonoBehaviour
         var r = Get(questId);
         if (r == null || r.State != QuestState.Active) return;
 
-        r.State = QuestState.Failed;
-        Log($"실패: {r.Data.title}");
+        FinishQuest(r, QuestState.Failed, r.Data.onFail, r.Data.failLine);
+    }
 
-        ApplyOutcome(r.Data.onFail, r.Data.failLine);
-        OnQuestFailed?.Invoke(r);
-
+    void FinishQuest(QuestRuntime r, QuestState state, QuestOutcome outcome, string line)
+    {
+        if (!IsSaveReady) return;
+        if (playerStats == null) playerStats = FindFirstObjectByType<PlayerStats>();
+        if (outcome != null && outcome.expReward > 0f && playerStats == null)
+        {
+            Debug.LogWarning("[Quest] 보상 받을 플레이어가 없어 완료를 보류합니다.");
+            return;
+        }
+        int previousLevel = playerStats != null ? playerStats.Level : 0;
+        // No events, async work, or intermediate saves inside this core mutation.
+        r.State = state;
+        if (outcome != null) playerStats?.ApplyExperience(outcome.expReward);
+        if (outcome != null) moodSystem?.ApplyQuestDelta(outcome.moodDelta);
+        var unlocked = new List<QuestRuntime>();
+        if (outcome?.unlockQuestIds != null)
+            foreach (string id in outcome.unlockQuestIds)
+            {
+                var target = Get(id);
+                if (target == null || target.State != QuestState.Locked) continue;
+                target.State = QuestState.Available;
+                unlocked.Add(target);
+            }
+        // Terminal state is the claim marker: reward and marker share one atomic snapshot.
+        // Even with autoSave off, reward commits must not be split across two files.
+        SaveSystem.SaveGame(playerStats, this);
+        playerStats?.NotifyExperience(previousLevel);
+        ApplyOutcome(outcome, line);
+        foreach (var target in unlocked) OnQuestAvailable?.Invoke(target);
+        if (state == QuestState.Completed) OnQuestCompleted?.Invoke(r);
+        else OnQuestFailed?.Invoke(r);
         RefreshAvailability();
+        foreach (var target in unlocked)
+            if (target.State == QuestState.Available && target.Data.autoStart) StartQuest(target.Data.questId);
         Persist();
     }
 
@@ -275,24 +305,11 @@ public class QuestManager : MonoBehaviour
         if (outcome == null) return;
 
         if (outcome.moodDelta != 0f && moodSystem != null)
-            moodSystem.ChangeMood(outcome.moodDelta);
-
-        if (outcome.expReward > 0f && playerStats != null)
-            playerStats.AddEXP(outcome.expReward);
+            moodSystem.NotifyQuestDelta();
 
         // 인격이 나중에 끄집어낼 수 있도록 기억에 남긴다 (실패일수록 중요)
         if (!string.IsNullOrWhiteSpace(outcome.memoryLine) && memory != null)
             _ = memory.Remember(outcome.memoryLine, "inner");
-
-        foreach (string id in outcome.unlockQuestIds)
-        {
-            var target = Get(id);
-            if (target != null && target.State == QuestState.Locked)
-            {
-                target.State = QuestState.Available;
-                OnQuestAvailable?.Invoke(target);
-            }
-        }
 
         if (!string.IsNullOrWhiteSpace(line))
             Log($"\"{line}\"");
@@ -300,12 +317,6 @@ public class QuestManager : MonoBehaviour
         if (outcome.triggerInnerVoice && innerVoice != null)
             innerVoice.ForceOpen(outcome.innerVoiceContext);
 
-        foreach (string id in outcome.unlockQuestIds)
-        {
-            var target = Get(id);
-            if (target != null && target.State == QuestState.Available && target.Data.autoStart)
-                StartQuest(id);
-        }
     }
 
     private void Persist()

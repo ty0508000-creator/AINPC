@@ -45,6 +45,8 @@ public class AIController : MonoBehaviour
 
     void StartAI()
     {
+        if (playerStats != null && !playerStats.IsAlive) return;
+        StopAI();
         behaviorCoroutine = StartCoroutine(BehaviorLoop());
         recklessCoroutine = StartCoroutine(RecklessLoop());
     }
@@ -61,8 +63,15 @@ public class AIController : MonoBehaviour
             StopCoroutine(recklessCoroutine);
             recklessCoroutine = null;
         }
-        rb.linearVelocity = Vector2.zero;
+        if (rb != null) rb.linearVelocity = Vector2.zero;
         if (spriteRenderer != null) spriteRenderer.color = baseColor;
+    }
+
+    public void StopForRecovery()
+    {
+        StopAllCoroutines();
+        behaviorCoroutine = recklessCoroutine = null;
+        StopAI();
     }
 
     IEnumerator RecklessLoop()

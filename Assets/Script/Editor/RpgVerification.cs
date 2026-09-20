@@ -13,7 +13,8 @@ public static class RpgVerification
     static int checks;
     public static void Run()
     {
-        string output = Path.GetFullPath("Temp/RpgVerification");
+        checks = 0;
+        string output = Path.GetFullPath("VerificationResults/RpgVerification");
         Directory.CreateDirectory(output);
         string saves = Path.Combine(output, Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(saves);
@@ -69,13 +70,37 @@ public static class RpgVerification
             var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Paperlogy-4Regular SDF.asset");
             typeof(RpgUI).GetField("koreanFont", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(ui, font);
             Invoke(ui, "Start");
+            var board = Resources.Load<Sprite>("RpgWooden/UI board Large Set");
+            var paper = Resources.Load<Sprite>("RpgWooden/UI board Medium  parchment");
+            var wood = Resources.Load<Sprite>("RpgWooden/TextBTN_Medium");
+            Check(board != null && paper != null && wood != null, "wooden artwork resolves at runtime");
+            Check(board.border.x > 0 && paper.border.x > 0 && wood.border.x > 0, "nine-slice borders configured");
             ui.Open(false);
+            var window = GameObject.Find("Cultivation").GetComponent<Image>();
+            Check(window.sprite == board && window.type == Image.Type.Sliced, "real package artwork applied to window");
+            var buttons = (Button[])typeof(RpgUI).GetField("attributeButtons", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(ui);
+            Check(Array.TrueForAll(buttons, b => b.image.sprite == wood && b.image.type == Image.Type.Sliced), "all attribute buttons use sliced wood");
+            int beforePoints = stats.StatPoints;
+            float beforeHP = stats.MaxHP;
+            buttons[0].onClick.Invoke();
+            Check(stats.StatPoints == beforePoints - 1 && stats.MaxHP == beforeHP + 20, "wooden button invokes actual upgrade");
+            Check(SaveSystem.LoadPlayer().statPoints == stats.StatPoints, "wooden upgrade button persists result");
             Capture(output, "attributes.png");
-            ui.Open(true);
+            var tab = (Button)typeof(RpgUI).GetField("skillsTab", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(ui);
+            tab.onClick.Invoke();
+            Check(((GameObject)typeof(RpgUI).GetField("skillsPage", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(ui)).activeSelf, "wooden skill tab switches page");
             Capture(output, "skills.png");
+            Capture(output, "skills-1280x720.png", 1280, 720);
+            Capture(output, "skills-1920x1080.png", 1920, 1080);
             Invoke(ui, "Close");
             Check(!RpgUI.IsOpen, "closing releases input lock");
             Capture(output, "hud.png");
+            stats.TakeDamage(100000);
+            Invoke(ui, "Refresh");
+            Check(GameObject.Find("Recovery overlay") != null, "death recovery UI visible");
+            Capture(output, "recovery.png");
+            GameObject.Find("안전 지점에서 재도전  /  R").GetComponent<Button>().onClick.Invoke();
+            Check(stats.IsAlive && !GameObject.Find("Recovery overlay"), "retry button restores player and dismisses UI");
             File.WriteAllText(Path.Combine(output, "result.txt"), $"PASS: {checks} assertions\nUnity-rendered captures: attributes.png, skills.png, hud.png\n");
             Debug.Log($"RPG_VERIFY_PASS: {checks} assertions. Output: {output}");
         }
@@ -94,13 +119,13 @@ public static class RpgVerification
         checks++; Debug.Log("RPG_CHECK: " + name);
     }
     static void Invoke(object target, string method) => target.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.NonPublic).Invoke(target, null);
-    static void Capture(string output, string name)
+    static void Capture(string output, string name, int width = 1440, int height = 900)
     {
         var cameraObject = new GameObject("UI capture camera");
         var camera = cameraObject.AddComponent<Camera>(); camera.clearFlags = CameraClearFlags.SolidColor;
         camera.backgroundColor = new Color(0.14f, 0.19f, 0.19f); camera.orthographic = true; camera.orthographicSize = 5;
         camera.transform.position = new Vector3(0, 0, -10);
-        var target = new RenderTexture(1440, 900, 24); target.Create(); camera.targetTexture = target;
+        var target = new RenderTexture(width, height, 24); target.Create(); camera.targetTexture = target;
         var canvases = UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None);
         foreach (var canvas in canvases) { canvas.renderMode = RenderMode.ScreenSpaceCamera; canvas.worldCamera = camera; canvas.planeDistance = 1; }
         Canvas.ForceUpdateCanvases();
@@ -111,8 +136,8 @@ public static class RpgVerification
         }
         Canvas.ForceUpdateCanvases(); camera.Render();
         var previous = RenderTexture.active; RenderTexture.active = target;
-        var image = new Texture2D(1440, 900, TextureFormat.RGB24, false);
-        image.ReadPixels(new Rect(0, 0, 1440, 900), 0, 0); image.Apply();
+        var image = new Texture2D(width, height, TextureFormat.RGB24, false);
+        image.ReadPixels(new Rect(0, 0, width, height), 0, 0); image.Apply();
         File.WriteAllBytes(Path.Combine(output, name), image.EncodeToPNG());
         RenderTexture.active = previous;
         foreach (var canvas in canvases) { canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.worldCamera = null; }

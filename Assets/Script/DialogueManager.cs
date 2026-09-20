@@ -102,6 +102,8 @@ public class DialogueManager : MonoBehaviour
 
     public void OpenDialogue(string name, string personality, NPCInteraction npc = null)
     {
+        var player = FindFirstObjectByType<PlayerStats>();
+        if (player != null && !player.IsAlive) return;
         EnsureUI();
         ResolveReferences();
 

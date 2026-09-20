@@ -19,9 +19,12 @@ public class RpgUI : MonoBehaviour
     MoodSystem mood;
     ControlManager control;
     GameObject canvasRoot, overlay, statsPage, skillsPage;
+    GameObject deathOverlay;
     TMP_Text identity, vitals, points, attributeSummary, detailTitle, detailBody, learnLabel, toast, guardLabel, moodLabel;
     Image hpFill, manaFill, expFill, moodFill;
     Button learnButton;
+    Button statsTab, skillsTab;
+    Sprite woodenButton, pressedButton, parchment, board, titleBoard, divider;
     readonly TMP_Text[] attributeValues = new TMP_Text[4];
     readonly Button[] attributeButtons = new Button[4];
     readonly TMP_Text[] nodeLabels = new TMP_Text[9];
@@ -30,19 +33,22 @@ public class RpgUI : MonoBehaviour
     readonly Image[] cooldownFills = new Image[3];
     int selected;
     float toastUntil, nextRefresh;
-    Color ink = new Color(0.045f, 0.063f, 0.08f, 0.98f);
-    Color panel = new Color(0.08f, 0.11f, 0.13f, 1f);
-    Color gold = new Color(0.79f, 0.66f, 0.39f);
-    Color jade = new Color(0.32f, 0.75f, 0.64f);
-    Color muted = new Color(0.52f, 0.59f, 0.62f);
+    Color ink = new Color(0.94f, 0.87f, 0.71f, 1f);
+    Color panel = new Color(0.92f, 0.82f, 0.63f, 1f);
+    Color gold = new Color(0.43f, 0.23f, 0.10f);
+    Color jade = new Color(0.13f, 0.36f, 0.27f);
+    Color muted = new Color(0.37f, 0.30f, 0.22f);
+    readonly Color textInk = new Color(0.22f, 0.16f, 0.10f);
+    readonly Color cream = new Color(1f, 0.94f, 0.78f);
 
     void Start()
     {
         stats = GetComponent<PlayerStats>(); attack = GetComponent<Player_Attack>();
         skills = GetComponent<RpgSkillController>(); mood = GetComponent<MoodSystem>(); control = GetComponent<ControlManager>();
         if (stats == null) { enabled = false; return; }
-        ResolveFont(); Build();
+        ResolveFont(); LoadSkin(); Build();
         stats.OnLevelUp += LevelUp;
+        SaveSystem.OnSaveFailed += SaveFailed;
         if (skills != null) skills.OnFeedback += Notify;
         Refresh();
     }
@@ -67,16 +73,16 @@ public class RpgUI : MonoBehaviour
             var events = new GameObject("RPG EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             events.transform.SetParent(canvasRoot.transform, false);
         }
-        var hud = Box(canvasRoot.transform, "Vitals", 26, 26, 310, 150, ink);
+        var hud = Box(canvasRoot.transform, "Vitals", 26, 26, 310, 164, ink);
         Text(hud, "귀 환 자", 18, 10, 140, 25, 19, gold);
         identity = Text(hud, "", 180, 12, 110, 22, 14, muted);
         hpFill = Bar(hud, 18, 47, 272, 8, new Color(0.77f, 0.26f, 0.26f));
         manaFill = Bar(hud, 18, 67, 272, 5, new Color(0.27f, 0.57f, 0.77f));
-        vitals = Text(hud, "", 18, 83, 278, 25, 13, Color.white);
+        vitals = Text(hud, "", 18, 83, 278, 25, 13, textInk);
         expFill = Bar(hud, 18, 117, 272, 3, gold);
         moodLabel = Text(hud, "", 18, 128, 278, 18, 11, muted);
         moodFill = Bar(hud, 18, 147, 272, 2, jade);
-        var shortcut = MakeButton(canvasRoot.transform, "수련  C / K", 26, 186, 150, 36, () => Open(false));
+        var shortcut = MakeButton(canvasRoot.transform, "수련  C / K", 26, 200, 150, 40, () => Open(false));
         shortcut.GetComponentInChildren<TMP_Text>().fontSize = 13;
         var hotbar = Box(canvasRoot.transform, "Skill bar", 0, 0, 416, 88, ink);
         var hotRect = hotbar.GetComponent<RectTransform>(); hotRect.anchorMin = hotRect.anchorMax = new Vector2(0.5f, 0f);
@@ -84,7 +90,7 @@ public class RpgUI : MonoBehaviour
         for (int i = 0; i < 3; i++)
         {
             int slot = i;
-            var button = MakeButton(hotbar, "", 12 + i * 132, 10, 126, 60, () => skills.TryCast(RpgSkillCatalog.Hotbar[slot]));
+            var button = MakeButton(hotbar, "", 12 + i * 132, 10, 126, 60, () => { if (skills != null) skills.TryCast(RpgSkillCatalog.Hotbar[slot]); });
             hotLabels[i] = button.GetComponentInChildren<TMP_Text>(); hotLabels[i].fontSize = 14;
             cooldownFills[i] = Bar(hotbar, 12 + i * 132, 72, 126, 3, gold);
         }
@@ -92,41 +98,62 @@ public class RpgUI : MonoBehaviour
         var toastRect = Box(canvasRoot.transform, "Notice", 0, 0, 650, 34, Color.clear);
         var tr = toastRect.GetComponent<RectTransform>(); tr.anchorMin = tr.anchorMax = new Vector2(0.5f, 1f);
         tr.pivot = new Vector2(0.5f, 1f); tr.anchoredPosition = new Vector2(0, -32);
-        toast = Text(toastRect, "", 0, 0, 650, 34, 19, gold); toast.alignment = TextAlignmentOptions.Center;
+        toast = Text(toastRect, "", 0, 0, 650, 34, 19, cream); toast.alignment = TextAlignmentOptions.Center;
+        var toastShadow = toast.gameObject.AddComponent<Shadow>(); toastShadow.effectColor = new Color(0.15f, 0.1f, 0.06f, 0.9f);
 
         overlay = new GameObject("Cultivation overlay", typeof(RectTransform), typeof(Image));
         overlay.transform.SetParent(canvasRoot.transform, false);
-        var shade = overlay.GetComponent<Image>(); shade.color = new Color(0, 0, 0, 0.8f);
+        var shade = overlay.GetComponent<Image>(); shade.color = new Color(0.19f, 0.23f, 0.18f, 0.42f);
         var stretch = overlay.GetComponent<RectTransform>(); stretch.anchorMin = Vector2.zero; stretch.anchorMax = Vector2.one;
         stretch.offsetMin = stretch.offsetMax = Vector2.zero;
         var window = Box(overlay.transform, "Cultivation", 0, 0, 1160, 710, ink);
         var wr = window.GetComponent<RectTransform>(); wr.anchorMin = wr.anchorMax = new Vector2(0.5f, 0.5f);
         wr.pivot = new Vector2(0.5f, 0.5f); wr.anchoredPosition = Vector2.zero;
-        Box(window, "Top rule", 0, 0, 1160, 2, gold);
-        Text(window, "수 련", 34, 24, 240, 45, 32, gold);
-        Text(window, "잿더미에서, 다시 피어나는 무공", 35, 75, 470, 25, 14, muted);
-        MakeButton(window, "닫기  ESC", 1000, 27, 124, 35, Close);
+        var title = Box(window, "Wooden title", 35, 23, 245, 55, Color.white);
+        Text(title, "수 련 록", 16, 7, 213, 38, 27, cream).alignment = TextAlignmentOptions.Center;
+        Text(window, "한 걸음씩 쌓아 올리는 새로운 경지", 35, 85, 470, 25, 14, muted);
+        MakeButton(window, "닫기  ESC", 984, 34, 124, 40, Close);
         points = Text(window, "", 640, 80, 480, 26, 16, jade); points.alignment = TextAlignmentOptions.Right;
-        MakeButton(window, "능력치  C", 34, 119, 150, 40, () => ShowPage(false));
-        MakeButton(window, "무공  K", 194, 119, 150, 40, () => ShowPage(true));
+        statsTab = MakeButton(window, "능력치  C", 34, 119, 150, 40, () => ShowPage(false));
+        skillsTab = MakeButton(window, "무공  K", 194, 119, 150, 40, () => ShowPage(true));
         Box(window, "Divider", 34, 174, 1092, 1, new Color(0.3f, 0.28f, 0.21f));
         statsPage = Box(window, "Attributes", 34, 192, 1092, 450, Color.clear).gameObject;
         skillsPage = Box(window, "Skill tree", 34, 192, 1092, 450, Color.clear).gameObject;
         BuildStats(statsPage.transform); BuildSkills(skillsPage.transform);
         Text(window, "레벨업마다 능력치 +3 · 무공 +1   |   강화는 즉시 저장됩니다.   |   창을 열어도 전투는 계속됩니다.",
-            34, 668, 1085, 22, 12, muted);
+            45, 650, 1070, 22, 12, muted);
         overlay.SetActive(false);
+        BuildDeathScreen();
         toastRect.SetAsLastSibling();
     }
+
+    void BuildDeathScreen()
+    {
+        deathOverlay = new GameObject("Recovery overlay", typeof(RectTransform), typeof(Image));
+        deathOverlay.transform.SetParent(canvasRoot.transform, false);
+        var rect = deathOverlay.GetComponent<RectTransform>();
+        rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one;
+        rect.offsetMin = rect.offsetMax = Vector2.zero;
+        deathOverlay.GetComponent<Image>().color = new Color(0.15f, 0.18f, 0.15f, 0.7f);
+        var card = Box(deathOverlay.transform, "Recovery parchment", 0, 0, 560, 290, panel);
+        card.anchorMin = card.anchorMax = card.pivot = new Vector2(0.5f, 0.5f);
+        card.anchoredPosition = Vector2.zero;
+        Text(card, "다시, 일어설 시간", 35, 30, 490, 50, 30, textInk).alignment = TextAlignmentOptions.Center;
+        Text(card, "안전 지점에서 체력과 내력을 회복합니다.\n성장과 퀘스트 진행은 유지됩니다.", 40, 95, 480, 80, 19, muted).alignment = TextAlignmentOptions.Center;
+        MakeButton(card, "안전 지점에서 재도전  /  R", 65, 195, 430, 55, () => { stats.Respawn(); Refresh(); });
+        deathOverlay.SetActive(false);
+    }
+
+    void SaveFailed(string error) => Notify("저장 실패 / 진행은 메모리에 유지 중입니다. 저장 공간과 권한을 확인하세요.");
 
     void BuildStats(Transform root)
     {
         var portrait = Box(root, "Character card", 0, 0, 310, 450, panel);
-        Text(portrait, "THE RETURNER", 26, 24, 260, 24, 12, gold);
-        Text(portrait, "귀환자", 26, 63, 260, 55, 42, Color.white);
+        Text(portrait, "강호행 / 수련 기록", 26, 24, 260, 24, 12, gold);
+        Text(portrait, "귀환자", 26, 63, 260, 55, 42, textInk);
         Text(portrait, "한때 천마를 베었던 검.\n이제 다시, 첫걸음부터.", 26, 135, 260, 66, 17, muted);
         Box(portrait, "Rule", 26, 220, 258, 1, gold);
-        attributeSummary = Text(portrait, "", 26, 248, 260, 180, 18, Color.white);
+        attributeSummary = Text(portrait, "", 26, 248, 260, 180, 18, textInk);
         string[] names = { "체력", "공격력", "방어력", "내력" };
         string[] notes = { "최대 체력 +20", "모든 검 공격 피해 +2", "방어력 +2 · 받는 피해 감소", "최대 마나 +10" };
         for (int i = 0; i < 4; i++)
@@ -135,7 +162,7 @@ public class RpgUI : MonoBehaviour
             var row = Box(root, names[i], 334, i * 100, 758, 88, panel);
             Text(row, names[i], 22, 13, 130, 28, 21, gold);
             Text(row, notes[i], 22, 48, 350, 24, 14, muted);
-            attributeValues[i] = Text(row, "", 430, 22, 170, 40, 22, Color.white);
+            attributeValues[i] = Text(row, "", 430, 22, 170, 40, 22, textInk);
             attributeButtons[i] = MakeButton(row, "+  강화", 620, 22, 116, 40, () =>
             {
                 if (stats.UpgradeAttribute((RpgAttribute)id)) Notify(names[id] + " 강화 · " + notes[id]);
@@ -160,17 +187,19 @@ public class RpgUI : MonoBehaviour
                 nodeLabels[id].rectTransform.anchoredPosition = new Vector2(56, -4);
                 nodeLabels[id].rectTransform.sizeDelta = new Vector2(144, 96);
                 nodeImages[id] = node.GetComponent<Image>();
+                var selection = node.gameObject.AddComponent<Outline>(); selection.effectDistance = new Vector2(2, -2);
+                selection.effectColor = jade; selection.enabled = false;
                 var emblemObject = new GameObject("Emblem", typeof(RectTransform), typeof(RpgSkillEmblem));
                 emblemObject.transform.SetParent(node.transform, false);
                 var emblemRect = emblemObject.GetComponent<RectTransform>();
                 emblemRect.anchorMin = emblemRect.anchorMax = new Vector2(0, 0.5f);
                 emblemRect.anchoredPosition = new Vector2(31, 0); emblemRect.sizeDelta = new Vector2(44, 44);
-                var emblem = emblemObject.GetComponent<RpgSkillEmblem>(); emblem.Branch = column; emblem.color = gold; emblem.raycastTarget = false;
+                var emblem = emblemObject.GetComponent<RpgSkillEmblem>(); emblem.Branch = column; emblem.color = cream; emblem.raycastTarget = false;
             }
         }
         var detail = Box(root, "Skill details", 686, 0, 406, 450, panel);
         Text(detail, "무 공 비 급", 24, 20, 358, 28, 12, gold);
-        detailTitle = Text(detail, "", 24, 62, 358, 46, 30, Color.white);
+        detailTitle = Text(detail, "", 24, 62, 358, 46, 30, textInk);
         Box(detail, "Rule", 24, 125, 358, 1, gold);
         detailBody = Text(detail, "", 24, 151, 358, 222, 16, muted);
         detailBody.textWrappingMode = TextWrappingModes.Normal;
@@ -180,6 +209,7 @@ public class RpgUI : MonoBehaviour
             Refresh();
         });
         learnLabel = learnButton.GetComponentInChildren<TMP_Text>();
+        Skin(learnButton.GetComponent<Image>(), woodenButton);
     }
 
     void Update()
@@ -190,6 +220,7 @@ public class RpgUI : MonoBehaviour
             EventSystem.current.currentSelectedGameObject.GetComponent<TMP_InputField>() != null;
         if (!typing && keyboard != null)
         {
+            if (stats.State == PlayerStats.LifeState.Dead && keyboard.rKey.wasPressedThisFrame) { stats.Respawn(); Refresh(); }
             if (keyboard.escapeKey.wasPressedThisFrame && IsOpen) Close();
             else if (!DialogueManager.IsDialogueOpen && Time.timeScale > 0f)
             {
@@ -209,13 +240,23 @@ public class RpgUI : MonoBehaviour
         opened = this; overlay.SetActive(true); ShowPage(tree); Refresh();
     }
     void Close() { if (opened == this) opened = null; if (overlay != null) overlay.SetActive(false); }
-    void ShowPage(bool tree) { statsPage.SetActive(!tree); skillsPage.SetActive(tree); }
+    void ShowPage(bool tree)
+    {
+        statsPage.SetActive(!tree); skillsPage.SetActive(tree);
+        statsTab.GetComponentInChildren<TMP_Text>().text = tree ? "능력치  C" : "능력치  C / 선택";
+        skillsTab.GetComponentInChildren<TMP_Text>().text = tree ? "무공  K / 선택" : "무공  K";
+        statsTab.GetComponent<Image>().color = tree ? Color.white : new Color(0.80f, 1f, 0.84f);
+        skillsTab.GetComponent<Image>().color = tree ? new Color(0.80f, 1f, 0.84f) : Color.white;
+    }
     void LevelUp(int level) { Notify($"경지 상승 · Lv. {level}    능력치 +3 / 무공 +1"); Refresh(); }
     void Notify(string message) { toast.text = message.Replace('·', '/'); toastUntil = Time.unscaledTime + 3f; }
 
     void Refresh()
     {
         if (canvasRoot == null) return;
+        bool dead = stats.State == PlayerStats.LifeState.Dead;
+        deathOverlay.SetActive(dead);
+        if (dead) Close();
         identity.text = $"Lv. {stats.Level:00}";
         vitals.text = $"HP {stats.HP:0}/{stats.MaxHP:0}     MP {stats.Mana:0}/{stats.MaxMana:0}";
         SetBar(hpFill, stats.HP / stats.MaxHP); SetBar(manaFill, stats.Mana / stats.MaxMana); SetBar(expFill, stats.EXP / stats.MaxEXP);
@@ -228,7 +269,7 @@ public class RpgUI : MonoBehaviour
             int id = RpgSkillCatalog.Hotbar[i]; var skill = RpgSkillCatalog.All[id]; float remaining = skills != null ? skills.Remaining(id) : 0f;
             string state = stats.SkillRanks[id] == 0 ? "미습득" : remaining > 0 ? $"{remaining:0.0}s" : $"MP {skill.ManaCost:0}";
             hotLabels[i].text = $"{i + 1}  {skill.Name}\n<size=11>{state}</size>";
-            hotLabels[i].color = stats.SkillRanks[id] == 0 ? muted : remaining > 0 ? gold : Color.white;
+            hotLabels[i].color = stats.SkillRanks[id] == 0 ? new Color(0.78f, 0.73f, 0.63f) : cream;
             SetBar(cooldownFills[i], remaining / skill.Cooldown);
         }
         if (!overlay.activeSelf) return;
@@ -245,8 +286,11 @@ public class RpgUI : MonoBehaviour
         {
             var skill = RpgSkillCatalog.All[id]; bool learned = stats.SkillRanks[id] > 0;
             nodeLabels[id].text = $"{skill.Name}\n<size=12>{(skill.Active ? "사용 무공" : "지속 효과")} / {stats.SkillRanks[id]}/{skill.MaxRank}</size>\n<size=11>Lv. {skill.RequiredLevel}</size>";
-            nodeLabels[id].color = learned ? jade : stats.SkillLockReason(id).Length == 0 ? Color.white : muted;
-            nodeImages[id].color = id == selected ? new Color(0.24f, 0.23f, 0.17f) : panel;
+            string state = learned ? "수련 중" : stats.SkillLockReason(id).Length == 0 ? "습득 가능" : "미개방";
+            nodeLabels[id].text += $" <size=11>{state}</size>";
+            nodeLabels[id].color = learned ? new Color(0.80f, 1f, 0.80f) : cream;
+            nodeImages[id].color = id == selected ? new Color(0.80f, 1f, 0.84f) : Color.white;
+            nodeImages[id].GetComponent<Outline>().enabled = id == selected;
         }
         var chosen = RpgSkillCatalog.All[selected]; string reason = stats.SkillLockReason(selected);
         detailTitle.text = chosen.Name;
@@ -263,7 +307,32 @@ public class RpgUI : MonoBehaviour
         var rect = go.GetComponent<RectTransform>(); rect.anchorMin = rect.anchorMax = new Vector2(0, 1); rect.pivot = new Vector2(0, 1);
         rect.anchoredPosition = new Vector2(x, -y); rect.sizeDelta = new Vector2(w, h);
         var image = go.GetComponent<Image>(); image.color = color; image.raycastTarget = false;
+        // Apply artwork only to surfaces, never to gauges or transparent layout containers.
+        if (name == "Cultivation") { Skin(image, board); image.pixelsPerUnitMultiplier = 1.6f; }
+        else if (name == "Wooden title") Skin(image, titleBoard);
+        else if (name == "Divider" || name == "Rule")
+        {
+            Skin(image, divider); image.type = Image.Type.Simple;
+            rect.sizeDelta = new Vector2(w, 5);
+        }
+        else if (color == panel || color == ink) { Skin(image, parchment); image.pixelsPerUnitMultiplier = 2.5f; }
         return rect;
+    }
+    void LoadSkin()
+    {
+        board = Resources.Load<Sprite>("RpgWooden/UI board Large Set");
+        parchment = Resources.Load<Sprite>("RpgWooden/UI board Medium  parchment");
+        woodenButton = Resources.Load<Sprite>("RpgWooden/TextBTN_Medium");
+        pressedButton = Resources.Load<Sprite>("RpgWooden/TextBTN_Medium_Pressed");
+        titleBoard = Resources.Load<Sprite>("RpgWooden/TextBTN_Big");
+        divider = Resources.Load<Sprite>("RpgWooden/Division line");
+        if (board == null || parchment == null || woodenButton == null)
+            Debug.LogWarning("RPG wooden UI artwork missing; using fallback colors.");
+    }
+    static void Skin(Image image, Sprite sprite)
+    {
+        if (sprite == null) return;
+        image.sprite = sprite; image.type = Image.Type.Sliced; image.color = Color.white;
     }
     TMP_Text Text(Transform parent, string value, float x, float y, float w, float h, float size, Color color)
     {
@@ -279,17 +348,20 @@ public class RpgUI : MonoBehaviour
     {
         var rect = Box(parent, label.Length > 0 ? label : "Button", x, y, w, h, panel);
         var image = rect.GetComponent<Image>(); image.raycastTarget = true;
+        Skin(image, woodenButton);
+        image.pixelsPerUnitMultiplier = 1f;
+        if (woodenButton == null) image.color = new Color(0.32f, 0.24f, 0.16f);
         var button = rect.gameObject.AddComponent<Button>(); button.targetGraphic = image;
-        var colors = button.colors; colors.highlightedColor = new Color(1.3f, 1.3f, 1.2f); colors.pressedColor = gold;
-        colors.disabledColor = new Color(0.48f, 0.48f, 0.48f); button.colors = colors;
+        var colors = button.colors; colors.highlightedColor = new Color(1f, 0.96f, 0.82f); colors.pressedColor = new Color(0.72f, 0.82f, 0.66f);
+        colors.disabledColor = new Color(0.65f, 0.65f, 0.65f); button.colors = colors;
         button.navigation = new Navigation { mode = Navigation.Mode.None };
         button.onClick.AddListener(() => action());
-        var text = Text(rect, label, 8, 4, w - 16, h - 8, 16, gold); text.alignment = TextAlignmentOptions.Center;
+        var text = Text(rect, label, 8, 4, w - 16, h - 8, 16, cream); text.alignment = TextAlignmentOptions.Center;
         return button;
     }
     Image Bar(Transform parent, float x, float y, float w, float h, Color color)
     {
-        var background = Box(parent, "Gauge", x, y, w, h, new Color(0.15f, 0.18f, 0.2f));
+        var background = Box(parent, "Gauge", x, y, w, h, new Color(0.48f, 0.39f, 0.27f));
         var fill = Box(background, "Fill", 0, 0, w, h, color);
         fill.anchorMin = Vector2.zero; fill.anchorMax = Vector2.one; fill.offsetMin = fill.offsetMax = Vector2.zero;
         return fill.GetComponent<Image>();
@@ -298,6 +370,7 @@ public class RpgUI : MonoBehaviour
     void OnDisable() => Close();
     void OnDestroy()
     {
+        SaveSystem.OnSaveFailed -= SaveFailed;
         Close(); if (stats != null) stats.OnLevelUp -= LevelUp; if (skills != null) skills.OnFeedback -= Notify;
         if (canvasRoot != null) Destroy(canvasRoot);
     }

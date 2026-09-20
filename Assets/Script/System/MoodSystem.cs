@@ -28,6 +28,8 @@ public class MoodSystem : MonoBehaviour
     void Awake()
     {
         Mood = startMood;
+        var saved = SaveSystem.LoadPlayer();
+        if (saved != null && saved.hasMood) Mood = saved.mood;
     }
 
     void Start()
@@ -55,7 +57,18 @@ public class MoodSystem : MonoBehaviour
 
     public void ChangeMood(float delta)
     {
+        ApplyQuestDelta(delta);
+        NotifyQuestDelta();
+    }
+
+    internal void ApplyQuestDelta(float delta)
+    {
+        if (!float.IsFinite(delta)) return;
         Mood = Mathf.Clamp(Mood + delta, 0f, 100f);
+    }
+
+    internal void NotifyQuestDelta()
+    {
         OnMoodChanged?.Invoke(Mood);
         Evaluate();
     }
@@ -64,6 +77,8 @@ public class MoodSystem : MonoBehaviour
     // 반환은 전투가 끝났거나(적 소멸) 기분이 회복되면.
     void Evaluate()
     {
+        var stats = GetComponent<PlayerStats>();
+        if (stats != null && !stats.IsAlive) return;
         if (!isAIControlled && InCombat && Mood <= aiTakeoverThreshold)
         {
             isAIControlled = true;
@@ -74,5 +89,13 @@ public class MoodSystem : MonoBehaviour
             isAIControlled = false;
             OnPlayerRestored?.Invoke();
         }
+    }
+
+    public void ReleaseControlForRecovery()
+    {
+        InCombat = false;
+        bool wasAI = isAIControlled;
+        isAIControlled = false;
+        if (wasAI) OnPlayerRestored?.Invoke();
     }
 }

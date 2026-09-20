@@ -18,6 +18,12 @@ public class RpgSkillController : MonoBehaviour
     public float DamageMultiplier => GuardRemaining > 0f ? 0.65f - stats.SkillRanks[3] * 0.08f : 1f;
     public float Remaining(int id) => id >= 0 && id < readyAt.Length ? Mathf.Max(0f, readyAt[id] - Time.time) : 0f;
 
+    public void ResetForRecovery()
+    {
+        Array.Clear(readyAt, 0, readyAt.Length);
+        guardUntil = 0f;
+    }
+
     void Start()
     {
         stats = GetComponent<PlayerStats>(); attack = GetComponent<Player_Attack>(); control = GetComponent<ControlManager>();

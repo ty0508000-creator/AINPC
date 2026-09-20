@@ -11,87 +11,97 @@ public class QuestSaveEntry
     public int[] progress;
     public float elapsedSeconds;
 }
-
 [Serializable]
 public class QuestSaveData
 {
     public List<QuestSaveEntry> entries = new();
 }
 
-/// <summary>
-/// 퀘스트 진행 저장. PlayerStats 와 별도 파일로 둔다 —
-/// 스토리 진행만 초기화하거나 옮기기 쉬우라고.
-/// </summary>
+/// <summary>Quest serialization adapter. All new saves use SaveSystem's unified snapshot.</summary>
 public static class QuestSaveSystem
 {
-    private static string SavePath => Path.Combine(Application.persistentDataPath, "quest_save.json");
-
     public static void Save(QuestManager manager)
     {
-        if (manager == null) return;
+        if (manager == null || !manager.IsSaveReady) return;
+        SaveSystem.SaveGame(manager.Player, manager);
+    }
 
+    public static QuestSaveData Capture(QuestManager manager)
+    {
         var data = new QuestSaveData();
         foreach (var r in manager.All())
         {
-            // 손 안 댄 퀘스트는 저장할 게 없다
             if (r.State == QuestState.Locked) continue;
-
-            data.entries.Add(new QuestSaveEntry
-            {
-                questId  = r.Data.questId,
-                state    = r.State,
-                progress = (int[])r.Progress.Clone(),
+            data.entries.Add(new QuestSaveEntry {
+                questId = r.Data.questId, state = r.State, progress = (int[])r.Progress.Clone(),
                 elapsedSeconds = r.State == QuestState.Active ? Mathf.Max(0f, Time.time - r.StartedAt) : 0f
             });
         }
+        return data;
+    }
 
-        try
+    public static QuestSaveData ReadLegacy()
+    {
+        string path = Path.Combine(SaveSystem.DirectoryPath, "quest_save.json");
+        if (!File.Exists(path) && !File.Exists(path + ".bak")) return new QuestSaveData();
+        try { return Read(path); }
+        catch
         {
-            File.WriteAllText(SavePath, JsonUtility.ToJson(data, prettyPrint: true));
-        }
-        catch (Exception e)
-        {
-            Debug.LogWarning($"[Quest] 저장 실패: {e.Message}");
+            if (File.Exists(path + ".bak")) return Read(path + ".bak");
+            throw; // Never silently replace damaged legacy progress with an empty snapshot.
         }
     }
 
-    public static void Load(QuestManager manager)
+    static QuestSaveData Read(string path)
     {
-        if (manager == null || !File.Exists(SavePath))
-        {
-            Debug.Log("[Quest] 저장 파일 없음, 처음부터 시작");
-            return;
-        }
+        string json = File.ReadAllText(path);
+        if (!json.Contains("\"entries\"")) throw new InvalidDataException("퀘스트 entries 누락");
+        var data = JsonUtility.FromJson<QuestSaveData>(json);
+        Validate(data);
+        return data;
+    }
 
+    public static void Validate(QuestSaveData data)
+    {
+        if (data?.entries == null) throw new InvalidDataException("퀘스트 스냅샷 누락");
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var entry in data.entries)
+        {
+            if (entry == null || string.IsNullOrWhiteSpace(entry.questId) || !ids.Add(entry.questId) ||
+                !Enum.IsDefined(typeof(QuestState), entry.state) || entry.progress == null ||
+                float.IsNaN(entry.elapsedSeconds) || float.IsInfinity(entry.elapsedSeconds) || entry.elapsedSeconds < 0)
+                throw new InvalidDataException("잘못된 퀘스트 저장 항목");
+            foreach (int value in entry.progress)
+                if (value < 0) throw new InvalidDataException("음수 퀘스트 진행도");
+        }
+    }
+
+    public static bool Load(QuestManager manager)
+    {
+        if (manager == null) return false;
         try
         {
-            var data = JsonUtility.FromJson<QuestSaveData>(File.ReadAllText(SavePath));
-            if (data?.entries == null) return;
-
+            var saved = SaveSystem.LoadPlayer();
+            var data = saved?.snapshotVersion == 1 ? saved.quests : ReadLegacy();
+            Validate(data);
             foreach (var e in data.entries)
             {
                 var r = manager.Get(e.questId);
-                if (r == null) continue;   // 에셋이 삭제/개명된 퀘스트는 조용히 무시
-
+                if (r == null) continue;
                 r.State = e.state;
-                r.StartedAt = Time.time - Mathf.Max(0f, e.elapsedSeconds);
-                if (e.progress != null)
-                {
-                    int n = Mathf.Min(e.progress.Length, r.Progress.Length);
-                    Array.Copy(e.progress, r.Progress, n);   // 목표 수가 바뀌어도 안전
-                }
+                r.StartedAt = Time.time - e.elapsedSeconds;
+                for (int i = 0; i < Mathf.Min(e.progress.Length, r.Progress.Length); i++)
+                    r.Progress[i] = Mathf.Clamp(e.progress[i], 0, r.Data.objectives[i].requiredCount);
             }
-
-            Debug.Log($"[Quest] 불러오기 완료 ({data.entries.Count}건)");
+            return true;
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"[Quest] 불러오기 실패: {e.Message}");
+            Debug.LogWarning("[Quest] 불러오기 실패, 자동 저장 중단: " + e.Message);
+            return false;
         }
     }
 
-    public static void DeleteSave()
-    {
-        if (File.Exists(SavePath)) File.Delete(SavePath);
-    }
+    // Story-only deletion would invalidate reward consistency.
+    public static void DeleteSave() => SaveSystem.DeleteSave();
 }

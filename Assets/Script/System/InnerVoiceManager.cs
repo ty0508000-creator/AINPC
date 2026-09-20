@@ -97,6 +97,7 @@ public class InnerVoiceManager : MonoBehaviour
     /// </summary>
     public void ForceOpen(string storyContext = "")
     {
+        if (GetComponent<PlayerStats>() is PlayerStats stats && !stats.IsAlive) return;
         if (isActive || isTransitioning) return;
         pendingStoryContext = storyContext ?? "";
 
@@ -141,6 +142,7 @@ public class InnerVoiceManager : MonoBehaviour
 
     async Task OpenDialogue()
     {
+        if (GetComponent<PlayerStats>() is PlayerStats stats && !stats.IsAlive) return;
         isActive = true;
 
         // 게임 완전 정지 (내면 세계로 "넘어간" 동안 바깥은 멈춤)
@@ -361,6 +363,16 @@ public class InnerVoiceManager : MonoBehaviour
             overlayRoot.SetActive(false);
             Time.timeScale = prevTimeScale;   // 바깥 시간 복귀
         }));
+    }
+
+    public void CloseForDeath()
+    {
+        if (!isActive && !isTransitioning) return;
+        StopAllCoroutines();
+        isActive = isTransitioning = isProcessing = acceptStream = false;
+        if (overlayRoot != null) overlayRoot.SetActive(false);
+        Time.timeScale = prevTimeScale;
+        StartCoroutine(TriggerLoop());
     }
 
     // ── 전환 연출 (timeScale=0 이므로 unscaled 사용) ──────────────

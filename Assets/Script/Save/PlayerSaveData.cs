@@ -13,4 +13,13 @@ public class PlayerSaveData
     public int skillPoints;
     public int[] attributeRanks;
     public int[] skillRanks;
+    // Version 1: player + quest progress are committed in the same atomic file.
+    public int snapshotVersion;
+    public long revision;
+    public QuestSaveData quests;
+    public bool hasCheckpoint;
+    public string checkpointScene;
+    public UnityEngine.Vector3 checkpointPosition;
+    public bool hasMood;
+    public float mood;
 }

@@ -260,6 +260,7 @@ public class Player_Attack : MonoBehaviour
     // AI가 직접 호출하는 대시 공격. desiredDistance(적까지 거리)로 충전량을 맞춘다.
     public void ForceDash(Vector2 direction, float desiredDistance)
     {
+        if (GetComponent<PlayerStats>() is PlayerStats stats && !stats.IsAlive) return;
         if (DialogueManager.IsDialogueOpen) return;
         if (IsInvincible || Time.time - lastDashTime < dashCooldown) return;
 
@@ -271,6 +272,7 @@ public class Player_Attack : MonoBehaviour
     // AI가 직접 호출하는 공격 메서드
     public void ForceAttack(Vector2 direction)
     {
+        if (GetComponent<PlayerStats>() is PlayerStats stats && !stats.IsAlive) return;
         if (DialogueManager.IsDialogueOpen) return;
         if (Time.time - lastAttackTime < attackCooldown) return;
         lastAttackTime = Time.time;
@@ -310,6 +312,17 @@ public class Player_Attack : MonoBehaviour
                 return;
             }
         }
+    }
+
+    public void CancelActions()
+    {
+        StopAllCoroutines();
+        CancelCharge();
+        IsInvincible = false;
+        lastAttackTime = lastDashTime = -99f;
+        if (attackIndicator != null) attackIndicator.SetActive(false);
+        if (chargeIndicator != null) chargeIndicator.SetActive(false);
+        if (rb != null) rb.linearVelocity = Vector2.zero;
     }
 
     void OnDestroy()
