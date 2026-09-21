@@ -47,7 +47,7 @@ public static class RpgPlayVerification
             attack = player.AddComponent<Player_Attack>();
             Set(attack, "enemyLayer", (LayerMask)(1 << 8));
             stats = player.AddComponent<PlayerStats>(); skills = player.GetComponent<RpgSkillController>();
-            Set(player.GetComponent<RpgUI>(), "koreanFont", AssetDatabase.LoadAssetAtPath<TMPro.TMP_FontAsset>("Assets/Fonts/Paperlogy-4Regular SDF.asset"));
+            Set(player.GetComponent<RpgUI>(), "koreanFont", Resources.Load<TMPro.TMP_FontAsset>("Fonts/NeoDunggeunmoPro SDF"));
             due = EditorApplication.timeSinceStartup + 0.75;
             running = true; EditorApplication.update += Tick;
         }

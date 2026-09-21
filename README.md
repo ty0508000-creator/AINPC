@@ -56,6 +56,8 @@ GGUF는 Git에서 제외됩니다. 저장소만 내려받아서는 LLM 준비가
 
 ## 조작과 성장
 
+UI 기본 글꼴은 `NeoDunggeunmoPro-Regular.ttf`입니다. TextMeshPro용 동적 폰트는 `Assets/Resources/Fonts/NeoDunggeunmoPro SDF.asset`에 있으며, 추가 한글은 실행 중 생성됩니다. 기존 Paperlogy 폰트는 특수문자 대체용으로 보존했습니다. `Tools > AINPC > Apply NeoDunggeunmo Font`로 씬의 기존 폰트 연결을 다시 적용할 수 있습니다.
+
 - `WASD`: 이동.
 - 좌클릭: 일반 공격. 우클릭 길게 누르기: 충전 대시.
 - `C`: 능력치 투자. `K`: 무공 트리.

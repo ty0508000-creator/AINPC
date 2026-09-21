@@ -56,6 +56,8 @@ public class RpgUI : MonoBehaviour
     void ResolveFont()
     {
         if (koreanFont != null) return;
+        koreanFont = Resources.Load<TMP_FontAsset>("Fonts/NeoDunggeunmoPro SDF");
+        if (koreanFont != null) return;
         // Existing scene HUDs already reference the project's Korean font asset.
         foreach (var font in Resources.FindObjectsOfTypeAll<TMP_FontAsset>())
             if (font.name.IndexOf("Paperlogy", StringComparison.OrdinalIgnoreCase) >= 0) { koreanFont = font; return; }
