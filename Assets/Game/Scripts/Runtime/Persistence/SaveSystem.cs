@@ -59,7 +59,15 @@ public static class SaveSystem
                 bool primaryValid;
                 try { ReadValidated(SavePath); primaryValid = true; }
                 catch { primaryValid = false; }
-                File.Replace(temporary, SavePath, primaryValid ? SavePath + ".bak" : null);
+                if (primaryValid)
+                    File.Replace(temporary, SavePath, SavePath + ".bak");
+                else
+                {
+                    // File.Replace with a null backup is not supported consistently on Windows.
+                    // The known-good .bak remains untouched while an already invalid primary is repaired.
+                    File.Delete(SavePath);
+                    File.Move(temporary, SavePath);
+                }
             }
             else File.Move(temporary, SavePath);
             LastError = null;
@@ -83,7 +91,8 @@ public static class SaveSystem
         hasCheckpoint = true, checkpointScene = stats.CheckpointScene,
         checkpointPosition = stats.CheckpointPosition,
         hasMood = stats.GetComponent<MoodSystem>() != null,
-        mood = stats.GetComponent<MoodSystem>() != null ? stats.GetComponent<MoodSystem>().Mood : 0f
+        mood = stats.GetComponent<MoodSystem>() != null ? stats.GetComponent<MoodSystem>().Mood : 0f,
+        storyChoices = StoryChoiceManager.Instance != null ? StoryChoiceManager.Instance.Capture() : null
     };
 
     public static PlayerSaveData LoadPlayer()
@@ -136,6 +145,7 @@ public static class SaveSystem
         if (data.hasMood && (!Finite(data.mood) || data.mood < 0f || data.mood > 100f))
             throw new InvalidDataException("Mood 저장값 오류");
         if (data.snapshotVersion == 1) QuestSaveSystem.Validate(data.quests);
+        StoryChoiceManager.Validate(data.storyChoices);
     }
     static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
     static bool Positive(float value) => Finite(value) && value > 0f;

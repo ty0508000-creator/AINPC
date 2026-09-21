@@ -22,4 +22,6 @@ public class PlayerSaveData
     public UnityEngine.Vector3 checkpointPosition;
     public bool hasMood;
     public float mood;
+    // Optional in snapshot version 1 for backward compatibility with existing saves.
+    public StoryChoiceSaveData storyChoices;
 }

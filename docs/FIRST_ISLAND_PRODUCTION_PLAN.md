@@ -57,6 +57,10 @@
 - 완료 조건: 구역 진입이 아니라 버튼 선택 이벤트.
 - 결과: 선택에 따라 다음 전투의 내면 반응과 생존자 대사가 달라진다.
 
+구현 기준: `StoryChoiceTrigger`가 명시적 버튼을 열고 `StoryChoiceManager`가 선택 ID·Mood 변화·기억 문장을 통합 저장한다. RAG/LLM이 준비되지 않은 경우에도 선택 ID는 남는다.
+
+씬 배치 기준: Unity 메뉴 `AINPC > 퀘스트 > 현재 씬에 퀘스트 시스템 배치`는 `QuestSystem`에 `StoryChoiceManager`를 추가하고, 아이 구조/내면에게 맡김 지점에는 `StoryChoiceTrigger`를 배치한다. 실제 맵의 알맞은 위치로 트리거를 옮긴 뒤 저장한다.
+
 ### Q04. 첫 피
 
 - 시작: Q03 선택 직후.

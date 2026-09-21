@@ -155,6 +155,14 @@ public static class RecoverySaveVerification
             File.WriteAllText(Path.Combine(legacySlot, "player_save.json.bak"), "{}");
             Check(!SaveSystem.SaveGame(stats, manager), "unrecoverable slot refuses destructive overwrite");
             Check(!SaveSystem.TryLoadPlayer(out _) && !QuestSaveSystem.Load(manager), "corruption is not a new game");
+            var choiceData = new StoryChoiceSaveData();
+            choiceData.entries.Add(new StoryChoiceEntry { choiceId = "rescue_villager", moodDelta = 8, memoryLine = "구조했다" });
+            StoryChoiceManager.Validate(choiceData);
+            Check(choiceData.entries[0].choiceId == "rescue_villager", "choice save data validates explicit choice");
+            choiceData.entries.Add(new StoryChoiceEntry { choiceId = "rescue_villager" });
+            bool rejectedDuplicateChoice = false;
+            try { StoryChoiceManager.Validate(choiceData); } catch { rejectedDuplicateChoice = true; }
+            Check(rejectedDuplicateChoice, "duplicate choice save is rejected");
             var otherIsland = new QuestSaveData();
             otherIsland.entries.Add(new QuestSaveEntry { questId = "other_island", state = QuestState.Completed, progress = new[] { 1 } });
             var merged = QuestSaveSystem.Capture(manager, otherIsland);

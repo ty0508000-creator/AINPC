@@ -43,12 +43,18 @@ public static class QuestSceneSetup
 
     private static bool SetupSystem()
     {
-        if (GameObject.Find(SystemRootName) != null) return false;
+        var existing = GameObject.Find(SystemRootName);
+        if (existing != null)
+        {
+            if (existing.GetComponent<StoryChoiceManager>() == null) existing.AddComponent<StoryChoiceManager>();
+            return false;
+        }
 
         var go = new GameObject(SystemRootName);
         Undo.RegisterCreatedObjectUndo(go, "퀘스트 시스템 배치");
 
         go.AddComponent<QuestManager>();
+        go.AddComponent<StoryChoiceManager>();
         var ui = go.AddComponent<QuestLogUI>();
 
         // 한글 폰트가 프로젝트에 있으면 자동 연결 (없으면 TMP 기본 폰트)
@@ -97,8 +103,10 @@ public static class QuestSceneSetup
             QuestTriggerZone.ZoneAction.ReportReach, "", "isle1_burnt_house", false);
         made += MakeTrigger(root, ref i, origin, "Warehouse_창고입구",
             QuestTriggerZone.ZoneAction.ReportReach, "", "isle1_warehouse", false);
-        made += MakeTrigger(root, ref i, origin, "Choice_아이를구한다",
-            QuestTriggerZone.ZoneAction.ReportChoice, "", "isle1_girl_saved", false);
+        made += MakeChoiceTrigger(root, ref i, origin, "Choice_창고의아이", "불길 너머에서 아이가 울고 있다.",
+            "이번에는… 어떻게 할 것인가?",
+            new StoryChoiceOption { choiceId = "isle1_girl_saved", label = "아이를 구한다", description = "불길 속으로 들어가 아이를 끌어낸다.", memoryLine = "플레이어는 불길 속 아이를 구하기로 선택했다." },
+            new StoryChoiceOption { choiceId = "leave_villager", label = "돌아선다", description = "과거를 되풀이하지 않기 위해 위험을 피한다.", moodDelta = -5f, memoryLine = "플레이어는 불길 속 아이를 외면하기로 선택했다." });
         made += MakeTrigger(root, ref i, origin, "Castle_재의왕성",
             QuestTriggerZone.ZoneAction.ReportReach, "", "isle1_castle", false);
 
@@ -113,8 +121,10 @@ public static class QuestSceneSetup
             QuestTriggerZone.ZoneAction.ReportCollect, "", "isle1_master_sword", true);
         made += MakeTrigger(root, ref i, origin, "Choice_검을건넨다",
             QuestTriggerZone.ZoneAction.ReportChoice, "", "isle1_sword_returned", false);
-        made += MakeTrigger(root, ref i, origin, "Choice_인격에게맡긴다",
-            QuestTriggerZone.ZoneAction.ReportChoice, "", "isle1_demand_accepted", false);
+        made += MakeChoiceTrigger(root, ref i, origin, "Choice_인격에게맡긴다", "내면의 목소리가 검을 잡으려 한다.",
+            "이번 전투, 누구의 손으로 끝낼 것인가?",
+            new StoryChoiceOption { choiceId = "isle1_demand_accepted", label = "몸을 맡긴다", description = "내면에게 잠시 조작권을 맡긴다.", memoryLine = "플레이어는 재의 왕 앞에서 내면에게 몸을 맡기기로 선택했다." },
+            new StoryChoiceOption { choiceId = "keep_control", label = "직접 싸운다", description = "끝까지 자신의 손으로 검을 쥔다.", moodDelta = -3f, memoryLine = "플레이어는 내면의 요구를 거절하고 직접 싸우기로 선택했다." });
 
         return made;
     }
@@ -149,6 +159,38 @@ public static class QuestSceneSetup
         so.FindProperty("destroyOnTrigger").boolValue = destroyOnTrigger;
         so.ApplyModifiedPropertiesWithoutUndo();
 
+        return 1;
+    }
+
+    private static int MakeChoiceTrigger(GameObject root, ref int index, Vector3 origin, string name,
+                                         string title, string body, params StoryChoiceOption[] options)
+    {
+        int col = index % 4;
+        int row = index / 4;
+        Vector3 pos = origin + new Vector3(col * 4f - 6f, -row * 4f - 4f, 0f);
+        index++;
+        var existing = root.transform.Find(name);
+        if (existing != null) return 0;
+        var go = new GameObject(name);
+        go.transform.SetParent(root.transform, false);
+        go.transform.position = pos;
+        Undo.RegisterCreatedObjectUndo(go, "선택 트리거 생성");
+        var collider = go.AddComponent<BoxCollider2D>(); collider.isTrigger = true; collider.size = new Vector2(2f, 2f);
+        var trigger = go.AddComponent<StoryChoiceTrigger>();
+        var so = new SerializedObject(trigger);
+        so.FindProperty("title").stringValue = title;
+        so.FindProperty("body").stringValue = body;
+        var list = so.FindProperty("options"); list.arraySize = options.Length;
+        for (int n = 0; n < options.Length; n++)
+        {
+            var item = list.GetArrayElementAtIndex(n);
+            item.FindPropertyRelative("choiceId").stringValue = options[n].choiceId;
+            item.FindPropertyRelative("label").stringValue = options[n].label;
+            item.FindPropertyRelative("description").stringValue = options[n].description;
+            item.FindPropertyRelative("moodDelta").floatValue = options[n].moodDelta;
+            item.FindPropertyRelative("memoryLine").stringValue = options[n].memoryLine;
+        }
+        so.ApplyModifiedPropertiesWithoutUndo();
         return 1;
     }
 
