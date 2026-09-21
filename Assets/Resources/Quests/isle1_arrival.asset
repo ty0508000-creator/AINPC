@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3db1c08f823ba104da20d85a88ac6e67, type: 3}
+  m_Name: isle1_arrival
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: isle1_arrival
+  title: "\uC7BF\uB354\uBBF8 \uD574\uC548"
+  summary: "\uC0AC\uCC9C\uC655\uC758 \uCCAB \uC12C. \uBC30\uC5D0\uC11C \uB0B4\uB9AC\uB294
+    \uC21C\uAC04, \uD0C4\uB0B4\uAC00 \uB09C\uB2E4. 30\uB144 \uC804 \uADF8\uB0A0\uACFC
+    \uAC19\uC740 \uB0C4\uC0C8\uB2E4."
+  isleIndex: 1
+  isMainQuest: 1
+  isInnerVoiceDemand: 0
+  prerequisiteQuestIds: []
+  autoStart: 1
+  objectives:
+  - description: "\uD574\uC548\uC5D0 \uC0C1\uB959\uD55C\uB2E4"
+    type: 3
+    targetId: isle1_shore
+    requiredCount: 1
+    hidden: 0
+  onComplete:
+    moodDelta: -10
+    expReward: 0
+    memoryLine: "\uD50C\uB808\uC774\uC5B4\uB294 \uC7BF\uB354\uBBF8 \uD574\uC548\uC5D0
+      \uC0C1\uB959\uD588\uB2E4. \uD0C4\uB0B4\uB97C \uB9E1\uC790\uB9C8\uC790 \uC190\uC774
+      \uB5A8\uB838\uB2E4."
+    triggerInnerVoice: 0
+    innerVoiceContext: 
+    unlockQuestIds:
+    - isle1_village
+    - isle1_fragment
+    - isle1_body
+  canFail: 0
+  timeLimit: 0
+  onFail:
+    moodDelta: 0
+    expReward: 0
+    memoryLine: 
+    triggerInnerVoice: 0
+    innerVoiceContext: 
+    unlockQuestIds: []
+  startLine: 
+  completeLine: "\u2026\uB0C4\uC0C8\uAC00 \uAC19\uB2E4."
+  failLine: 

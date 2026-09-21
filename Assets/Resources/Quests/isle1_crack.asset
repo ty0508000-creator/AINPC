@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3db1c08f823ba104da20d85a88ac6e67, type: 3}
+  m_Name: isle1_crack
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: isle1_crack
+  title: "\uAC08\uB77C\uC9C4 \uACF3"
+  summary: "\uB208\uC744 \uAC10\uC73C\uBA74 30\uB144 \uC804 \uB9C8\uC744\uC774 \uACB9\uCCD0
+    \uBCF4\uC778\uB2E4. \uB354 \uC774\uC0C1 \uBBF8\uB8F0 \uC218 \uC5C6\uB2E4."
+  isleIndex: 1
+  isMainQuest: 1
+  isInnerVoiceDemand: 0
+  prerequisiteQuestIds:
+  - isle1_survivor
+  autoStart: 1
+  objectives: []
+  onComplete:
+    moodDelta: 0
+    expReward: 0
+    memoryLine: 
+    triggerInnerVoice: 1
+    innerVoiceContext: "\uD50C\uB808\uC774\uC5B4\uB294 \uC7BF\uB354\uBBF8 \uC12C\uC5D0\uC11C
+      30\uB144 \uC804 \uC790\uAE30 \uB9C8\uC744\uACFC \uB611\uAC19\uC740 \uAD11\uACBD\uC744
+      \uBD24\uB2E4. \uC778\uACA9\uC740 \uC774 \uC21C\uAC04\uC744 \uAE30\uB2E4\uB838\uB2E4.
+      \uC774 \uC12C\uC5D0\uC11C \uD50C\uB808\uC774\uC5B4\uAC00 \uD55C \uC120\uD0DD\uC744
+      \uADFC\uAC70\uB85C \uBAB0\uC544\uBD99\uC5EC\uB77C."
+    unlockQuestIds:
+    - isle1_demand
+    - isle1_boss
+  canFail: 0
+  timeLimit: 0
+  onFail:
+    moodDelta: 0
+    expReward: 0
+    memoryLine: 
+    triggerInnerVoice: 0
+    innerVoiceContext: 
+    unlockQuestIds: []
+  startLine: 
+  completeLine: 
+  failLine: 

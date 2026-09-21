@@ -11,6 +11,7 @@
 /[Bb]uild/
 /[Bb]uilds/
 /[Ll]ogs/
+/VerificationResults/
 /[Uu]ser[Ss]ettings/
 
 # MemoryCaptures can get excessive in size.
@@ -109,3 +110,8 @@ Assets/StreamingAssets/Ollama/
 LLMUnity-3.0.3/
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,unity
+# 개인정보 포함 문서 및 임시 추출 산출물 (저장소에 커밋 금지)
+.codex_tmp_*
+*.hwp
+hwp_extract.py
+hwp_extracted_text.txt
