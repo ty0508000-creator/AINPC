@@ -16,14 +16,17 @@ public class RpgUI : MonoBehaviour
     PlayerStats stats;
     Player_Attack attack;
     RpgSkillController skills;
+    PlayerInventory inventory;
     MoodSystem mood;
     ControlManager control;
-    GameObject canvasRoot, overlay, statsPage, skillsPage;
+    GameObject canvasRoot, overlay, statsPage, skillsPage, inventoryPage;
     GameObject deathOverlay;
     TMP_Text identity, vitals, points, attributeSummary, detailTitle, detailBody, learnLabel, toast, guardLabel, moodLabel;
+    TMPro.TMP_Text inventoryList;
     Image hpFill, manaFill, expFill, moodFill;
     Button learnButton;
     Button statsTab, skillsTab;
+    UnityEngine.UI.Button inventoryTab;
     Sprite woodenButton, pressedButton, parchment, board, titleBoard, divider;
     readonly TMP_Text[] attributeValues = new TMP_Text[4];
     readonly Button[] attributeButtons = new Button[4];
@@ -44,7 +47,8 @@ public class RpgUI : MonoBehaviour
     void Start()
     {
         stats = GetComponent<PlayerStats>(); attack = GetComponent<Player_Attack>();
-        skills = GetComponent<RpgSkillController>(); mood = GetComponent<MoodSystem>(); control = GetComponent<ControlManager>();
+        skills = GetComponent<RpgSkillController>(); inventory = GetComponent<PlayerInventory>();
+        mood = GetComponent<MoodSystem>(); control = GetComponent<ControlManager>();
         if (stats == null) { enabled = false; return; }
         ResolveFont(); LoadSkin(); Build();
         stats.OnLevelUp += LevelUp;
@@ -84,7 +88,7 @@ public class RpgUI : MonoBehaviour
         expFill = Bar(hud, 18, 117, 272, 3, gold);
         moodLabel = Text(hud, "", 18, 128, 278, 18, 11, muted);
         moodFill = Bar(hud, 18, 147, 272, 2, jade);
-        var shortcut = MakeButton(canvasRoot.transform, "수련  C / K", 26, 200, 150, 40, () => Open(false));
+        var shortcut = MakeButton(canvasRoot.transform, "기록  C / K / I", 26, 200, 180, 40, () => Open(false));
         shortcut.GetComponentInChildren<TMP_Text>().fontSize = 13;
         var hotbar = Box(canvasRoot.transform, "Skill bar", 0, 0, 416, 88, ink);
         var hotRect = hotbar.GetComponent<RectTransform>(); hotRect.anchorMin = hotRect.anchorMax = new Vector2(0.5f, 0f);
@@ -118,10 +122,12 @@ public class RpgUI : MonoBehaviour
         points = Text(window, "", 640, 80, 480, 26, 16, jade); points.alignment = TextAlignmentOptions.Right;
         statsTab = MakeButton(window, "능력치  C", 34, 119, 150, 40, () => ShowPage(false));
         skillsTab = MakeButton(window, "무공  K", 194, 119, 150, 40, () => ShowPage(true));
+        inventoryTab = MakeButton(window, "소지품  I", 354, 119, 150, 40, () => ShowPage(2));
         Box(window, "Divider", 34, 174, 1092, 1, new Color(0.3f, 0.28f, 0.21f));
         statsPage = Box(window, "Attributes", 34, 192, 1092, 450, Color.clear).gameObject;
         skillsPage = Box(window, "Skill tree", 34, 192, 1092, 450, Color.clear).gameObject;
-        BuildStats(statsPage.transform); BuildSkills(skillsPage.transform);
+        inventoryPage = Box(window, "Inventory", 34, 192, 1092, 450, Color.clear).gameObject;
+        BuildStats(statsPage.transform); BuildSkills(skillsPage.transform); BuildInventory(inventoryPage.transform);
         Text(window, "레벨업마다 능력치 +3 · 무공 +1   |   강화는 즉시 저장됩니다.   |   창을 열어도 전투는 계속됩니다.",
             45, 650, 1070, 22, 12, muted);
         overlay.SetActive(false);
@@ -214,6 +220,14 @@ public class RpgUI : MonoBehaviour
         Skin(learnButton.GetComponent<Image>(), woodenButton);
     }
 
+    void BuildInventory(Transform root)
+    {
+        var list = Box(root, "Inventory list", 0, 0, 1092, 450, panel);
+        Text(list, "소 지 품", 28, 22, 1036, 32, 19, gold);
+        Box(list, "Rule", 28, 65, 1036, 1, gold);
+        inventoryList = Text(list, "", 28, 88, 1036, 330, 19, textInk);
+    }
+
     void Update()
     {
         if (canvasRoot == null) return;
@@ -228,6 +242,7 @@ public class RpgUI : MonoBehaviour
             {
                 if (keyboard.cKey.wasPressedThisFrame) { if (opened == this && statsPage.activeSelf) Close(); else Open(false); }
                 if (keyboard.kKey.wasPressedThisFrame) { if (opened == this && skillsPage.activeSelf) Close(); else Open(true); }
+                if (keyboard.iKey.wasPressedThisFrame) { if (opened == this && inventoryPage.activeSelf) Close(); else OpenInventory(); }
             }
         }
         if (opened == this && (DialogueManager.IsDialogueOpen || Time.timeScale == 0f || stats.HP <= 0f)) Close();
@@ -241,14 +256,23 @@ public class RpgUI : MonoBehaviour
         if (opened != null && opened != this) opened.Close();
         opened = this; overlay.SetActive(true); ShowPage(tree); Refresh();
     }
-    void Close() { if (opened == this) opened = null; if (overlay != null) overlay.SetActive(false); }
-    void ShowPage(bool tree)
+    void OpenInventory()
     {
-        statsPage.SetActive(!tree); skillsPage.SetActive(tree);
-        statsTab.GetComponentInChildren<TMP_Text>().text = tree ? "능력치  C" : "능력치  C / 선택";
-        skillsTab.GetComponentInChildren<TMP_Text>().text = tree ? "무공  K / 선택" : "무공  K";
-        statsTab.GetComponent<Image>().color = tree ? Color.white : new Color(0.80f, 1f, 0.84f);
-        skillsTab.GetComponent<Image>().color = tree ? new Color(0.80f, 1f, 0.84f) : Color.white;
+        if (DialogueManager.IsDialogueOpen || Time.timeScale == 0f || stats.HP <= 0f) return;
+        if (opened != null && opened != this) opened.Close();
+        opened = this; overlay.SetActive(true); ShowPage(2); Refresh();
+    }
+    void Close() { if (opened == this) opened = null; if (overlay != null) overlay.SetActive(false); }
+    void ShowPage(bool tree) => ShowPage(tree ? 1 : 0);
+    void ShowPage(int page)
+    {
+        statsPage.SetActive(page == 0); skillsPage.SetActive(page == 1); inventoryPage.SetActive(page == 2);
+        statsTab.GetComponentInChildren<TMP_Text>().text = page == 0 ? "능력치  C / 선택" : "능력치  C";
+        skillsTab.GetComponentInChildren<TMP_Text>().text = page == 1 ? "무공  K / 선택" : "무공  K";
+        inventoryTab.GetComponentInChildren<TMP_Text>().text = page == 2 ? "소지품  I / 선택" : "소지품  I";
+        statsTab.GetComponent<Image>().color = page == 0 ? new Color(0.80f, 1f, 0.84f) : Color.white;
+        skillsTab.GetComponent<Image>().color = page == 1 ? new Color(0.80f, 1f, 0.84f) : Color.white;
+        inventoryTab.GetComponent<Image>().color = page == 2 ? new Color(0.80f, 1f, 0.84f) : Color.white;
     }
     void LevelUp(int level) { Notify($"경지 상승 · Lv. {level}    능력치 +3 / 무공 +1"); Refresh(); }
     void Notify(string message) { toast.text = message.Replace('·', '/'); toastUntil = Time.unscaledTime + 3f; }
@@ -276,6 +300,13 @@ public class RpgUI : MonoBehaviour
         }
         if (!overlay.activeSelf) return;
         points.text = $"능력치 포인트  {stats.StatPoints}     /     무공 포인트  {stats.SkillPoints}";
+        if (inventory == null || inventory.Items.Count == 0) inventoryList.text = "소지품이 없습니다.";
+        else
+        {
+            inventoryList.text = "";
+            foreach (var item in inventory.Items)
+                inventoryList.text += $"{item.displayName}    × {item.quantity}\n";
+        }
         int power = attack != null ? attack.AttackPower : 10 + stats.AttackBonus;
         attributeSummary.text = $"경지       Lv. {stats.Level}\n공격력    {power}\n방어력    {stats.Defense}\n내력 회복  {stats.ManaRegen:0.0}/초";
         string[] values = { $"{stats.MaxHP:0}", $"{power}", $"{stats.Defense}", $"{stats.MaxMana:0}" };

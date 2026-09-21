@@ -32,6 +32,16 @@ public static class RecoverySaveVerification
             player.transform.position = new Vector3(4, 5, 0);
             var stats = player.AddComponent<PlayerStats>();
             Invoke(stats, "Awake");
+            var inventory = player.GetComponent<PlayerInventory>();
+            var item = ScriptableObject.CreateInstance<ItemDefinition>();
+            item.itemId = "verification_item"; item.displayName = "검증 아이템"; item.maxStack = 3;
+            Check(inventory != null && inventory.TryAdd(item, 2) && inventory.Count(item.itemId) == 2, "inventory adds a valid stack");
+            Check(!inventory.TryAdd(item, 2) && inventory.Count(item.itemId) == 2, "inventory rejects stack overflow atomically");
+            Check(inventory.Remove(item.itemId) && inventory.Count(item.itemId) == 1, "inventory removes an item");
+            var reloadedInventory = new GameObject("Inventory reload check").AddComponent<PlayerInventory>();
+            reloadedInventory.Load(SaveSystem.LoadPlayer());
+            Check(reloadedInventory.Count(item.itemId) == 1, "inventory reloads from the unified snapshot");
+            UnityEngine.Object.DestroyImmediate(reloadedInventory.gameObject);
             int deaths = 0;
             stats.OnDied += () => deaths++;
             Check(stats.SetCheckpoint(new Vector3(12, 8, 0)), "checkpoint accepted while alive");
@@ -144,7 +154,7 @@ public static class RecoverySaveVerification
             Invoke(stats, "Load"); QuestSaveSystem.Load(manager);
             Check(stats.State == PlayerStats.LifeState.Dead && stats.EXP == 12, "legacy dead save remains recoverable without losing growth");
             Check(stats.Respawn(), "legacy dead save retry succeeds");
-            Check(SaveSystem.LoadPlayer().snapshotVersion == 1 && SaveSystem.LoadPlayer().quests.entries[0].state == QuestState.Completed,
+            Check(SaveSystem.LoadPlayer().snapshotVersion == 2 && SaveSystem.LoadPlayer().quests.entries[0].state == QuestState.Completed,
                 "legacy player and quest migrate together");
             Check(File.ReadAllText(Path.Combine(legacySlot, "quest_save.json")) == legacyQuestJson, "migration preserves legacy quest source");
             // Once unified, stale legacy file cannot override the authoritative snapshot.

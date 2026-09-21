@@ -64,6 +64,11 @@ public static class RpgPlayVerification
         running = false; EditorApplication.update -= Tick;
         try
         {
+            var isWithinSpawnRange = typeof(MonsterSpawnArea).GetMethod("IsWithinCameraSpawnRange", BindingFlags.Static | BindingFlags.NonPublic);
+            Check((bool)isWithinSpawnRange.Invoke(null, new object[] { Vector3.zero, new Vector3(17f, 9f, 0f), 5f, 16f / 9f, 2f }),
+                "spawn range includes two camera viewports");
+            Check(!(bool)isWithinSpawnRange.Invoke(null, new object[] { Vector3.zero, new Vector3(18f, 0f, 0f), 5f, 16f / 9f, 2f }),
+                "spawn range delays distant points");
             var lifecycleMood = stats.GetComponent<MoodSystem>();
             var lifecycleControl = stats.GetComponent<ControlManager>();
             var lifecycleAI = stats.GetComponent<AIController>();

@@ -67,8 +67,12 @@ public static class RpgVerification
             stats.Save();
 
             var ui = player.GetComponent<RpgUI>();
+            var inventory = player.GetComponent<PlayerInventory>();
+            var inventoryItem = ScriptableObject.CreateInstance<ItemDefinition>();
+            inventoryItem.itemId = "ui_item"; inventoryItem.displayName = "검증 두루마리"; inventoryItem.maxStack = 5;
+            Check(inventory.TryAdd(inventoryItem, 2), "inventory item prepared for UI");
             var font = Resources.Load<TMP_FontAsset>("Fonts/NeoDunggeunmoPro SDF");
-            Check(font != null && font.HasCharacters("귀환자의 수련록 체력 공격력 방어력 내력 무공 월영참 금강호신 운기조식 재도전", out uint[] missing, false, true), "NeoDunggeunmo Korean glyph coverage");
+            Check(font != null && font.HasCharacters("귀환자의 수련록 체력 공격력 방어력 내력 무공 월영참 금강호신 운기조식 재도전 소지품 검증 두루마리", out uint[] missing, false, true), "NeoDunggeunmo Korean glyph coverage");
             typeof(RpgUI).GetField("koreanFont", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(ui, font);
             Invoke(ui, "Start");
             var board = Resources.Load<Sprite>("RpgWooden/UI board Large Set");
@@ -93,6 +97,12 @@ public static class RpgVerification
             Capture(output, "skills.png");
             Capture(output, "skills-1280x720.png", 1280, 720);
             Capture(output, "skills-1920x1080.png", 1920, 1080);
+            var inventoryTab = (UnityEngine.UI.Button)typeof(RpgUI).GetField("inventoryTab", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(ui);
+            inventoryTab.onClick.Invoke();
+            var inventoryPage = (GameObject)typeof(RpgUI).GetField("inventoryPage", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(ui);
+            var inventoryList = (TMPro.TMP_Text)typeof(RpgUI).GetField("inventoryList", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(ui);
+            Check(inventoryPage.activeSelf && inventoryList.text.Contains("검증 두루마리") && inventoryList.text.Contains("2"), "inventory tab shows saved item quantities");
+            Capture(output, "inventory.png");
             Invoke(ui, "Close");
             Check(!RpgUI.IsOpen, "closing releases input lock");
             Capture(output, "hud.png");
@@ -102,7 +112,7 @@ public static class RpgVerification
             Capture(output, "recovery.png");
             GameObject.Find("안전 지점에서 재도전  /  R").GetComponent<Button>().onClick.Invoke();
             Check(stats.IsAlive && !GameObject.Find("Recovery overlay"), "retry button restores player and dismisses UI");
-            File.WriteAllText(Path.Combine(output, "result.txt"), $"PASS: {checks} assertions\nUnity-rendered captures: attributes.png, skills.png, hud.png\n");
+            File.WriteAllText(Path.Combine(output, "result.txt"), $"PASS: {checks} assertions\nUnity-rendered captures: attributes.png, skills.png, inventory.png, hud.png\n");
             Debug.Log($"RPG_VERIFY_PASS: {checks} assertions. Output: {output}");
         }
         catch (Exception e)

@@ -37,7 +37,7 @@ public static class SaveSystem
             data.quests = manager != null && manager.IsSaveReady
                 ? QuestSaveSystem.Capture(manager, previous?.quests ?? QuestSaveSystem.ReadLegacy())
                 : previous?.quests ?? QuestSaveSystem.ReadLegacy();
-            data.snapshotVersion = 1;
+            data.snapshotVersion = 2;
             data.revision = checked((previous?.revision ?? 0) + 1);
             Validate(data);
             Directory.CreateDirectory(DirectoryPath);
@@ -92,7 +92,10 @@ public static class SaveSystem
         checkpointPosition = stats.CheckpointPosition,
         hasMood = stats.GetComponent<MoodSystem>() != null,
         mood = stats.GetComponent<MoodSystem>() != null ? stats.GetComponent<MoodSystem>().Mood : 0f,
-        storyChoices = StoryChoiceManager.Instance != null ? StoryChoiceManager.Instance.Capture() : null
+        storyChoices = StoryChoiceManager.Instance != null ? StoryChoiceManager.Instance.Capture() : null,
+        inventory = stats.GetComponent<PlayerInventory>() != null
+            ? stats.GetComponent<PlayerInventory>().Capture()
+            : Array.Empty<InventorySaveEntry>()
     };
 
     public static PlayerSaveData LoadPlayer()
@@ -134,18 +137,19 @@ public static class SaveSystem
 
     static void Validate(PlayerSaveData data)
     {
-        if (data != null && data.snapshotVersion > 1)
+        if (data != null && data.snapshotVersion > 2)
             throw new NotSupportedException("더 최신 버전의 저장입니다. 덮어쓰지 않습니다.");
         if (data == null || data.level < 1 || !Positive(data.maxHP) || !Positive(data.maxMana) ||
             !Positive(data.maxEXP) || !Finite(data.hp) || !Finite(data.mana) || !Finite(data.exp) ||
-            data.snapshotVersion < 0 || data.snapshotVersion > 1 || data.revision < 0)
+            data.snapshotVersion < 0 || data.snapshotVersion > 2 || data.revision < 0)
             throw new InvalidDataException("유효하지 않거나 지원하지 않는 저장 데이터");
         if (data.hasCheckpoint && (!Finite(data.checkpointPosition.x) || !Finite(data.checkpointPosition.y) || !Finite(data.checkpointPosition.z)))
             throw new InvalidDataException("체크포인트 좌표 오류");
         if (data.hasMood && (!Finite(data.mood) || data.mood < 0f || data.mood > 100f))
             throw new InvalidDataException("Mood 저장값 오류");
-        if (data.snapshotVersion == 1) QuestSaveSystem.Validate(data.quests);
+        if (data.snapshotVersion >= 1) QuestSaveSystem.Validate(data.quests);
         StoryChoiceManager.Validate(data.storyChoices);
+        if (data.snapshotVersion >= 2) PlayerInventory.Validate(data.inventory);
     }
     static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
     static bool Positive(float value) => Finite(value) && value > 0f;

@@ -1,4 +1,12 @@
 [System.Serializable]
+public class InventorySaveEntry
+{
+    public string itemId;
+    public string displayName;
+    public int quantity;
+}
+
+[System.Serializable]
 public class PlayerSaveData
 {
     public int level;
@@ -24,4 +32,6 @@ public class PlayerSaveData
     public float mood;
     // Optional in snapshot version 1 for backward compatibility with existing saves.
     public StoryChoiceSaveData storyChoices;
+    // Version 2: inventory is committed with player and quest progress.
+    public InventorySaveEntry[] inventory;
 }
