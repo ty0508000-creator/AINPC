@@ -9,7 +9,7 @@ using UnityEngine.UI;
 /// 씬 전환과 진행 상태를 맡는다. 타이틀에서 시작해 마을·던전을 오가고,
 /// 씬이 바뀔 때마다 지정한 입구(<see cref="SpawnPoint"/>)로 플레이어를 옮기고 진행을 저장한다.
 ///
-/// 씬에 미리 배치할 필요 없다 — 처음 쓰는 순간 스스로 만들어지고 씬이 바뀌어도 살아남는다.
+/// 전환 효과와 알림 UI는 각 플레이 씬의 UIRoot 아래에 배치한다.
 /// </summary>
 public class GameFlow : MonoBehaviour
 {
@@ -93,11 +93,7 @@ public class GameFlow : MonoBehaviour
 
         instance = this;
         DontDestroyOnLoad(gameObject);
-        BuildFadeCanvas();
-
-        // ESC 메뉴창도 여기 얹어 둔다. 씬마다 따로 배치할 필요가 없어진다.
-        if (GetComponent<PauseMenuUI>() == null)
-            gameObject.AddComponent<PauseMenuUI>();
+        BindSceneView();
 
         SceneManager.sceneLoaded += HandleSceneLoaded;
     }
@@ -128,7 +124,7 @@ public class GameFlow : MonoBehaviour
         autoSaveTimer = 0f;
 
         var stats = FindFirstObjectByType<PlayerStats>();
-        if (stats == null || stats.IsDead)
+        if (stats == null || !stats.IsAlive)
             return;   // 타이틀 화면이거나 죽어 있으면 이번 차례는 거른다
 
         SaveNow();
@@ -206,14 +202,19 @@ public class GameFlow : MonoBehaviour
     public bool Continue()
     {
         PlayerSaveData data = SaveSystem.LoadPlayer();
-        if (data == null || !data.hasProgress || string.IsNullOrEmpty(data.sceneName))
+        if (data == null)
             return false;
+
+        string destination = data.hasProgress ? data.sceneName : data.checkpointScene;
+        if (string.IsNullOrEmpty(destination)) destination = "Main";
+        if (destination == "Test") destination = "Main";
 
         RestoreFlags(data.flags);
 
         // 저장된 좌표로 직접 놓는다 (입구가 아니라 죽기 직전 그 자리)
         pendingSpawn = null;
-        StartCoroutine(LoadRoutine(data.sceneName, new Vector2(data.posX, data.posY), saveOnArrival: false));
+        Vector2 position = data.hasProgress ? new Vector2(data.posX, data.posY) : (Vector2)data.checkpointPosition;
+        StartCoroutine(LoadRoutine(destination, position, saveOnArrival: false));
         return true;
     }
 
@@ -264,6 +265,8 @@ public class GameFlow : MonoBehaviour
 
     private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        BindSceneView();
+        if (fade != null) fade.alpha = IsLoading ? 1f : 0f;
         // 씬을 에디터에서 직접 실행한 경우에도 진행 표시는 유지된다
         Debug.Log("[GameFlow] 씬 진입: " + scene.name);
     }
@@ -309,13 +312,29 @@ public class GameFlow : MonoBehaviour
         if (stats == null)
             return;
 
-        SaveSystem.SaveProgress(stats, SceneManager.GetActiveScene().name, stats.transform.position, FlagList());
+        SaveSystem.SaveGame(stats);
 
         // 방금 저장했으니 자동 저장 시계도 처음부터 다시 센다
         autoSaveTimer = 0f;
     }
 
     // ── 화면 암전 ───────────────────────────────────────────────
+
+    void BindSceneView()
+    {
+        var view = FindFirstObjectByType<SceneFlowView>();
+        fade = view != null ? view.fade : null;
+        notice = view != null ? view.notice : null;
+    }
+
+#if UNITY_EDITOR
+    public void BakeSceneUI()
+    {
+        BuildFadeCanvas();
+        var view = fade.gameObject.AddComponent<SceneFlowView>();
+        view.fade = fade; view.notice = notice;
+    }
+#endif
 
     private void BuildFadeCanvas()
     {

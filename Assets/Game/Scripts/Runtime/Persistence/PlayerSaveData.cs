@@ -9,6 +9,11 @@ public class InventorySaveEntry
 [System.Serializable]
 public class PlayerSaveData
 {
+    // 씬 전환 진행은 기존 통합 저장에 함께 기록한다.
+    public bool hasProgress;
+    public string sceneName;
+    public float posX, posY;
+    public System.Collections.Generic.List<string> flags;
     public int level;
     public float hp;
     public float maxHP;

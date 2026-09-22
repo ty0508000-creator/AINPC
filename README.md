@@ -36,7 +36,7 @@
 
 1. Unity Hub에서 **Unity 6000.3.10f1**로 프로젝트를 엽니다.
 2. 패키지 복원과 임포트를 기다립니다.
-3. `Assets/Scenes/Main.unity`를 엽니다. 빌드의 첫 활성 씬도 Main입니다.
+3. `Assets/Scenes/Main.unity`를 엽니다. 타이틀부터 확인하려면 `Title.unity`를 엽니다.
 4. 아래 모델 연결을 확인한 뒤 Play를 실행합니다.
 
 ### 모델 파일
@@ -55,6 +55,8 @@ GGUF는 Git에서 제외됩니다. 저장소만 내려받아서는 LLM 준비가
 목표 PC에서 RAM/VRAM, 첫 응답 및 완료 시간은 아직 측정하지 않았습니다. 기존 문서의 RAM 수치와 경량화 속도 배수는 보장 사양이 아닙니다.
 
 ## 조작과 성장
+
+HUD·수련·부활·메뉴·내면·퀘스트·타이틀 UI는 씬의 `UIRoot` 아래에서 Play 전에 편집할 수 있습니다. 새 씬 배치는 `Tools > AINPC > Bake Scene UI`를 사용합니다. [배치와 미리보기 방법](docs/RPG_UI.md).
 
 UI 기본 글꼴은 `NeoDunggeunmoPro-Regular.ttf`입니다. TextMeshPro용 동적 폰트는 `Assets/Resources/Fonts/NeoDunggeunmoPro SDF.asset`에 있으며, 추가 한글은 실행 중 생성됩니다. 기존 Paperlogy 폰트는 특수문자 대체용으로 보존했습니다. `Tools > AINPC > Apply NeoDunggeunmo Font`로 씬의 기존 폰트 연결을 다시 적용할 수 있습니다.
 

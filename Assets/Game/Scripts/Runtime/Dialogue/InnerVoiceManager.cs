@@ -55,15 +55,15 @@ public class InnerVoiceManager : MonoBehaviour
     private float prevTimeScale = 1f;
 
     // UI
-    private GameObject overlayRoot;
-    private Image background;
-    private CanvasGroup contentGroup;
-    private RectTransform contentRect;
-    private TMP_Text aiText;
-    private TMP_Text statusText;
-    private TMP_Text moodDeltaText;
-    private TMP_InputField inputField;
-    private Button sendButton;
+    [SerializeField] private GameObject overlayRoot;
+    [SerializeField] private Image background;
+    [SerializeField] private CanvasGroup contentGroup;
+    [SerializeField] private RectTransform contentRect;
+    [SerializeField] private TMP_Text aiText;
+    [SerializeField] private TMP_Text statusText;
+    [SerializeField] private TMP_Text moodDeltaText;
+    [SerializeField] private TMP_InputField inputField;
+    [SerializeField] private Button sendButton, triggerButton;
 
 
     void Start()
@@ -77,9 +77,11 @@ public class InnerVoiceManager : MonoBehaviour
         if (memory == null)
             memory = FindFirstObjectByType<MemoryManager>();
 
-        EnsureEventSystem();
-        BuildUI();
-        BuildTriggerButton();
+        if (overlayRoot == null) { enabled = false; return; }
+        overlayRoot.SetActive(false);
+        inputField.onSubmit.AddListener(OnInputSubmit);
+        sendButton.onClick.AddListener(OnSend);
+        triggerButton.onClick.AddListener(() => { if (!isActive && !isTransitioning) _ = OpenDialogue(); });
         StartCoroutine(TriggerLoop());
     }
 
@@ -445,6 +447,14 @@ public class InnerVoiceManager : MonoBehaviour
         }
     }
 
+#if UNITY_EDITOR
+    public void BakeSceneUI()
+    {
+        if (overlayRoot != null) return;
+        if (koreanFont == null) koreanFont = Resources.Load<TMP_FontAsset>("Fonts/NeoDunggeunmoPro SDF");
+        BuildUI(); BuildTriggerButton();
+    }
+#endif
     void BuildUI()
     {
         var canvasGO = new GameObject("InnerVoiceCanvas");
@@ -519,13 +529,11 @@ public class InnerVoiceManager : MonoBehaviour
         // 입력창
         inputField = CreateInputField(contentGO.transform,
             new Vector2(0.5f, 0.13f), new Vector2(900f, 64f * fontScale), "말을 걸어보세요...");
-        inputField.onSubmit.AddListener(OnInputSubmit);
 
         // 전송 버튼
         sendButton = CreateButton(contentGO.transform, "말하기",
             new Vector2(0.5f, 0.13f), new Vector2(240f, 64f * fontScale),
             new Vector2(570f, 0f), accentColor);
-        sendButton.onClick.AddListener(OnSend);
 
         overlayRoot.SetActive(false);
     }
@@ -554,11 +562,7 @@ public class InnerVoiceManager : MonoBehaviour
             new Vector2(180f, 64f),
             new Vector2(-110f, 70f),      // 가장자리에서 안쪽으로
             accentColor);
-        btn.onClick.AddListener(() =>
-        {
-            if (!isActive && !isTransitioning)
-                _ = OpenDialogue();
-        });
+        triggerButton = btn;
     }
 
     // ── UI 헬퍼 ──────────────────────────────────────────────────

@@ -52,16 +52,16 @@ public class TakeoverEffect : MonoBehaviour
     };
 
     private ControlManager controlManager;
-    private GameObject ownedCanvas;
+    [SerializeField] private GameObject ownedCanvas;
     private CameraFollow cameraFollow;
     private AudioSource audioSource;
 
-    private Image tintImage;
-    private RectTransform glitchRoot;
-    private Image[] glitchStrips;
-    private RectTransform lineRect;
+    [SerializeField] private Image tintImage;
+    [SerializeField] private RectTransform glitchRoot;
+    [SerializeField] private Image[] glitchStrips;
+    [SerializeField] private RectTransform lineRect;
     private Vector2 lineBasePosition;
-    private TMP_Text lineText;
+    [SerializeField] private TMP_Text lineText;
     private Coroutine effectRoutine;
     private Coroutine glitchRoutine;
 
@@ -74,7 +74,9 @@ public class TakeoverEffect : MonoBehaviour
         if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
         audioSource.playOnAwake = false;
 
-        BuildUI();
+        if (ownedCanvas == null) { enabled = false; return; }
+        lineBasePosition = lineRect.anchoredPosition;
+        SetLineAlpha(0f); HideGlitch();
 
         controlManager.OnAITakeover     += HandleTakeover;
         controlManager.OnPlayerRestored += HandleRestored;
@@ -216,6 +218,14 @@ public class TakeoverEffect : MonoBehaviour
     string Pick(string[] arr) =>
         (arr == null || arr.Length == 0) ? "" : arr[Random.Range(0, arr.Length)];
 
+#if UNITY_EDITOR
+    public void BakeSceneUI()
+    {
+        if (ownedCanvas != null) return;
+        if (koreanFont == null) koreanFont = Resources.Load<TMP_FontAsset>("Fonts/NeoDunggeunmoPro SDF");
+        BuildUI();
+    }
+#endif
     void BuildUI()
     {
         var canvasGO = new GameObject("TakeoverCanvas");
@@ -292,7 +302,7 @@ public class TakeoverEffect : MonoBehaviour
 
     void OnDestroy()
     {
-        if (ownedCanvas != null) Destroy(ownedCanvas);
+        // 연출 캔버스는 씬과 함께 정리된다.
         if (controlManager == null) return;
         controlManager.OnAITakeover     -= HandleTakeover;
         controlManager.OnPlayerRestored -= HandleRestored;

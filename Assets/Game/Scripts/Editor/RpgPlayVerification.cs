@@ -48,6 +48,7 @@ public static class RpgPlayVerification
             Set(attack, "enemyLayer", (LayerMask)(1 << 8));
             stats = player.AddComponent<PlayerStats>(); skills = player.GetComponent<RpgSkillController>();
             Set(player.GetComponent<RpgUI>(), "koreanFont", Resources.Load<TMPro.TMP_FontAsset>("Fonts/NeoDunggeunmoPro SDF"));
+            player.GetComponent<RpgUI>().BakeSceneUI();
             due = EditorApplication.timeSinceStartup + 0.75;
             running = true; EditorApplication.update += Tick;
         }

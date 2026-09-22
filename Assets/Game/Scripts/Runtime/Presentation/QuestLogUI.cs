@@ -19,13 +19,13 @@ public class QuestLogUI : MonoBehaviour
     [SerializeField] private Color doneColor = new Color(0.45f, 0.72f, 0.45f);
 
     private QuestManager manager;
-    private TMP_Text bodyText;
-    private GameObject panelRoot;
+    [SerializeField] private TMP_Text bodyText;
+    [SerializeField] private GameObject panelRoot;
     private bool visible = true;
 
     void Start()
     {
-        BuildUI();
+        if (panelRoot == null) { enabled = false; return; }
 
         manager = QuestManager.Instance;
         if (manager == null)
@@ -104,6 +104,15 @@ public class QuestLogUI : MonoBehaviour
 
     // ── UI 생성 ─────────────────────────────────────────────────
 
+#if UNITY_EDITOR
+    public void BakeSceneUI()
+    {
+        if (panelRoot != null) return;
+        if (koreanFont == null) koreanFont = Resources.Load<TMP_FontAsset>("Fonts/NeoDunggeunmoPro SDF");
+        BuildUI();
+        bodyText.text = "진행 중인 퀘스트 없음";
+    }
+#endif
     void BuildUI()
     {
         var canvasGO = new GameObject("QuestLog_Canvas");

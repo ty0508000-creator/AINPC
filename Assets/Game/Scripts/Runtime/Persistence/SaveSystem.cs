@@ -34,6 +34,7 @@ public static class SaveSystem
             var previous = ReadExisting();
             var data = stats != null ? Capture(stats) : previous;
             if (data == null) throw new InvalidOperationException("플레이어 준비 전에는 통합 저장할 수 없습니다.");
+            if (data.flags == null) data.flags = previous?.flags;
             data.quests = manager != null && manager.IsSaveReady
                 ? QuestSaveSystem.Capture(manager, previous?.quests ?? QuestSaveSystem.ReadLegacy())
                 : previous?.quests ?? QuestSaveSystem.ReadLegacy();
@@ -84,6 +85,9 @@ public static class SaveSystem
 
     static PlayerSaveData Capture(PlayerStats stats) => new PlayerSaveData
     {
+        hasProgress = true, sceneName = stats.gameObject.scene.path,
+        posX = stats.transform.position.x, posY = stats.transform.position.y,
+        flags = UnityEngine.Object.FindFirstObjectByType<GameFlow>()?.FlagList(),
         level = stats.Level, hp = stats.HP, maxHP = stats.MaxHP,
         mana = stats.Mana, maxMana = stats.MaxMana, exp = stats.EXP, maxEXP = stats.MaxEXP,
         progressionVersion = 1, statPoints = stats.StatPoints, skillPoints = stats.SkillPoints,

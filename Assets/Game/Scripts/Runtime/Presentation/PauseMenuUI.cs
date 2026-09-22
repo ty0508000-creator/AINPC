@@ -8,7 +8,7 @@ using UnityEngine.UI;
 /// ESC 로 여는 메뉴창. 포켓몬처럼 세이브 포인트 없이 여기서 바로 저장한다.
 /// 항목은 계속하기 / 인벤토리 / 설정 / 저장 / 타이틀로.
 ///
-/// GameFlow 가 자기 자신에게 붙여 주므로 씬마다 배치할 필요는 없다.
+/// 씬의 UIRoot 아래에 배치하고 저장된 패널을 전환한다.
 /// </summary>
 public class PauseMenuUI : MonoBehaviour
 {
@@ -18,13 +18,47 @@ public class PauseMenuUI : MonoBehaviour
     private enum Tab { None, Inventory, Settings }
 
     private TMP_FontAsset font;
-    private CanvasGroup group;
-    private RectTransform contentArea;
-    private TMP_Text toast;
+    [SerializeField] private CanvasGroup group;
+    [SerializeField] private RectTransform contentArea;
+    [SerializeField] private TMP_Text toast;
+    [SerializeField] private GameObject homePage, inventoryPage, settingsPage;
+    [SerializeField] private TMP_Text inventoryText;
     private float toastTimer;
     private Tab openTab = Tab.None;
 
-    private readonly List<Button> menuButtons = new List<Button>();
+    [SerializeField] private List<Button> menuButtons = new List<Button>();
+
+    void Start()
+    {
+        if (group == null) { enabled = false; return; }
+        menuButtons[0].onClick.AddListener(Close);
+        menuButtons[1].onClick.AddListener(() => ShowTab(Tab.Inventory));
+        menuButtons[2].onClick.AddListener(() => ShowTab(Tab.Settings));
+        menuButtons[3].onClick.AddListener(SaveGame);
+        menuButtons[4].onClick.AddListener(GoToTitle);
+        group.alpha = 0f; group.blocksRaycasts = group.interactable = false;
+    }
+
+#if UNITY_EDITOR
+    public void BakeSceneUI()
+    {
+        if (group != null) return;
+        Build();
+        homePage = new GameObject("Home", typeof(RectTransform));
+        homePage.transform.SetParent(contentArea, false);
+        Stretch((RectTransform)homePage.transform);
+        MakeText((RectTransform)homePage.transform, "왼쪽에서 항목을 고르세요", 22f, Vector2.zero, Color.white, TextAlignmentOptions.Center);
+        inventoryPage = new GameObject("Inventory", typeof(RectTransform));
+        inventoryPage.transform.SetParent(contentArea, false);
+        Stretch((RectTransform)inventoryPage.transform);
+        inventoryText = MakeText((RectTransform)inventoryPage.transform, "소지품이 없습니다.", 22f, Vector2.zero, Color.white, TextAlignmentOptions.Center);
+        settingsPage = new GameObject("Settings", typeof(RectTransform));
+        settingsPage.transform.SetParent(contentArea, false);
+        Stretch((RectTransform)settingsPage.transform);
+        SettingsPanel.Build((RectTransform)settingsPage.transform, font);
+        ShowTab(Tab.None);
+    }
+#endif
 
     void Update()
     {
@@ -38,7 +72,7 @@ public class PauseMenuUI : MonoBehaviour
             return;
 
         // 대화창도 ESC 로 닫히므로 겹치지 않게 비켜 준다
-        if (DialogueManager.IsDialogueOpen)
+        if (DialogueManager.IsDialogueOpen || RpgUI.IsOpen || RpgUI.LastClosedFrame == Time.frameCount)
             return;
 
         if (IsOpen)
@@ -66,11 +100,10 @@ public class PauseMenuUI : MonoBehaviour
             return;
 
         var stats = FindFirstObjectByType<PlayerStats>();
-        if (stats == null || stats.IsDead)
+        if (stats == null || !stats.IsAlive)
             return;
 
-        if (group == null)
-            Build();
+        if (group == null) return;
 
         IsOpen = true;
         openTab = Tab.None;
@@ -124,27 +157,18 @@ public class PauseMenuUI : MonoBehaviour
     {
         openTab = tab;
 
-        // Destroy 는 프레임 끝에 처리되므로, 바로 꺼서 새 내용과 겹치지 않게 한다
-        foreach (Transform child in contentArea)
+        homePage.SetActive(tab == Tab.None);
+        inventoryPage.SetActive(tab == Tab.Inventory);
+        settingsPage.SetActive(tab == Tab.Settings);
+        if (tab == Tab.Inventory)
         {
-            child.gameObject.SetActive(false);
-            Destroy(child.gameObject);
-        }
-
-        switch (tab)
-        {
-            case Tab.Settings:
-                SettingsPanel.Build(contentArea, font);
-                break;
-
-            case Tab.Inventory:
-                BuildInventoryPlaceholder();
-                break;
-
-            default:
-                MakeText(contentArea, "왼쪽에서 항목을 고르세요", 22f, new Vector2(0f, 0f),
-                    new Color(0.55f, 0.55f, 0.6f), TextAlignmentOptions.Center);
-                break;
+            var inventory = FindFirstObjectByType<PlayerInventory>();
+            inventoryText.text = "소지품이 없습니다.";
+            if (inventory != null && inventory.Items.Count > 0)
+            {
+                inventoryText.text = "";
+                foreach (var item in inventory.Items) inventoryText.text += $"{item.displayName} × {item.quantity}\n";
+            }
         }
     }
 
@@ -243,7 +267,7 @@ public class PauseMenuUI : MonoBehaviour
 
         var button = go.AddComponent<Button>();
         button.targetGraphic = image;
-        button.onClick.AddListener(onClick);
+        // Start에서 저장된 버튼에 동작을 연결한다.
 
         var colors = button.colors;
         colors.highlightedColor = new Color(0.28f, 0.29f, 0.36f, 1f);

@@ -3,8 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 타이틀 화면. PlayerHUD·DeathScreenUI 와 같이 런타임에 캔버스를 직접 만든다.
-/// 타이틀 씬에 이 컴포넌트 하나만 올려두면 된다.
+/// 타이틀 씬에 배치된 화면과 버튼의 동작을 관리한다.
 /// </summary>
 public class TitleScreenUI : MonoBehaviour
 {
@@ -15,21 +14,41 @@ public class TitleScreenUI : MonoBehaviour
     [SerializeField] private string subtitle = "몸 하나, 인격 둘";
 
     [Tooltip("새 게임을 시작할 씬 이름")]
-    [SerializeField] private string firstScene = "Test";
+    [SerializeField] private string firstScene = "Main";
 
     [Tooltip("한글 폰트. 비워두면 기본 폰트로 나온다")]
     [SerializeField] private TMP_FontAsset koreanFont;
 
-    private Button continueButton;
+    [SerializeField] private Button continueButton, newGameButton, quitButton;
+    [SerializeField] private TMP_Text noSaveText;
+    [SerializeField] private GameObject canvasRoot;
 
     void Start()
     {
+        if (canvasRoot == null) { enabled = false; return; }
+        newGameButton.onClick.AddListener(NewGame);
+        continueButton.onClick.AddListener(ContinueGame);
+        quitButton.onClick.AddListener(QuitGame);
+        bool hasSave = SaveSystem.LoadPlayer() != null;
+        continueButton.interactable = hasSave;
+        continueButton.GetComponentInChildren<TMP_Text>().color = hasSave ? Color.white : new Color(0.45f, 0.45f, 0.5f);
+        noSaveText.gameObject.SetActive(!hasSave);
+    }
+
+#if UNITY_EDITOR
+    public void BakeSceneUI()
+    {
+        if (canvasRoot != null) return;
+        if (firstScene == "Test") firstScene = "Main";
+        if (koreanFont == null) koreanFont = Resources.Load<TMP_FontAsset>("Fonts/NeoDunggeunmoPro SDF");
         Build();
     }
+#endif
 
     private void Build()
     {
         var canvasGo = new GameObject("Title_Canvas");
+        canvasRoot = canvasGo;
         var canvas = canvasGo.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 50;
@@ -53,14 +72,14 @@ public class TitleScreenUI : MonoBehaviour
         MakeText(canvasGo.transform, subtitle, 28f, new Vector2(0f, 130f),
             new Color(0.65f, 0.65f, 0.72f), FontStyles.Normal);
 
-        bool hasSave = SaveSystem.HasSave;
+        bool hasSave = false;
 
-        MakeButton(canvasGo.transform, "새 게임", new Vector2(0f, -10f), NewGame, true);
+        newGameButton = MakeButton(canvasGo.transform, "새 게임", new Vector2(0f, -10f), NewGame, true);
         continueButton = MakeButton(canvasGo.transform, "이어하기", new Vector2(0f, -100f), ContinueGame, hasSave);
-        MakeButton(canvasGo.transform, "종료", new Vector2(0f, -190f), QuitGame, true);
+        quitButton = MakeButton(canvasGo.transform, "종료", new Vector2(0f, -190f), QuitGame, true);
 
         if (!hasSave)
-            MakeText(canvasGo.transform, "저장된 기록이 없습니다", 20f, new Vector2(0f, -260f),
+            noSaveText = MakeText(canvasGo.transform, "저장된 기록이 없습니다", 20f, new Vector2(0f, -260f),
                 new Color(0.5f, 0.5f, 0.55f), FontStyles.Italic);
 
         UiBootstrap.EnsureEventSystem();
@@ -143,7 +162,7 @@ public class TitleScreenUI : MonoBehaviour
         var button = go.AddComponent<Button>();
         button.targetGraphic = image;
         button.interactable = enabled;
-        button.onClick.AddListener(onClick);
+        // Start에서 저장된 버튼에 동작을 연결한다.
 
         var colors = button.colors;
         colors.highlightedColor = new Color(0.28f, 0.29f, 0.36f, 1f);
