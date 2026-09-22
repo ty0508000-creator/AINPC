@@ -90,7 +90,7 @@ public static class QuestSaveSystem
         try
         {
             if (!SaveSystem.TryLoadPlayer(out var saved)) return false;
-            var data = saved?.snapshotVersion == 1 ? saved.quests : ReadLegacy();
+            var data = saved?.snapshotVersion >= 1 ? saved.quests : ReadLegacy();
             Validate(data);
             foreach (var e in data.entries)
             {

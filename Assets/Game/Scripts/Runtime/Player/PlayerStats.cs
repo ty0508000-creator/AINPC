@@ -50,6 +50,7 @@ public class PlayerStats : MonoBehaviour, IDamageable
         playerAttack = GetComponent<Player_Attack>();
         CheckpointPosition = transform.position;
         CheckpointScene = gameObject.scene.path;
+        if (GetComponent<PlayerInventory>() == null) gameObject.AddComponent<PlayerInventory>();
         Load();
         if (GetComponent<RpgSkillController>() == null) gameObject.AddComponent<RpgSkillController>();
         if (GetComponent<RpgUI>() == null) gameObject.AddComponent<RpgUI>();
