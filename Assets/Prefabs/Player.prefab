@@ -15,6 +15,9 @@ GameObject:
   - component: {fileID: 4984468629963436786}
   - component: {fileID: 2485115617252620637}
   - component: {fileID: 2164550862852156763}
+  - component: {fileID: 9117236559320735708}
+  - component: {fileID: 1538960458615949171}
+  - component: {fileID: 7678876372008898897}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -225,3 +228,66 @@ MonoBehaviour:
   m_DefaultActionMap: 
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!114 &9117236559320735708
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4495597192133615743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 108f53ac23231a143ad7cb0f3e3418fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
+  Level: 1
+  MaxHP: 100
+  MaxMana: 50
+  MaxEXP: 100
+  hpIncreasePerLevel: 20
+  manaIncreasePerLevel: 10
+  expRequirementMultiplier: 1.5
+  healToFullOnLevelUp: 1
+--- !u!114 &1538960458615949171
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4495597192133615743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c66cf11fb42b7843a973b95864b8d8d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Player_Attack
+  attackDamage: 10
+  attackRange: 1
+  attackWidth: 1
+  attackCooldown: 0.8
+  attackBoxDuration: 0.15
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  maxChargeTime: 1.5
+  minDashDistance: 1
+  maxDashDistance: 7
+  minDashDamage: 5
+  maxDashDamage: 25
+  dashSpeed: 20
+  dashCooldown: 5
+  swingSfx: {fileID: 0}
+  hitSfx: {fileID: 0}
+  dashSfx: {fileID: 0}
+  pitchVariation: 0.1
+--- !u!114 &7678876372008898897
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4495597192133615743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f86066052a74516bacce4c4cd230e47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory

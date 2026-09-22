@@ -134,13 +134,14 @@ public class RpgUI : MonoBehaviour
             events.transform.SetParent(canvasRoot.transform, false);
         }
         var hud = Box(canvasRoot.transform, "Vitals", 26, 26, 310, 164, ink);
-        Text(hud, "귀 환 자", 18, 10, 140, 25, 19, gold);
-        identity = Text(hud, "", 180, 12, 110, 22, 14, muted);
+        hud.GetComponent<RectTransform>().localScale = new Vector3(1.2f, 1.2f, 1f);
+        Text(hud, "귀 환 자", 18, 10, 140, 25, 25, gold);
+        identity = Text(hud, "", 180, 12, 110, 22, 18, muted);
         hpFill = Bar(hud, 18, 47, 272, 8, new Color(0.77f, 0.26f, 0.26f));
         manaFill = Bar(hud, 18, 67, 272, 5, new Color(0.27f, 0.57f, 0.77f));
-        vitals = Text(hud, "", 18, 83, 278, 25, 13, textInk);
+        vitals = Text(hud, "", 18, 83, 278, 25, 17, textInk);
         expFill = Bar(hud, 18, 117, 272, 3, gold);
-        moodLabel = Text(hud, "", 18, 128, 278, 18, 11, muted);
+        moodLabel = Text(hud, "", 18, 128, 278, 18, 14, muted);
         moodFill = Bar(hud, 18, 147, 272, 2, jade);
         var shortcut = MakeButton(canvasRoot.transform, "기록  C / K / I", 26, 200, 180, 40, () => Open(false));
         shortcutButton = shortcut;
@@ -172,20 +173,24 @@ public class RpgUI : MonoBehaviour
         var wr = window.GetComponent<RectTransform>(); wr.anchorMin = wr.anchorMax = new Vector2(0.5f, 0.5f);
         wr.pivot = new Vector2(0.5f, 0.5f); wr.anchoredPosition = Vector2.zero;
         var title = Box(window, "Wooden title", 35, 23, 245, 55, Color.white);
-        Text(title, "수 련 록", 16, 7, 213, 38, 27, cream).alignment = TextAlignmentOptions.Center;
-        Text(window, "한 걸음씩 쌓아 올리는 새로운 경지", 35, 85, 470, 25, 14, muted);
+        Text(title, "수 련 록", 16, 7, 213, 38, 32, cream).alignment = TextAlignmentOptions.Center;
+        Text(window, "한 걸음씩 쌓아 올리는 새로운 경지", 35, 85, 470, 25, 17, muted);
         closeButton = MakeButton(window, "닫기  ESC", 984, 34, 124, 40, Close);
-        points = Text(window, "", 640, 80, 480, 26, 16, jade); points.alignment = TextAlignmentOptions.Right;
+        closeButton.GetComponentInChildren<TMP_Text>().fontSize = 19;
+        points = Text(window, "", 640, 80, 480, 26, 19, jade); points.alignment = TextAlignmentOptions.Right;
         statsTab = MakeButton(window, "능력치  C", 34, 119, 150, 40, () => ShowPage(false));
         skillsTab = MakeButton(window, "무공  K", 194, 119, 150, 40, () => ShowPage(true));
         inventoryTab = MakeButton(window, "소지품  I", 354, 119, 150, 40, () => ShowPage(2));
+        statsTab.GetComponentInChildren<TMP_Text>().fontSize = 19;
+        skillsTab.GetComponentInChildren<TMP_Text>().fontSize = 19;
+        inventoryTab.GetComponentInChildren<TMP_Text>().fontSize = 19;
         Box(window, "Divider", 34, 174, 1092, 1, new Color(0.3f, 0.28f, 0.21f));
         statsPage = Box(window, "Attributes", 34, 192, 1092, 450, Color.clear).gameObject;
         skillsPage = Box(window, "Skill tree", 34, 192, 1092, 450, Color.clear).gameObject;
         inventoryPage = Box(window, "Inventory", 34, 192, 1092, 450, Color.clear).gameObject;
         BuildStats(statsPage.transform); BuildSkills(skillsPage.transform); BuildInventory(inventoryPage.transform);
         Text(window, "레벨업마다 능력치 +3 · 무공 +1   |   강화는 즉시 저장됩니다.   |   창을 열어도 전투는 계속됩니다.",
-            45, 650, 1070, 22, 12, muted);
+            45, 650, 1070, 22, 14, muted);
         overlay.SetActive(false);
         BuildDeathScreen();
         toastRect.SetAsLastSibling();
@@ -241,14 +246,14 @@ public class RpgUI : MonoBehaviour
     {
         for (int column = 0; column < 3; column++)
         {
-            Text(root, new[] { "검술 · 파괴", "호신 · 수호", "내공 · 회복" }[column], column * 222, 0, 208, 30, 19, gold);
+            Text(root, new[] { "검술 · 파괴", "호신 · 수호", "내공 · 회복" }[column], column * 222, 0, 208, 30, 23, gold);
             for (int tier = 0; tier < 3; tier++)
             {
                 int id = column * 3 + tier;
                 if (tier > 0) Box(root, "Prerequisite", column * 222 + 102, 30 + tier * 130 - 26, 2, 26, gold);
                 var node = MakeButton(root, "", column * 222, 40 + tier * 130, 208, 104, () => { selected = id; Refresh(); });
                 nodeButtons[id] = node;
-                nodeLabels[id] = node.GetComponentInChildren<TMP_Text>(); nodeLabels[id].fontSize = 17;
+                nodeLabels[id] = node.GetComponentInChildren<TMP_Text>(); nodeLabels[id].fontSize = 20;
                 nodeLabels[id].rectTransform.anchoredPosition = new Vector2(56, -4);
                 nodeLabels[id].rectTransform.sizeDelta = new Vector2(144, 96);
                 nodeImages[id] = node.GetComponent<Image>();
@@ -263,17 +268,17 @@ public class RpgUI : MonoBehaviour
             }
         }
         var detail = Box(root, "Skill details", 686, 0, 406, 450, panel);
-        Text(detail, "무 공 비 급", 24, 20, 358, 28, 12, gold);
-        detailTitle = Text(detail, "", 24, 62, 358, 46, 30, textInk);
-        Box(detail, "Rule", 24, 125, 358, 1, gold);
-        detailBody = Text(detail, "", 24, 151, 358, 222, 16, muted);
+        Text(detail, "무 공 비 급", 24, 20, 358, 28, 14, gold);
+        detailTitle = Text(detail, "", 24, 58, 358, 54, 36, textInk);
+        Box(detail, "Rule", 24, 130, 358, 1, gold);
+        detailBody = Text(detail, "", 24, 151, 358, 222, 19, muted);
         detailBody.textWrappingMode = TextWrappingModes.Normal;
-        learnButton = MakeButton(detail, "", 24, 383, 358, 43, () =>
+        learnButton = MakeButton(detail, "", 24, 378, 358, 48, () =>
         {
             if (stats.LearnSkill(selected)) Notify(RpgSkillCatalog.All[selected].Name + " · 수련 완료");
             Refresh();
         });
-        learnLabel = learnButton.GetComponentInChildren<TMP_Text>();
+        learnLabel = learnButton.GetComponentInChildren<TMP_Text>(); learnLabel.fontSize = 19;
         Skin(learnButton.GetComponent<Image>(), woodenButton);
     }
 
@@ -375,9 +380,9 @@ public class RpgUI : MonoBehaviour
         for (int id = 0; id < 9; id++)
         {
             var skill = RpgSkillCatalog.All[id]; bool learned = stats.SkillRanks[id] > 0;
-            nodeLabels[id].text = $"{skill.Name}\n<size=12>{(skill.Active ? "사용 무공" : "지속 효과")} / {stats.SkillRanks[id]}/{skill.MaxRank}</size>\n<size=11>Lv. {skill.RequiredLevel}</size>";
+            nodeLabels[id].text = $"{skill.Name}\n<size=14>{(skill.Active ? "사용 무공" : "지속 효과")} / {stats.SkillRanks[id]}/{skill.MaxRank}</size>\n<size=13>Lv. {skill.RequiredLevel}</size>";
             string state = learned ? "수련 중" : stats.SkillLockReason(id).Length == 0 ? "습득 가능" : "미개방";
-            nodeLabels[id].text += $" <size=11>{state}</size>";
+            nodeLabels[id].text += $" <size=13>{state}</size>";
             nodeLabels[id].color = learned ? new Color(0.80f, 1f, 0.80f) : cream;
             nodeImages[id].color = id == selected ? new Color(0.80f, 1f, 0.84f) : Color.white;
             nodeImages[id].GetComponent<Outline>().enabled = id == selected;

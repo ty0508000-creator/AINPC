@@ -87,7 +87,17 @@ public static class SettingsPanel
             x += 180f;
         }
 
-        Label(parent, "조작키 변경은 아직 없습니다", 18f, new Vector2(0f, -180f),
+        // ── 계정 초기화 / 게임 종료 ──
+        TMP_Text resetLabel = null;
+        Button resetButton = MakeButton(parent, "계정 초기화", new Vector2(-95f, -172f),
+            new Vector2(180f, 50f), font, out resetLabel);
+        view.resetAccount = resetButton; view.resetAccountLabel = resetLabel;
+
+        TMP_Text unusedQuit;
+        view.quit = MakeButton(parent, "게임 종료", new Vector2(95f, -172f),
+            new Vector2(180f, 50f), font, out unusedQuit);
+
+        Label(parent, "계정 초기화는 저장을 지우고 타이틀로 돌아갑니다", 16f, new Vector2(0f, -212f),
             new Color(0.5f, 0.5f, 0.55f), font, TextAlignmentOptions.Center);
     }
 

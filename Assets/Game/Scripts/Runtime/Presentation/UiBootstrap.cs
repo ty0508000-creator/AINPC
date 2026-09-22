@@ -9,7 +9,9 @@ public static class UiBootstrap
     /// <summary>버튼을 누르려면 EventSystem 이 있어야 한다. 씬에 없으면 만들어 붙인다.</summary>
     public static void EnsureEventSystem()
     {
-        if (EventSystem.current != null)
+        // current 는 재생 중에만 채워진다. 씬에 구워 넣을 때는 직접 찾아야 중복이 생기지 않는다.
+        if (EventSystem.current != null ||
+            Object.FindFirstObjectByType<EventSystem>(FindObjectsInactive.Include) != null)
             return;
 
         var go = new GameObject("EventSystem");

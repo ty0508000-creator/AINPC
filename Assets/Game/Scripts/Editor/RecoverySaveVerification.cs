@@ -32,6 +32,11 @@ public static class RecoverySaveVerification
             player.transform.position = new Vector3(4, 5, 0);
             var stats = player.AddComponent<PlayerStats>();
             Invoke(stats, "Awake");
+            Check(SaveSystem.SaveProgress(stats, "VerificationScene", new Vector3(3, 7, 0), new[] { "intro_complete" }),
+                "scene progress commits with the player snapshot");
+            var progress = SaveSystem.LoadPlayer();
+            Check(SaveSystem.HasSave && progress.sceneName == "VerificationScene" && progress.posX == 3 && progress.posY == 7 &&
+                progress.flags.Count == 1 && progress.flags[0] == "intro_complete", "scene progress is readable from the unified snapshot");
             var inventory = player.GetComponent<PlayerInventory>();
             var item = ScriptableObject.CreateInstance<ItemDefinition>();
             item.itemId = "verification_item"; item.displayName = "검증 아이템"; item.maxStack = 3;
@@ -154,7 +159,7 @@ public static class RecoverySaveVerification
             Invoke(stats, "Load"); QuestSaveSystem.Load(manager);
             Check(stats.State == PlayerStats.LifeState.Dead && stats.EXP == 12, "legacy dead save remains recoverable without losing growth");
             Check(stats.Respawn(), "legacy dead save retry succeeds");
-            Check(SaveSystem.LoadPlayer().snapshotVersion == 2 && SaveSystem.LoadPlayer().quests.entries[0].state == QuestState.Completed,
+            Check(SaveSystem.LoadPlayer().snapshotVersion == 3 && SaveSystem.LoadPlayer().quests.entries[0].state == QuestState.Completed,
                 "legacy player and quest migrate together");
             Check(File.ReadAllText(Path.Combine(legacySlot, "quest_save.json")) == legacyQuestJson, "migration preserves legacy quest source");
             // Once unified, stale legacy file cannot override the authoritative snapshot.

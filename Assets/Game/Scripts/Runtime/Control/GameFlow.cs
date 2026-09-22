@@ -209,11 +209,13 @@ public class GameFlow : MonoBehaviour
         if (string.IsNullOrEmpty(destination)) destination = "Main";
         if (destination == "Test") destination = "Main";
 
+        Vector2 position = data.hasProgress
+            ? new Vector2(data.posX, data.posY)
+            : new Vector2(data.checkpointPosition.x, data.checkpointPosition.y);
         RestoreFlags(data.flags);
 
         // 저장된 좌표로 직접 놓는다 (입구가 아니라 죽기 직전 그 자리)
         pendingSpawn = null;
-        Vector2 position = data.hasProgress ? new Vector2(data.posX, data.posY) : (Vector2)data.checkpointPosition;
         StartCoroutine(LoadRoutine(destination, position, saveOnArrival: false));
         return true;
     }
