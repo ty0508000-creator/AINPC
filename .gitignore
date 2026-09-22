@@ -115,3 +115,6 @@ LLMUnity-3.0.3/
 *.hwp
 hwp_extract.py
 hwp_extracted_text.txt
+
+# Unity MCP 로컬 설정 (머신마다 경로가 달라 커밋 제외)
+.mcp.json

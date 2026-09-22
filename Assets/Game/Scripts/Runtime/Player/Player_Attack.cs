@@ -102,7 +102,7 @@ public class Player_Attack : MonoBehaviour
 
     void Update()
     {
-        if (DialogueManager.IsDialogueOpen || RpgUI.IsOpen || Time.timeScale == 0f ||
+        if (DialogueManager.IsDialogueOpen || PauseMenuUI.IsOpen || RpgUI.IsOpen || Time.timeScale == 0f ||
             (GetComponent<PlayerStats>() != null && GetComponent<PlayerStats>().HP <= 0f) ||
             Mouse.current == null || (GetComponent<ControlManager>() != null && !GetComponent<ControlManager>().IsPlayerControlled) ||
             (UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject()))

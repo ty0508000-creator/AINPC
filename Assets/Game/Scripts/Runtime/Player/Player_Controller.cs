@@ -31,7 +31,7 @@ public class Player_Controller : MonoBehaviour
         bool isAIControlled = controlManager != null && !controlManager.IsPlayerControlled;
         bool blocked =
             (playerAttack != null && playerAttack.IsInvincible) ||
-            DialogueManager.IsDialogueOpen || RpgUI.IsOpen || (stats != null && stats.HP <= 0f);
+            DialogueManager.IsDialogueOpen || PauseMenuUI.IsOpen || RpgUI.IsOpen || (stats != null && stats.HP <= 0f);
 
         if (blocked)
         {
@@ -64,7 +64,7 @@ public class Player_Controller : MonoBehaviour
     {
         bool isAIControlled = controlManager != null && !controlManager.IsPlayerControlled;
         if ((playerAttack != null && playerAttack.IsInvincible) ||
-            DialogueManager.IsDialogueOpen || RpgUI.IsOpen || (stats != null && stats.HP <= 0f))
+            DialogueManager.IsDialogueOpen || PauseMenuUI.IsOpen || RpgUI.IsOpen || (stats != null && stats.HP <= 0f))
         {
             rb.linearVelocity = Vector2.zero;
             return;
