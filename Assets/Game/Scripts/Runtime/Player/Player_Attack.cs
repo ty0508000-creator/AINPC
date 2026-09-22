@@ -254,6 +254,9 @@ public class Player_Attack : MonoBehaviour
 
     // ── AI용 인터페이스 ───────────────────────────────────────────
     public bool DashReady => Time.time - lastDashTime >= dashCooldown;
+
+    /// <summary>일반 공격 쿨타임이 돌았는가. AI 가 치고 빠지는 박자를 맞추는 데 쓴다.</summary>
+    public bool AttackReady => Time.time - lastAttackTime >= attackCooldown;
     public float MaxDashRange => maxDashDistance;
     public float NormalAttackRange => attackRange;
 

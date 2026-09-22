@@ -19,6 +19,10 @@ namespace AINPC.MapGen
         /// <summary>같은 sortY 안에서의 앞뒤 (클수록 앞). 한 칸 간격(SortPrecision)보다 작아야 한다.</summary>
         public int sortBias;
 
+        /// <summary>한 덩어리(집 한 채)로 묶을 번호. -1 이면 묶지 않는다.
+        /// 조각으로 조립된 집은 이 번호로 부모를 만들어 통째로 흐려질 수 있게 한다.</summary>
+        public int groupId = -1;
+
         public float SortY => sortY ?? bottomCenter.y;
     }
 
@@ -40,6 +44,9 @@ namespace AINPC.MapGen
         public Vector2 spawnPoint;
         public RectInt village;
         public bool hasVillage;
+
+        /// <summary>지금까지 세운 집 채 수. 조각들을 한 채로 묶는 번호로도 쓴다.</summary>
+        public int buildingCount;
 
         /// <summary>마을 거리의 중심 좌표. 집은 이 거리들을 따라 늘어선다.</summary>
         public readonly List<int> streetsX = new List<int>();   // 세로 거리의 x
@@ -107,7 +114,7 @@ namespace AINPC.MapGen
                     if (plan.water[x, y] && !plan.bridge[x, y])
                         plan.block[x, y] = true;
 
-            if (s.village) MakeBuildings(plan, roadX, roadY);
+            if (s.village) MakeBuildings(plan, s);
             MakeTrees(plan, s);
             MakeDecor(plan, s);
             MakeWaterPlants(plan);
@@ -321,7 +328,7 @@ namespace AINPC.MapGen
             return plans;
         }
 
-        private static void MakeBuildings(MapPlan p, int roadX, int roadY)
+        private static void MakeBuildings(MapPlan p, MapGenSettings s)
         {
             List<HousePlan> houses = LoadHouses();
             if (houses.Count == 0)
@@ -339,21 +346,21 @@ namespace AINPC.MapGen
             // 가로 거리마다 위아래로 한 줄씩
             foreach (int sy in p.streetsY)
             {
-                PlaceRow(p, houses, v.xMin + 1, v.xMax - 1, sy + 3, true, yLow, yHigh);
-                PlaceRow(p, houses, v.xMin + 1, v.xMax - 1, sy - 3, false, yLow, yHigh);
+                PlaceRow(p, houses, s, v.xMin + 1, v.xMax - 1, sy + 3, true, yLow, yHigh);
+                PlaceRow(p, houses, s, v.xMin + 1, v.xMax - 1, sy - 3, false, yLow, yHigh);
             }
 
             // 세로 거리마다 좌우로 한 줄씩. 교차점에서 겹치는 건 AreaFree 가 걸러낸다
             foreach (int sx in p.streetsX)
             {
-                PlaceColumn(p, houses, v.yMin + 1, v.yMax - 1, sx + 3, true, xLow, xHigh);
-                PlaceColumn(p, houses, v.yMin + 1, v.yMax - 1, sx - 3, false, xLow, xHigh);
+                PlaceColumn(p, houses, s, v.yMin + 1, v.yMax - 1, sx + 3, true, xLow, xHigh);
+                PlaceColumn(p, houses, s, v.yMin + 1, v.yMax - 1, sx - 3, false, xLow, xHigh);
             }
         }
 
         /// <summary>가로줄 배치. above=true 면 도로 북쪽(바닥이 anchorY), false 면 남쪽(윗면이 anchorY).
         /// yLow..yHigh(양끝 포함) 를 벗어나는 집은 건너뛴다.</summary>
-        private static void PlaceRow(MapPlan p, List<HousePlan> houses, int xFrom, int xTo, int anchorY, bool above, int yLow, int yHigh)
+        private static void PlaceRow(MapPlan p, List<HousePlan> houses, MapGenSettings s, int xFrom, int xTo, int anchorY, bool above, int yLow, int yHigh)
         {
             // 세로 경계 검사는 이 줄 내내 같은 결과이므로 미리 걸러낸다.
             // 루프 안에서 매번 뽑아 버리면 x 가 안 늘어나 guard 만 태운다.
@@ -388,8 +395,11 @@ namespace AINPC.MapGen
 
                 if (AreaFree(p, x, bottom, house.tilesWide, house.tilesDeep))
                 {
-                    PlaceBuilding(p, house, x, bottom);
-                    x += house.tilesWide + 1 + rng.Next(3);
+                    // 확률에 걸리면 자리를 비워 둔다 (빈 터에는 나중에 풀/나무가 들어간다)
+                    if (Rand() <= s.houseChance)
+                        PlaceBuilding(p, house, x, bottom);
+
+                    x += house.tilesWide + HouseGap(s);
                 }
                 else
                 {
@@ -400,7 +410,7 @@ namespace AINPC.MapGen
 
         /// <summary>세로줄 배치. right=true 면 골목 동쪽(왼쪽 변이 anchorX).
         /// xLow..xHigh(양끝 포함) 를 벗어나는 집은 건너뛴다.</summary>
-        private static void PlaceColumn(MapPlan p, List<HousePlan> houses, int yFrom, int yTo, int anchorX, bool right, int xLow, int xHigh)
+        private static void PlaceColumn(MapPlan p, List<HousePlan> houses, MapGenSettings s, int yFrom, int yTo, int anchorX, bool right, int xLow, int xHigh)
         {
             // 가로 경계 검사는 이 골목 내내 같은 결과이므로 미리 걸러낸다
             var fits = new List<HousePlan>();
@@ -434,8 +444,10 @@ namespace AINPC.MapGen
 
                 if (AreaFree(p, left, y, house.tilesWide, house.tilesDeep))
                 {
-                    PlaceBuilding(p, house, left, y);
-                    y += house.tilesDeep + 1 + rng.Next(3);
+                    if (Rand() <= s.houseChance)
+                        PlaceBuilding(p, house, left, y);
+
+                    y += house.tilesDeep + HouseGap(s);
                 }
                 else
                 {
@@ -462,6 +474,7 @@ namespace AINPC.MapGen
 
             // 한 채의 조각들은 정렬 y 를 공유해야 흩어지지 않는다.
             // 그냥 각자 y 로 정렬하면 위에 있는 지붕일수록 order 가 작아져 벽 뒤로 숨는다.
+            int houseId = p.buildingCount++;
             for (int i = 0; i < house.sprites.Length; i++)
             {
                 p.props.Add(new PropPlan
@@ -471,6 +484,7 @@ namespace AINPC.MapGen
                     group = "Buildings",
                     sortY = baseAt.y,
                     sortBias = i,
+                    groupId = houseId,
                 });
             }
         }
@@ -674,6 +688,9 @@ namespace AINPC.MapGen
 
             return p.World(bestX + 0.5f, bestY + 0.5f);
         }
+
+        /// <summary>집 사이에 둘 여유 칸. 설정값에 약간의 들쭉날쭉함을 더한다.</summary>
+        private static int HouseGap(MapGenSettings s) => Mathf.Max(1, s.houseGap) + rng.Next(3);
 
         private static float Rand() => (float)rng.NextDouble();
 
