@@ -56,6 +56,22 @@ public class MoodSystem : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 기분을 시작값으로 되돌리고 제어권도 플레이어에게 넘긴다.
+    /// 부활처럼 판을 리셋할 때 쓴다 — 전투가 이어지는 중이라도 몸은 일단 플레이어가 잡는다.
+    /// </summary>
+    public void ResetMood()
+    {
+        Mood = startMood;
+        OnMoodChanged?.Invoke(Mood);
+
+        if (isAIControlled)
+        {
+            isAIControlled = false;
+            OnPlayerRestored?.Invoke();
+        }
+    }
+
     public void ChangeMood(float delta)
     {
         ApplyQuestDelta(delta);

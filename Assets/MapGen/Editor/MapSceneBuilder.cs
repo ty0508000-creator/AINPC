@@ -19,7 +19,15 @@ namespace AINPC.MapGen
         {
             TileBase groundTile = AssetDatabase.LoadAssetAtPath<TileBase>(MapGenSettings.Assets.GroundRuleTile);
             TileBase pathTile = AssetDatabase.LoadAssetAtPath<TileBase>(MapGenSettings.Assets.PathRuleTile);
-            TileBase waterTile = AssetDatabase.LoadAssetAtPath<TileBase>(MapGenSettings.Assets.WaterRuleTile);
+            // 셰이더 방식 물이 준비돼 있으면 그쪽을 쓴다. 칸마다 애니메이션 기록이 안 남아 씬이 훨씬 가볍다
+            Material waterMaterial = AssetDatabase.LoadAssetAtPath<Material>(MapGenSettings.Assets.WaterMaterial);
+            TileBase waterTile = AssetDatabase.LoadAssetAtPath<TileBase>(MapGenSettings.Assets.WaterStaticTile);
+            if (waterTile == null || waterMaterial == null)
+            {
+                waterTile = AssetDatabase.LoadAssetAtPath<TileBase>(MapGenSettings.Assets.WaterRuleTile);
+                waterMaterial = null;
+            }
+
             TileBase blockTile = LoadOrCreateBlockTile();
 
             if (groundTile == null || pathTile == null || waterTile == null)
@@ -42,6 +50,8 @@ namespace AINPC.MapGen
             grid.cellSize = new Vector3(1f, 1f, 0f);
 
             Tilemap water = CreateTilemap(gridGo.transform, "Water", WaterSortOrder);
+            if (waterMaterial != null)
+                water.GetComponent<TilemapRenderer>().sharedMaterial = waterMaterial;
             Tilemap ground = CreateTilemap(gridGo.transform, "Ground", GroundSortOrder);
             Tilemap path = CreateTilemap(gridGo.transform, "Path", PathSortOrder);
             Tilemap blockers = CreateTilemap(gridGo.transform, "Blockers", 0);
@@ -128,7 +138,10 @@ namespace AINPC.MapGen
             return count;
         }
 
-        /// <summary>물은 땅 가장자리 밑으로도 두 칸 더 깔아 전환 타일 뒤가 비지 않게 한다.</summary>
+        /// <summary>
+        /// 물은 땅 가장자리 밑으로 한 칸만 더 깐다. 전환 타일이 비쳐 보일 수 있는 건 딱 그 한 줄이고,
+        /// 두 칸까지 깔면 완전히 가려 보이지도 않는 칸이 수천 개씩 씬 파일에 쌓인다.
+        /// </summary>
         private static int PaintWater(Tilemap tilemap, TileBase tile, MapPlan plan)
         {
             var dilated = new bool[plan.width, plan.height];
@@ -138,8 +151,8 @@ namespace AINPC.MapGen
                 {
                     if (!plan.water[x, y]) continue;
 
-                    for (int ax = x - 2; ax <= x + 2; ax++)
-                        for (int ay = y - 2; ay <= y + 2; ay++)
+                    for (int ax = x - 1; ax <= x + 1; ax++)
+                        for (int ay = y - 1; ay <= y + 1; ay++)
                             if (plan.In(ax, ay))
                                 dilated[ax, ay] = true;
                 }
