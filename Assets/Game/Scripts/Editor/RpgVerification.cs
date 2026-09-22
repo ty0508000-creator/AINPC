@@ -74,6 +74,7 @@ public static class RpgVerification
             var font = Resources.Load<TMP_FontAsset>("Fonts/NeoDunggeunmoPro SDF");
             Check(font != null && font.HasCharacters("귀환자의 수련록 체력 공격력 방어력 내력 무공 월영참 금강호신 운기조식 재도전 소지품 검증 두루마리", out uint[] missing, false, true), "NeoDunggeunmo Korean glyph coverage");
             typeof(RpgUI).GetField("koreanFont", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(ui, font);
+            ui.BakeSceneUI();
             Invoke(ui, "Start");
             var board = Resources.Load<Sprite>("RpgWooden/UI board Large Set");
             var paper = Resources.Load<Sprite>("RpgWooden/UI board Medium  parchment");

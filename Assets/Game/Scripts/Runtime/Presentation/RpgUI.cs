@@ -6,12 +6,13 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
-/// <summary>Runtime-built, resolution-independent martial arts RPG interface.</summary>
+/// <summary>씬에 저장된 HUD·수련·부활 UI의 표시와 입력을 관리한다.</summary>
 [DisallowMultipleComponent]
 public class RpgUI : MonoBehaviour
 {
     static RpgUI opened;
     public static bool IsOpen => opened != null;
+    public static int LastClosedFrame { get; private set; } = -1;
     [SerializeField] TMP_FontAsset koreanFont;
     PlayerStats stats;
     Player_Attack attack;
@@ -19,21 +20,23 @@ public class RpgUI : MonoBehaviour
     PlayerInventory inventory;
     MoodSystem mood;
     ControlManager control;
-    GameObject canvasRoot, overlay, statsPage, skillsPage, inventoryPage;
-    GameObject deathOverlay;
-    TMP_Text identity, vitals, points, attributeSummary, detailTitle, detailBody, learnLabel, toast, guardLabel, moodLabel;
-    TMPro.TMP_Text inventoryList;
-    Image hpFill, manaFill, expFill, moodFill;
-    Button learnButton;
-    Button statsTab, skillsTab;
-    UnityEngine.UI.Button inventoryTab;
+    [SerializeField] GameObject canvasRoot, overlay, statsPage, skillsPage, inventoryPage;
+    [SerializeField] GameObject deathOverlay;
+    [SerializeField] TMP_Text identity, vitals, points, attributeSummary, detailTitle, detailBody, learnLabel, toast, guardLabel, moodLabel;
+    [SerializeField] TMPro.TMP_Text inventoryList;
+    [SerializeField] Image hpFill, manaFill, expFill, moodFill;
+    [SerializeField] Button learnButton;
+    [SerializeField] Button statsTab, skillsTab;
+    [SerializeField] UnityEngine.UI.Button inventoryTab;
+    [SerializeField] Button shortcutButton, closeButton, respawnButton;
+    [SerializeField] Button[] hotButtons = new Button[3], nodeButtons = new Button[9];
     Sprite woodenButton, pressedButton, parchment, board, titleBoard, divider;
-    readonly TMP_Text[] attributeValues = new TMP_Text[4];
-    readonly Button[] attributeButtons = new Button[4];
-    readonly TMP_Text[] nodeLabels = new TMP_Text[9];
-    readonly Image[] nodeImages = new Image[9];
-    readonly TMP_Text[] hotLabels = new TMP_Text[3];
-    readonly Image[] cooldownFills = new Image[3];
+    [SerializeField] TMP_Text[] attributeValues = new TMP_Text[4];
+    [SerializeField] Button[] attributeButtons = new Button[4];
+    [SerializeField] TMP_Text[] nodeLabels = new TMP_Text[9];
+    [SerializeField] Image[] nodeImages = new Image[9];
+    [SerializeField] TMP_Text[] hotLabels = new TMP_Text[3];
+    [SerializeField] Image[] cooldownFills = new Image[3];
     int selected;
     float toastUntil, nextRefresh;
     Color ink = new Color(0.94f, 0.87f, 0.71f, 1f);
@@ -50,11 +53,62 @@ public class RpgUI : MonoBehaviour
         skills = GetComponent<RpgSkillController>(); inventory = GetComponent<PlayerInventory>();
         mood = GetComponent<MoodSystem>(); control = GetComponent<ControlManager>();
         if (stats == null) { enabled = false; return; }
-        ResolveFont(); LoadSkin(); Build();
+        if (canvasRoot == null)
+        {
+            Debug.LogError("씬 UI가 없습니다. Tools > AINPC > Bake Scene UI를 실행하세요.", this);
+            enabled = false;
+            return;
+        }
+        BindButtons();
+        Close();
         stats.OnLevelUp += LevelUp;
         SaveSystem.OnSaveFailed += SaveFailed;
         if (skills != null) skills.OnFeedback += Notify;
         Refresh();
+    }
+
+    // 배치와 외형은 편집기에서 한 번 생성하여 씬에 저장한다.
+#if UNITY_EDITOR
+    public void BakeSceneUI()
+    {
+        if (canvasRoot != null) return;
+        ResolveFont(); LoadSkin(); Build();
+        identity.text = "Lv. 01";
+        vitals.text = "HP 100/100     MP 50/50";
+        moodLabel.text = "정신의 균형  100";
+        for (int i = 0; i < 3; i++) hotLabels[i].text = RpgSkillCatalog.All[RpgSkillCatalog.Hotbar[i]].Name;
+        for (int i = 0; i < 9; i++) nodeLabels[i].text = RpgSkillCatalog.All[i].Name;
+    }
+#endif
+
+    void BindButtons()
+    {
+        shortcutButton.onClick.AddListener(() => Open(false));
+        closeButton.onClick.AddListener(Close);
+        statsTab.onClick.AddListener(() => ShowPage(false));
+        skillsTab.onClick.AddListener(() => ShowPage(true));
+        inventoryTab.onClick.AddListener(() => ShowPage(2));
+        respawnButton.onClick.AddListener(() => { stats.Respawn(); Refresh(); });
+        learnButton.onClick.AddListener(() =>
+        {
+            if (stats.LearnSkill(selected)) Notify(RpgSkillCatalog.All[selected].Name + " / 수련 완료");
+            Refresh();
+        });
+        for (int i = 0; i < 4; i++)
+        {
+            int id = i;
+            attributeButtons[i].onClick.AddListener(() => { stats.UpgradeAttribute((RpgAttribute)id); Refresh(); });
+        }
+        for (int i = 0; i < 9; i++)
+        {
+            int id = i;
+            nodeButtons[i].onClick.AddListener(() => { selected = id; Refresh(); });
+        }
+        for (int i = 0; i < 3; i++)
+        {
+            int slot = i;
+            hotButtons[i].onClick.AddListener(() => { if (skills != null) skills.TryCast(RpgSkillCatalog.Hotbar[slot]); });
+        }
     }
 
     void ResolveFont()
@@ -89,6 +143,7 @@ public class RpgUI : MonoBehaviour
         moodLabel = Text(hud, "", 18, 128, 278, 18, 11, muted);
         moodFill = Bar(hud, 18, 147, 272, 2, jade);
         var shortcut = MakeButton(canvasRoot.transform, "기록  C / K / I", 26, 200, 180, 40, () => Open(false));
+        shortcutButton = shortcut;
         shortcut.GetComponentInChildren<TMP_Text>().fontSize = 13;
         var hotbar = Box(canvasRoot.transform, "Skill bar", 0, 0, 416, 88, ink);
         var hotRect = hotbar.GetComponent<RectTransform>(); hotRect.anchorMin = hotRect.anchorMax = new Vector2(0.5f, 0f);
@@ -97,6 +152,7 @@ public class RpgUI : MonoBehaviour
         {
             int slot = i;
             var button = MakeButton(hotbar, "", 12 + i * 132, 10, 126, 60, () => { if (skills != null) skills.TryCast(RpgSkillCatalog.Hotbar[slot]); });
+            hotButtons[i] = button;
             hotLabels[i] = button.GetComponentInChildren<TMP_Text>(); hotLabels[i].fontSize = 14;
             cooldownFills[i] = Bar(hotbar, 12 + i * 132, 72, 126, 3, gold);
         }
@@ -118,7 +174,7 @@ public class RpgUI : MonoBehaviour
         var title = Box(window, "Wooden title", 35, 23, 245, 55, Color.white);
         Text(title, "수 련 록", 16, 7, 213, 38, 27, cream).alignment = TextAlignmentOptions.Center;
         Text(window, "한 걸음씩 쌓아 올리는 새로운 경지", 35, 85, 470, 25, 14, muted);
-        MakeButton(window, "닫기  ESC", 984, 34, 124, 40, Close);
+        closeButton = MakeButton(window, "닫기  ESC", 984, 34, 124, 40, Close);
         points = Text(window, "", 640, 80, 480, 26, 16, jade); points.alignment = TextAlignmentOptions.Right;
         statsTab = MakeButton(window, "능력치  C", 34, 119, 150, 40, () => ShowPage(false));
         skillsTab = MakeButton(window, "무공  K", 194, 119, 150, 40, () => ShowPage(true));
@@ -148,7 +204,7 @@ public class RpgUI : MonoBehaviour
         card.anchoredPosition = Vector2.zero;
         Text(card, "다시, 일어설 시간", 35, 30, 490, 50, 30, textInk).alignment = TextAlignmentOptions.Center;
         Text(card, "안전 지점에서 체력과 내력을 회복합니다.\n성장과 퀘스트 진행은 유지됩니다.", 40, 95, 480, 80, 19, muted).alignment = TextAlignmentOptions.Center;
-        MakeButton(card, "안전 지점에서 재도전  /  R", 65, 195, 430, 55, () => { stats.Respawn(); Refresh(); });
+        respawnButton = MakeButton(card, "안전 지점에서 재도전  /  R", 65, 195, 430, 55, () => { stats.Respawn(); Refresh(); });
         deathOverlay.SetActive(false);
     }
 
@@ -191,6 +247,7 @@ public class RpgUI : MonoBehaviour
                 int id = column * 3 + tier;
                 if (tier > 0) Box(root, "Prerequisite", column * 222 + 102, 30 + tier * 130 - 26, 2, 26, gold);
                 var node = MakeButton(root, "", column * 222, 40 + tier * 130, 208, 104, () => { selected = id; Refresh(); });
+                nodeButtons[id] = node;
                 nodeLabels[id] = node.GetComponentInChildren<TMP_Text>(); nodeLabels[id].fontSize = 17;
                 nodeLabels[id].rectTransform.anchoredPosition = new Vector2(56, -4);
                 nodeLabels[id].rectTransform.sizeDelta = new Vector2(144, 96);
@@ -262,7 +319,7 @@ public class RpgUI : MonoBehaviour
         if (opened != null && opened != this) opened.Close();
         opened = this; overlay.SetActive(true); ShowPage(2); Refresh();
     }
-    void Close() { if (opened == this) opened = null; if (overlay != null) overlay.SetActive(false); }
+    void Close() { if (opened == this) { opened = null; LastClosedFrame = Time.frameCount; } if (overlay != null) overlay.SetActive(false); }
     void ShowPage(bool tree) => ShowPage(tree ? 1 : 0);
     void ShowPage(int page)
     {
@@ -388,7 +445,7 @@ public class RpgUI : MonoBehaviour
         var colors = button.colors; colors.highlightedColor = new Color(1f, 0.96f, 0.82f); colors.pressedColor = new Color(0.72f, 0.82f, 0.66f);
         colors.disabledColor = new Color(0.65f, 0.65f, 0.65f); button.colors = colors;
         button.navigation = new Navigation { mode = Navigation.Mode.None };
-        button.onClick.AddListener(() => action());
+        // 콜백은 직렬화된 참조로 Start에서 연결한다.
         var text = Text(rect, label, 8, 4, w - 16, h - 8, 16, cream); text.alignment = TextAlignmentOptions.Center;
         return button;
     }
@@ -405,6 +462,6 @@ public class RpgUI : MonoBehaviour
     {
         SaveSystem.OnSaveFailed -= SaveFailed;
         Close(); if (stats != null) stats.OnLevelUp -= LevelUp; if (skills != null) skills.OnFeedback -= Notify;
-        if (canvasRoot != null) Destroy(canvasRoot);
+        // 캔버스는 씬이 소유하며 씬과 함께 정리된다.
     }
 }

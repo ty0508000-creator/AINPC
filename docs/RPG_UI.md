@@ -1,7 +1,22 @@
 # 무협 RPG 성장 UI
 
-`PlayerStats`가 있는 플레이어에 `RpgSkillController`와 `RpgUI`가 실행 시 자동으로 추가됩니다.
-기존 `PlayerHUD`는 새 UI가 있으면 중복 표시하지 않습니다. 원본 맵이나 프리팹을 다시 배치할 필요는 없습니다.
+Main, MapGen_Village, mapstory1, Title 씬의 UI는 `UIRoot` 아래에 저장됩니다.
+Play 전에 Hierarchy에서 텍스트, 이미지, RectTransform을 직접 편집할 수 있습니다.
+`RpgUI`의 직렬화된 필드는 플레이어와 씬 위젯을 연결하고, 실행 시에는 버튼 연결과 값 갱신만 수행합니다.
+기존 `PlayerHUD`는 새 UI가 있으면 중복 표시하지 않습니다.
+
+## 씬에서 편집하기
+
+- HUD는 `UIRoot/RPG · 귀환자의 기록/Vitals`, 단축바는 같은 캔버스의 `Skill bar`입니다.
+- 수련창은 `Cultivation overlay`를 활성화하고 `Attributes`, `Skill tree`, `Inventory` 중 편집할 페이지를 활성화합니다.
+- 사망 화면은 `Recovery overlay`, 내면 대화창은 `InnerVoiceCanvas/InnerWorldOverlay`를 활성화해 편집합니다.
+- 일시정지 메뉴는 `Pause Menu/PauseMenu_Canvas`의 CanvasGroup Alpha를 1로 바꿔 미리 봅니다. 설정·인벤토리·안내는 저장된 자식 패널입니다.
+- 타이틀은 `Title_Canvas`의 텍스트와 버튼을 편집합니다. 새 게임은 Main으로 연결됩니다.
+- 실행 초기화 시 수련·사망·내면·메뉴 화면은 상태에 맞게 닫히므로, 편집 중 미리 켜둔 화면이 그대로 노출되지 않습니다.
+- 새 씬에서는 플레이어를 배치하고 `Tools > AINPC > Bake Scene UI`를 실행한 뒤 씬을 저장합니다. 이미 배치한 UI는 다시 생성하지 않습니다.
+
+Canvas를 삭제하거나 스크립트의 위젯 참조를 끊으면 동작하지 않습니다. 배치 도구는 편집용이며 실행 중 UI 생성용이 아닙니다.
+동적 퀘스트·스탯·소지품 문구는 게임 상태에 따라 갱신됩니다. 배치·글꼴·배경·정적인 제목은 씬에서 조정합니다.
 
 ![무공 트리](RpgScreenshots/skills.png)
 
@@ -43,7 +58,7 @@
 후속 개선으로 퀘스트·Mood·체크포인트도 같은 파일에 포함합니다. 주 파일이 없어도 백업 복구를 시도하며, 예전 분리 저장은 원본을 남기고 가져옵니다. [통합 저장 상세](RECOVERY_AND_SAVE.md).
 
 화면은 1440×900 기준 CanvasScaler의 Expand 모드를 사용합니다.
-한글 폰트는 씬에 로드된 Paperlogy 또는 TMP 기본 폰트를 사용합니다.
+한글 폰트는 `NeoDunggeunmoPro SDF`를 우선 사용하며 씬의 TMP 컴포넌트에서 변경할 수 있습니다.
 문양은 기존 코드 기반 벡터 UI를 유지합니다. 패널·버튼에는 Black Hammer의
 Fantasy Wooden GUI : Free 2.1 원본 PNG 6개를 사용합니다.
 `Assets/Resources/RpgWooden`에서 런타임 로드하며, 프레임과 버튼은 9-slice로 크기를 조정합니다.

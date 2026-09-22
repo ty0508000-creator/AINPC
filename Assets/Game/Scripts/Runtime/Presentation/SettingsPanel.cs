@@ -39,6 +39,7 @@ public static class SettingsPanel
     /// <summary>주어진 자리에 설정 UI 를 만든다.</summary>
     public static void Build(RectTransform parent, TMP_FontAsset font)
     {
+        var view = parent.gameObject.AddComponent<SceneSettingsView>();
         Label(parent, "설정", 34f, new Vector2(0f, 200f), Color.white, font, TextAlignmentOptions.Center);
 
         // ── 소리 ──
@@ -48,13 +49,7 @@ public static class SettingsPanel
             Color.white, font, TextAlignmentOptions.Right);
 
         Slider slider = MakeSlider(parent, new Vector2(20f, 120f), AudioListener.volume);
-        slider.onValueChanged.AddListener(v =>
-        {
-            AudioListener.volume = v;
-            PlayerPrefs.SetFloat(VolumeKey, v);
-            PlayerPrefs.Save();
-            volumeValue.text = Percent(v);
-        });
+        view.volume = slider; view.volumeLabel = volumeValue;
 
         // ── 전체화면 ──
         Label(parent, "전체화면", 22f, new Vector2(-260f, 50f), new Color(0.75f, 0.75f, 0.8f), font, TextAlignmentOptions.Left);
@@ -62,15 +57,8 @@ public static class SettingsPanel
         TMP_Text fullscreenLabel = null;
         Button fullscreenButton = MakeButton(parent, Screen.fullScreen ? "켜짐" : "꺼짐",
             new Vector2(200f, 50f), new Vector2(160f, 46f), font, out fullscreenLabel);
+        view.fullscreen = fullscreenButton; view.fullscreenLabel = fullscreenLabel;
 
-        fullscreenButton.onClick.AddListener(() =>
-        {
-            bool next = !Screen.fullScreen;
-            Screen.fullScreen = next;
-            PlayerPrefs.SetInt(FullscreenKey, next ? 1 : 0);
-            PlayerPrefs.Save();
-            fullscreenLabel.text = next ? "켜짐" : "꺼짐";
-        });
 
         // ── 자동 저장 ──
         Label(parent, "자동 저장", 22f, new Vector2(-260f, -10f), new Color(0.75f, 0.75f, 0.8f), font, TextAlignmentOptions.Left);
@@ -78,13 +66,8 @@ public static class SettingsPanel
         TMP_Text autoSaveLabel = null;
         Button autoSaveButton = MakeButton(parent, GameFlow.AutoSaveEnabled ? "켜짐" : "꺼짐",
             new Vector2(200f, -10f), new Vector2(160f, 46f), font, out autoSaveLabel);
+        view.autoSave = autoSaveButton; view.autoSaveLabel = autoSaveLabel;
 
-        autoSaveButton.onClick.AddListener(() =>
-        {
-            bool next = !GameFlow.AutoSaveEnabled;
-            GameFlow.AutoSaveEnabled = next;
-            autoSaveLabel.text = next ? "켜짐" : "꺼짐";
-        });
 
         Label(parent, Mathf.RoundToInt(GameFlow.AutoSaveInterval) + "초마다", 16f, new Vector2(200f, -48f),
             new Color(0.5f, 0.5f, 0.55f), font, TextAlignmentOptions.Center);
@@ -93,19 +76,13 @@ public static class SettingsPanel
         Label(parent, "해상도", 22f, new Vector2(-260f, -100f), new Color(0.75f, 0.75f, 0.8f), font, TextAlignmentOptions.Left);
 
         float x = -40f;
+        int resolutionIndex = 0;
         foreach (Vector2Int res in Resolutions)
         {
-            Vector2Int captured = res;
             TMP_Text unused;
             Button button = MakeButton(parent, res.x + "x" + res.y, new Vector2(x, -100f), new Vector2(170f, 44f), font, out unused);
+            view.resolutions[resolutionIndex++] = button;
 
-            button.onClick.AddListener(() =>
-            {
-                Screen.SetResolution(captured.x, captured.y, Screen.fullScreen);
-                PlayerPrefs.SetInt(WidthKey, captured.x);
-                PlayerPrefs.SetInt(HeightKey, captured.y);
-                PlayerPrefs.Save();
-            });
 
             x += 180f;
         }
