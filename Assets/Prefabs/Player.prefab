@@ -267,7 +267,7 @@ MonoBehaviour:
   attackBoxDuration: 0.15
   enemyLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   maxChargeTime: 1.5
   minDashDistance: 1
   maxDashDistance: 7

@@ -157,6 +157,7 @@ public static class CaveSceneBuilder
         var pickupObject = new SerializedObject(pickup);
         pickupObject.FindProperty("item").objectReferenceValue = sword;
         pickupObject.FindProperty("quantity").intValue = 1;
+        pickupObject.FindProperty("flagOnPickup").stringValue = GameFlow.TutorialClearedFlag;
         pickupObject.ApplyModifiedPropertiesWithoutUndo();
 
         // 출구 — 밟으면 마을로 넘어간다
@@ -173,6 +174,8 @@ public static class CaveSceneBuilder
         var portalObject = new SerializedObject(portal);
         portalObject.FindProperty("targetScene").stringValue = "Main";
         portalObject.FindProperty("targetSpawn").stringValue = MainSpawnId;
+        portalObject.FindProperty("requiredFlag").stringValue = GameFlow.TutorialClearedFlag;
+        portalObject.FindProperty("lockedMessage").stringValue = "검을 먼저 챙기자.";
         portalObject.ApplyModifiedPropertiesWithoutUndo();
 
         EditorSceneManager.MarkSceneDirty(scene);

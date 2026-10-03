@@ -11,6 +11,9 @@ public abstract class MonsterBase : MonoBehaviour, IDamageable
     public MonsterData Data => monsterData;
     public bool IsDead { get; private set; }
 
+    /// <summary>쓰러졌을 때 한 번 불린다. 보스 처치 진행 표시 같은 데 쓴다.</summary>
+    public event System.Action<MonsterBase> Died;
+
     private float currentHP;
     private float lastAttackTime = -999f;
     private Vector2 moveDirection;
@@ -129,6 +132,8 @@ public abstract class MonsterBase : MonoBehaviour, IDamageable
         // 퀘스트 진행 보고 (Kill 목표의 targetId 는 MonsterData 의 monsterName)
         if (monsterData != null)
             QuestManager.Instance?.ReportKill(monsterData.MonsterName);
+
+        Died?.Invoke(this);
 
         spawnPoint?.Clear(this);
         Destroy(gameObject);

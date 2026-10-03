@@ -4798,6 +4798,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemPickup
   item: {fileID: 11400000, guid: e11634d5890bc5f4488a4c9204447139, type: 2}
   quantity: 1
+  flagOnPickup: tutorial.cleared
 --- !u!61 &372880877
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -17457,6 +17458,7 @@ MonoBehaviour:
   target: {fileID: 0}
   smoothSpeed: 5
   offset: {x: 0, y: 0, z: -10}
+  snapDistance: 30
 --- !u!81 &1633774513
 AudioListener:
   m_ObjectHideFlags: 0
@@ -20773,8 +20775,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ScenePortal
   targetScene: Main
   targetSpawn: cave_exit
-  requiredFlag: 
-  lockedMessage: "\uC544\uC9C1 \uAC08 \uC218 \uC5C6\uB2E4."
+  requiredFlag: tutorial.cleared
+  lockedMessage: "\uAC80\uC744 \uBA3C\uC800 \uCC59\uAE30\uC790."
 --- !u!61 &2004480471
 BoxCollider2D:
   m_ObjectHideFlags: 0
