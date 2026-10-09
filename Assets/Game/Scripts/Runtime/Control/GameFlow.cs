@@ -19,6 +19,12 @@ public class GameFlow : MonoBehaviour
     /// <summary>입구를 따로 지정하지 않았을 때 찾는 이름.</summary>
     public const string DefaultSpawn = "default";
 
+    /// <summary>튜토리얼(동굴) 씬 이름.</summary>
+    public const string TutorialScene = "Cave";
+
+    /// <summary>튜토리얼을 마치면 세우는 진행 표시. 동굴 출구가 이걸 보고 열린다.</summary>
+    public const string TutorialClearedFlag = "tutorial.cleared";
+
     private static GameFlow instance;
 
     /// <summary>없으면 만들어서 돌려준다.</summary>
@@ -93,6 +99,9 @@ public class GameFlow : MonoBehaviour
 
         instance = this;
         DontDestroyOnLoad(gameObject);
+        // 씬을 직접 실행해도 기존 튜토리얼·보스 진행 표시를 보존한다.
+        var saved = SaveSystem.LoadPlayer();
+        if (saved != null) RestoreFlags(saved.flags);
         BindSceneView();
 
         SceneManager.sceneLoaded += HandleSceneLoaded;
@@ -209,11 +218,21 @@ public class GameFlow : MonoBehaviour
         if (string.IsNullOrEmpty(destination)) destination = "Main";
         if (destination == "Test") destination = "Main";
 
+        Vector2 position = data.hasProgress
+            ? new Vector2(data.posX, data.posY)
+            : new Vector2(data.checkpointPosition.x, data.checkpointPosition.y);
         RestoreFlags(data.flags);
+
+        // 튜토리얼을 마친 뒤로는 동굴로 돌아가지 않는다. 출구 직전에 저장됐어도 마을에서 이어간다.
+        if (destination == TutorialScene && HasFlag(TutorialClearedFlag))
+        {
+            pendingSpawn = DefaultSpawn;
+            StartCoroutine(LoadRoutine("Main", null, saveOnArrival: true));
+            return true;
+        }
 
         // 저장된 좌표로 직접 놓는다 (입구가 아니라 죽기 직전 그 자리)
         pendingSpawn = null;
-        Vector2 position = data.hasProgress ? new Vector2(data.posX, data.posY) : (Vector2)data.checkpointPosition;
         StartCoroutine(LoadRoutine(destination, position, saveOnArrival: false));
         return true;
     }
@@ -243,6 +262,36 @@ public class GameFlow : MonoBehaviour
 
         pendingSpawn = spawnId;
         StartCoroutine(LoadRoutine(sceneName, null, saveOnArrival));
+    }
+
+    /// <summary>
+    /// 같은 씬 안의 다른 입구로 순간이동한다. 마을 ↔ 사냥터·보스 구역 이동에 쓴다.
+    /// 씬을 다시 읽지 않으므로 저장하지 않는다 (자동 저장이나 다음 씬 전환이 처리한다).
+    /// </summary>
+    public void TeleportTo(string spawnId)
+    {
+        if (IsLoading || string.IsNullOrEmpty(spawnId))
+            return;
+
+        StartCoroutine(TeleportRoutine(spawnId));
+    }
+
+    private IEnumerator TeleportRoutine(string spawnId)
+    {
+        IsLoading = true;
+
+        yield return Fade(1f);
+
+        pendingSpawn = spawnId;
+        PlacePlayer(null);
+
+        // CameraFollow 는 Lerp 로 따라가므로 그대로 두면 맵을 가로질러 날아간다
+        var follow = Camera.main != null ? Camera.main.GetComponent<CameraFollow>() : null;
+        if (follow != null)
+            follow.SnapToTarget();
+
+        yield return Fade(0f);
+        IsLoading = false;
     }
 
     private IEnumerator LoadRoutine(string sceneName, Vector2? exactPosition, bool saveOnArrival)

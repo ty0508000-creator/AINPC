@@ -16,7 +16,7 @@ Unity 6000.3.10f1 2D 게임. LLM 으로 움직이는 NPC 가 주제.
 
 - 주석과 `<summary>` 문서 주석은 한국어.
 - 줄바꿈은 CRLF (`core.autocrlf=true`). 스크립트로 파일을 고칠 때 LF 로 납작해지지 않게 주의.
-- `Assets/MapGen/Editor/` 는 에디터 전용 어셈블리다. 런타임 코드(`Assets/Script/`)에서
+- `Assets/MapGen/Editor/` 는 에디터 전용 어셈블리다. 런타임 코드(`Assets/Game/Scripts/Runtime/`)에서
   참조할 수 없고, 반대 방향은 가능하다.
 
 ## 스프라이트 정렬
@@ -36,9 +36,10 @@ Unity 6000.3.10f1 2D 게임. LLM 으로 움직이는 NPC 가 주제.
 
 ## 검증
 
-- `Library/` 폴더가 없어서 TMPro / InputSystem / LLMUnity 패키지 DLL 을 구할 수 없다.
-  즉 오프라인 전체 컴파일은 불가능하고, `Assets/Script` 중 해당 패키지를 쓰지 않는
-  파일과 `Assets/MapGen` 만 Unity 의 Roslyn 으로 따로 컴파일해볼 수 있다.
-- Unity 가 떠 있으면 unity-mcp 의 `Unity_GetConsoleLogs` 로 컴파일 결과를,
-  `Unity_RunCommand` 로 실제 동작을 확인하는 편이 훨씬 확실하다.
-  단 맵 생성기를 끝까지 돌리면 **열려 있는 씬이 닫히므로** 먼저 물어볼 것.
+- Unity 가 떠 있으면 UnityMCP 의 `read_console` 로 컴파일 결과를, `execute_code` 로
+  실제 동작을 확인한다. 다른 Unity 프로젝트가 같이 떠 있으면 먼저
+  `set_active_instance` 로 `AINPC@…` 를 골라야 한다.
+- 씬을 새로 만들거나 여는 메뉴(맵 생성기, `Tools > AINPC > …` 씬 빌더)를 돌리면
+  **열려 있는 씬이 닫히므로** 저장 안 된 변경이 없는지 먼저 확인하거나 물어볼 것.
+- 플레이 모드로 시험할 때 보스 처치·자동 저장이 실제 세이브를 덮어쓴다. 플레이 진입 후
+  `SaveSystem.VerificationDirectory` 를 임시 폴더로 바꿔 두면 세이브가 그쪽으로 간다.

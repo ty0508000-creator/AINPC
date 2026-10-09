@@ -17,7 +17,7 @@ public class ScenePortal : MonoBehaviour
     [Tooltip("이 진행 표시가 있어야 열린다. 비우면 항상 열려 있다")]
     [SerializeField] private string requiredFlag;
 
-    [Tooltip("잠겨 있을 때 콘솔에 남길 말")]
+    [Tooltip("잠겨 있을 때 띄울 말")]
     [SerializeField] private string lockedMessage = "아직 갈 수 없다.";
 
     void Reset()
@@ -47,6 +47,7 @@ public class ScenePortal : MonoBehaviour
         if (!string.IsNullOrEmpty(requiredFlag) && !GameFlow.Instance.HasFlag(requiredFlag))
         {
             Debug.Log("[ScenePortal] " + lockedMessage + " (필요한 진행: " + requiredFlag + ")");
+            GameFlow.Instance.ShowNotice(lockedMessage);
             return;
         }
 

@@ -51,8 +51,8 @@ public static class HuntingBalanceVerification
         var go=UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player.prefab"));
         go.GetComponent<Player_Controller>().enabled=false;var input=go.GetComponent<UnityEngine.InputSystem.PlayerInput>();if(input!=null)input.enabled=false;
         go.transform.position=new Vector3(-3,0,0);body=go.GetComponent<Rigidbody2D>();body.gravityScale=0;body.linearVelocity=Vector2.zero;
-        attack=go.AddComponent<Player_Attack>();EditorJsonUtility.FromJsonOverwrite(attackJson,attack);
-        player=go.AddComponent<PlayerStats>();skills=go.GetComponent<RpgSkillController>();go.GetComponent<RpgUI>().enabled=false;
+        attack=(go.GetComponent<Player_Attack>() ?? go.AddComponent<Player_Attack>());EditorJsonUtility.FromJsonOverwrite(attackJson,attack);
+        player=(go.GetComponent<PlayerStats>() ?? go.AddComponent<PlayerStats>());skills=go.GetComponent<RpgSkillController>();go.GetComponent<RpgUI>().enabled=false;
         if(profile!=1){player.AddEXP(RouteExperience(region));}
         if(profile==2){for(int i=0;i<3;i++)Check(player.UpgradeAttribute(RpgAttribute.Strength),"starter strength investment");for(int i=0;i<2;i++)Check(player.UpgradeAttribute(RpgAttribute.Vitality),"starter vitality investment");for(int i=1;i<player.Level;i++){player.UpgradeAttribute(RpgAttribute.Strength);player.UpgradeAttribute(RpgAttribute.Vitality);player.UpgradeAttribute(RpgAttribute.Defense);}foreach(int id in RpgSkillCatalog.Hotbar)Check(player.LearnSkill(id),"starter active learned");if(player.Level>=3)Check(player.LearnSkill(1),"level three passive unlocked");if(player.Level>=4)Check(player.LearnSkill(0),"level four slash upgrade");}
         data=AssetDatabase.LoadAssetAtPath<MonsterData>("Assets/Game/Data/HubStory/Enemy"+region+".asset");

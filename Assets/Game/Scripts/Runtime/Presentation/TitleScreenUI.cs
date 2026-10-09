@@ -14,7 +14,7 @@ public class TitleScreenUI : MonoBehaviour
     [SerializeField] private string subtitle = "몸 하나, 인격 둘";
 
     [Tooltip("새 게임을 시작할 씬 이름")]
-    [SerializeField] private string firstScene = "Main";
+    [SerializeField] private string firstScene = GameFlow.TutorialScene;
 
     [Tooltip("한글 폰트. 비워두면 기본 폰트로 나온다")]
     [SerializeField] private TMP_FontAsset koreanFont;

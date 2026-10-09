@@ -60781,9 +60781,6 @@ PrefabInstance:
       addedObject: {fileID: 1433467824}
     - targetCorrespondingSourceObject: {fileID: 4495597192133615743, guid: 23f36dcdd078a3142a0fe24f898105e6, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1433467831}
-    - targetCorrespondingSourceObject: {fileID: 4495597192133615743, guid: 23f36dcdd078a3142a0fe24f898105e6, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 1433467830}
     - targetCorrespondingSourceObject: {fileID: 4495597192133615743, guid: 23f36dcdd078a3142a0fe24f898105e6, type: 3}
       insertIndex: -1
@@ -60791,9 +60788,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4495597192133615743, guid: 23f36dcdd078a3142a0fe24f898105e6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1433467828}
-    - targetCorrespondingSourceObject: {fileID: 4495597192133615743, guid: 23f36dcdd078a3142a0fe24f898105e6, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1433467827}
     - targetCorrespondingSourceObject: {fileID: 4495597192133615743, guid: 23f36dcdd078a3142a0fe24f898105e6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1433467826}
@@ -60960,11 +60954,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5aca0e2681400834e95a6344ebde63a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RpgSkillController
---- !u!114 &1433467827
+--- !u!114 &1433467827 stripped
 MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 9117236559320735708, guid: 23f36dcdd078a3142a0fe24f898105e6, type: 3}
+  m_PrefabInstance: {fileID: 1433467821}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1433467822}
   m_Enabled: 1
@@ -60972,14 +60965,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 108f53ac23231a143ad7cb0f3e3418fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
-  Level: 1
-  MaxHP: 100
-  MaxMana: 50
-  MaxEXP: 100
-  hpIncreasePerLevel: 20
-  manaIncreasePerLevel: 10
-  expRequirementMultiplier: 1.5
-  healToFullOnLevelUp: 1
 --- !u!114 &1433467828
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -61046,11 +61031,10 @@ MonoBehaviour:
     m_Bits: 64
   combatRadius: 12
   combatCheckInterval: 0.5
---- !u!114 &1433467831
+--- !u!114 &1433467831 stripped
 MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 1538960458615949171, guid: 23f36dcdd078a3142a0fe24f898105e6, type: 3}
+  m_PrefabInstance: {fileID: 1433467821}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1433467822}
   m_Enabled: 1
@@ -61058,25 +61042,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c66cf11fb42b7843a973b95864b8d8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player_Attack
-  attackDamage: 10
-  attackRange: 1
-  attackWidth: 1
-  attackCooldown: 0.8
-  attackBoxDuration: 0.15
-  enemyLayer:
-    serializedVersion: 2
-    m_Bits: 64
-  maxChargeTime: 1.5
-  minDashDistance: 1
-  maxDashDistance: 7
-  minDashDamage: 5
-  maxDashDamage: 25
-  dashSpeed: 20
-  dashCooldown: 5
-  swingSfx: {fileID: 0}
-  hitSfx: {fileID: 0}
-  dashSfx: {fileID: 0}
-  pitchVariation: 0.1
 --- !u!1 &1435629099
 GameObject:
   m_ObjectHideFlags: 0

@@ -39,8 +39,8 @@ public static class UltimatePlayVerification
             player.AddComponent<SpriteRenderer>();
             player.AddComponent<Animator>().runtimeAnimatorController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>("Assets/Art/Characters/Samurai/ElderSamurai.controller");
             player.AddComponent<Rigidbody2D>().gravityScale = 0;
-            var attack = player.AddComponent<Player_Attack>(); Set(attack, "enemyLayer", (LayerMask)(1 << 8));
-            stats = player.AddComponent<PlayerStats>(); skills = player.GetComponent<RpgSkillController>();
+            var attack = (player.GetComponent<Player_Attack>() ?? player.AddComponent<Player_Attack>()); Set(attack, "enemyLayer", (LayerMask)(1 << 8));
+            stats = (player.GetComponent<PlayerStats>() ?? player.AddComponent<PlayerStats>()); skills = player.GetComponent<RpgSkillController>();
             player.GetComponent<RpgUI>().BakeSceneUI();
             checks = stage = 0; due = Time.time + 0.75f; EditorApplication.update += Tick;
         }

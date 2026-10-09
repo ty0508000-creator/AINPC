@@ -6,6 +6,7 @@ public class PlayerStats : MonoBehaviour, IDamageable
     public enum LifeState { Alive, Dead, Respawning }
     public LifeState State { get; private set; } = LifeState.Alive;
     public bool IsAlive => State == LifeState.Alive && HP > 0f;
+    public bool IsDead => State == LifeState.Dead;
     public Vector3 CheckpointPosition { get; private set; }
     public string CheckpointScene { get; private set; }
     public event Action OnDied;

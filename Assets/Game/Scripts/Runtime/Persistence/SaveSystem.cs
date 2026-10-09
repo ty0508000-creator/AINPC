@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
@@ -24,9 +25,32 @@ public static class SaveSystem
     }
     static string SavePath => Path.Combine(DirectoryPath, "player_save.json");
 
+    public static bool HasSave
+    {
+        get
+        {
+            if (!TryLoadPlayer(out var data) || data == null)
+                return false;
+
+            return (data.hasProgress && !string.IsNullOrEmpty(data.sceneName)) ||
+                   (data.hasCheckpoint && !string.IsNullOrEmpty(data.checkpointScene));
+        }
+    }
+
     public static void SavePlayer(PlayerStats stats) => SaveGame(stats, QuestManager.Instance);
 
     public static bool SaveGame(PlayerStats stats, QuestManager manager = null)
+        => SaveGame(stats, manager, null, Vector3.zero, null);
+
+    public static bool SaveProgress(PlayerStats stats, string sceneName, Vector3 position, IEnumerable<string> flags)
+    {
+        if (string.IsNullOrEmpty(sceneName) || !Finite(position.x) || !Finite(position.y))
+            return false;
+
+        return SaveGame(stats, QuestManager.Instance, sceneName, position, flags);
+    }
+
+    static bool SaveGame(PlayerStats stats, QuestManager manager, string sceneName, Vector3 position, IEnumerable<string> flags)
     {
         try
         {
@@ -38,7 +62,15 @@ public static class SaveSystem
             data.quests = manager != null && manager.IsSaveReady
                 ? QuestSaveSystem.Capture(manager, previous?.quests ?? QuestSaveSystem.ReadLegacy())
                 : previous?.quests ?? QuestSaveSystem.ReadLegacy();
-            data.snapshotVersion = 2;
+            if (!string.IsNullOrEmpty(sceneName))
+            {
+                data.hasProgress = true;
+                data.sceneName = sceneName;
+                data.posX = position.x;
+                data.posY = position.y;
+                data.flags = CopyFlags(flags);
+            }
+            data.snapshotVersion = 3;
             data.revision = checked((previous?.revision ?? 0) + 1);
             Validate(data);
             Directory.CreateDirectory(DirectoryPath);
@@ -102,6 +134,18 @@ public static class SaveSystem
             : Array.Empty<InventorySaveEntry>()
     };
 
+    static List<string> CopyFlags(IEnumerable<string> source)
+    {
+        if (source == null)
+            return new List<string>();
+
+        var copied = new List<string>();
+        foreach (string flag in source)
+            if (!string.IsNullOrEmpty(flag))
+                copied.Add(flag);
+        return copied;
+    }
+
     public static PlayerSaveData LoadPlayer()
     {
         TryLoadPlayer(out var data);
@@ -141,11 +185,11 @@ public static class SaveSystem
 
     static void Validate(PlayerSaveData data)
     {
-        if (data != null && data.snapshotVersion > 2)
+        if (data != null && data.snapshotVersion > 3)
             throw new NotSupportedException("더 최신 버전의 저장입니다. 덮어쓰지 않습니다.");
         if (data == null || data.level < 1 || !Positive(data.maxHP) || !Positive(data.maxMana) ||
             !Positive(data.maxEXP) || !Finite(data.hp) || !Finite(data.mana) || !Finite(data.exp) ||
-            data.snapshotVersion < 0 || data.snapshotVersion > 2 || data.revision < 0)
+            data.snapshotVersion < 0 || data.snapshotVersion > 3 || data.revision < 0)
             throw new InvalidDataException("유효하지 않거나 지원하지 않는 저장 데이터");
         if (data.hasCheckpoint && (!Finite(data.checkpointPosition.x) || !Finite(data.checkpointPosition.y) || !Finite(data.checkpointPosition.z)))
             throw new InvalidDataException("체크포인트 좌표 오류");
@@ -154,6 +198,8 @@ public static class SaveSystem
         if (data.snapshotVersion >= 1) QuestSaveSystem.Validate(data.quests);
         StoryChoiceManager.Validate(data.storyChoices);
         if (data.snapshotVersion >= 2) PlayerInventory.Validate(data.inventory);
+        if (data.hasProgress && (!Finite(data.posX) || !Finite(data.posY)))
+            throw new InvalidDataException("씬 진행 저장값 오류");
     }
     static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
     static bool Positive(float value) => Finite(value) && value > 0f;
