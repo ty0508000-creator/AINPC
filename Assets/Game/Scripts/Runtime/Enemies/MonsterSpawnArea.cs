@@ -7,6 +7,7 @@ public class MonsterSpawnArea : MonoBehaviour
     [SerializeField] private MonsterBase monsterPrefab;
     [SerializeField] private MonsterData monsterData;
     [SerializeField, Min(0.1f)] private float spawnInterval = 10f;
+    [SerializeField, Min(0f)] private float minimumRespawnDelay;
     [SerializeField] private bool spawnOnStart = true;
     [SerializeField] private MonsterSpawnPoint[] spawnPoints;
     [Header("Proximity Spawn")]
@@ -66,6 +67,8 @@ public class MonsterSpawnArea : MonoBehaviour
         foreach (MonsterSpawnPoint point in spawnPoints)
         {
             if (point == null || !point.IsEmpty || !IsWithinSpawnRange(point))
+                continue;
+            if (Time.time - point.LastClearedTime < minimumRespawnDelay)
                 continue;
 
             if (onlyUnactivated && activatedPoints.Contains(point))

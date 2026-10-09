@@ -9,7 +9,7 @@ public static class UiBootstrap
     /// <summary>버튼을 누르려면 EventSystem 이 있어야 한다. 씬에 없으면 만들어 붙인다.</summary>
     public static void EnsureEventSystem()
     {
-        if (EventSystem.current != null)
+        if (EventSystem.current != null || Object.FindFirstObjectByType<EventSystem>(FindObjectsInactive.Include) != null)
             return;
 
         var go = new GameObject("EventSystem");

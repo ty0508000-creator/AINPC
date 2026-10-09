@@ -14,7 +14,23 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
+  - enabled: 1
+    path: Assets/Scenes/HuntingGround1.unity
+    guid: f63498bbd8fc7754188ce010c6834245
+  - enabled: 1
+    path: Assets/Scenes/HuntingGround2.unity
+    guid: 1536d7e0868ddb1459d5f4d10426c128
+  - enabled: 1
+    path: Assets/Scenes/HuntingGround3.unity
+    guid: 9893b815363d48545a89551b0475cde8
+  - enabled: 1
+    path: Assets/Scenes/HuntingGround4.unity
+    guid: 06c7285d9c4bbfb419e6c4a273b27812
+  - enabled: 1
+    path: Assets/Scenes/AshKingArena.unity
+    guid: bb8770d34b689be4caa70d721c8ee905
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0
+

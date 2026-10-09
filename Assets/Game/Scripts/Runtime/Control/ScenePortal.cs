@@ -9,6 +9,7 @@ public class ScenePortal : MonoBehaviour
 {
     [Tooltip("넘어갈 씬 이름. Build Settings 에 들어 있어야 한다")]
     [SerializeField] private string targetScene;
+    [SerializeField] private string requiredQuestId;
 
     [Tooltip("그 씬에서 내릴 입구 이름")]
     [SerializeField] private string targetSpawn = GameFlow.DefaultSpawn;
@@ -37,6 +38,11 @@ public class ScenePortal : MonoBehaviour
 
         if (GameFlow.Instance.IsLoading)
             return;
+
+        var player = other.GetComponentInParent<PlayerStats>();
+        if (!player.IsAlive || DialogueManager.IsDialogueOpen || RpgUI.IsOpen || PauseMenuUI.IsOpen) return;
+        if (!string.IsNullOrEmpty(requiredQuestId) && (QuestManager.Instance == null || !QuestManager.Instance.IsCompleted(requiredQuestId)))
+        { GameFlow.Instance.ShowNotice(lockedMessage); return; }
 
         if (!string.IsNullOrEmpty(requiredFlag) && !GameFlow.Instance.HasFlag(requiredFlag))
         {

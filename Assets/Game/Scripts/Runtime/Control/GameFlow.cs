@@ -195,7 +195,7 @@ public class GameFlow : MonoBehaviour
     {
         SaveSystem.DeleteSave();
         flags.Clear();
-        GoToScene(firstScene, DefaultSpawn, saveOnArrival: true);
+        GoToSceneCore(firstScene, DefaultSpawn, saveOnArrival: true, saveBeforeDeparture: false);
     }
 
     /// <summary>세이브에 적힌 씬과 위치로 돌아간다. 세이브가 없으면 false.</summary>
@@ -225,9 +225,21 @@ public class GameFlow : MonoBehaviour
 
     /// <summary>다른 씬으로 간다. spawnId 는 그 씬에 있는 SpawnPoint 이름.</summary>
     public void GoToScene(string sceneName, string spawnId = DefaultSpawn, bool saveOnArrival = true)
+        => GoToSceneCore(sceneName, spawnId, saveOnArrival, saveBeforeDeparture: saveOnArrival);
+
+    private void GoToSceneCore(string sceneName, string spawnId, bool saveOnArrival, bool saveBeforeDeparture)
     {
         if (IsLoading || string.IsNullOrEmpty(sceneName))
             return;
+
+        if (!Application.CanStreamedLevelBeLoaded(sceneName))
+        { ShowNotice("이 길은 아직 열리지 않았다."); return; }
+        if (saveBeforeDeparture)
+        {
+            var player = FindFirstObjectByType<PlayerStats>();
+            if (player != null && !SaveSystem.SaveGame(player, QuestManager.Instance))
+            { ShowNotice("진행을 저장하지 못해 이동을 멈췄습니다."); return; }
+        }
 
         pendingSpawn = spawnId;
         StartCoroutine(LoadRoutine(sceneName, null, saveOnArrival));

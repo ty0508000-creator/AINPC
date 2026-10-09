@@ -221,6 +221,19 @@ public class Player_Attack : MonoBehaviour
         PlayClip(dashSfx);
 
         float dashDistance = Mathf.Lerp(minDashDistance, maxDashDistance, ratio);
+        // 전투터의 벽이나 닫힌 문 앞에서 대시를 멈춘다.
+        Collider2D shape = null;
+        foreach (var candidate in GetComponents<Collider2D>())
+            if (candidate.enabled && (shape == null || !candidate.isTrigger)) shape = candidate;
+        Vector2 castCenter = shape != null ? (Vector2)shape.bounds.center : rb.position;
+        Vector2 castSize = shape != null ? (Vector2)shape.bounds.size : Vector2.one * attackWidth;
+        var obstruction = Physics2D.BoxCastAll(castCenter, castSize, 0, dir, dashDistance + .04f);
+        for (int i = 0; i < obstruction.Length; i++)
+        {
+            var collider = obstruction[i].collider;
+            if (collider == null || collider.isTrigger || collider.attachedRigidbody == rb || collider.GetComponentInParent<MonsterBase>() != null) continue;
+            dashDistance = Mathf.Min(dashDistance, Mathf.Max(0, obstruction[i].distance - .04f));
+        }
         int damage = Mathf.RoundToInt(Mathf.Lerp(minDashDamage, maxDashDamage, ratio)) + (GetComponent<PlayerStats>()?.AttackBonus ?? 0);
 
         RaycastHit2D[] hits = Physics2D.BoxCastAll(
@@ -241,13 +254,14 @@ public class Player_Attack : MonoBehaviour
         if (hitAny) PlayClip(hitSfx);
 
         Vector2 destination = rb.position + dir * dashDistance;
-        while (Vector2.Distance(rb.position, destination) > 0.05f)
+        float finishBy = Time.time + dashDistance / Mathf.Max(1f,dashSpeed) + .35f;
+        while (Vector2.Distance(rb.position, destination) > 0.05f && Time.time < finishBy)
         {
             rb.MovePosition(Vector2.MoveTowards(rb.position, destination, dashSpeed * Time.fixedDeltaTime));
             yield return new WaitForFixedUpdate();
         }
 
-        rb.MovePosition(destination);
+        if (Vector2.Distance(rb.position, destination) <= .05f) rb.MovePosition(destination);
         rb.linearVelocity = Vector2.zero;
         IsInvincible = false;
     }

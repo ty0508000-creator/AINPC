@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3db1c08f823ba104da20d85a88ac6e67, type: 3}
+  m_Name: hub_hunt_3
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: hub_hunt_3
+  title: "\uC774\uBC88\uC5D0\uB294 \uB193\uC9C0 \uC54A\uB294\uB2E4"
+  summary: "\xB7 \uB0A8\uC11C\uCABD \uBB34\uB108\uC9C4 \uD53C\uB09C\uCC98\uC5D0 \uB3C4\uCC29\uD558\uAE30\n\xB7
+    \uD53C\uB09C\uCC98\uC758 \uC694\uBB3C \uCC98\uCE58\n\xB7 \uC18C\uC724\uACFC \uB300\uD654\uD558\uACE0
+    \uAD6C\uD558\uAE30\n\xB7 \uD558\uC5F0\uC5D0\uAC8C \uC18C\uC724\uC758 \uBB34\uC0AC\uD568
+    \uC54C\uB9AC\uAE30"
+  isleIndex: 1
+  isMainQuest: 1
+  isInnerVoiceDemand: 0
+  prerequisiteQuestIds:
+  - hub_hunt_2
+  autoStart: 0
+  objectives:
+  - description: "\uB0A8\uC11C\uCABD \uBB34\uB108\uC9C4 \uD53C\uB09C\uCC98\uC5D0
+      \uB3C4\uCC29\uD558\uAE30"
+    type: 3
+    targetId: hub_area_3
+    requiredCount: 1
+    hidden: 0
+  - description: "\uD53C\uB09C\uCC98\uC758 \uC694\uBB3C \uCC98\uCE58"
+    type: 0
+    targetId: hub_enemy_3
+    requiredCount: 3
+    hidden: 0
+  - description: "\uC18C\uC724\uACFC \uB300\uD654\uD558\uACE0 \uAD6C\uD558\uAE30"
+    type: 4
+    targetId: hub_child_rescued
+    requiredCount: 1
+    hidden: 0
+  - description: "\uD558\uC5F0\uC5D0\uAC8C \uC18C\uC724\uC758 \uBB34\uC0AC\uD568
+      \uC54C\uB9AC\uAE30"
+    type: 1
+    targetId: hub_hayeon
+    requiredCount: 1
+    hidden: 0
+  onComplete:
+    moodDelta: 0
+    expReward: 140
+    memoryLine: "\uC18C\uC724\uC740 \uBB34\uC0AC\uD558\uB2E4. \uC544\uC774\uAC00
+      \uBCF8 \uBD88\uC740 \uC790\uC5F0\uC758 \uBD88\uC774 \uC544\uB2C8\uC5C8\uB2E4.
+      \uB204\uAD70\uAC00 \uB9C8\uC744\uC758 \uAE30\uC5B5\uAE4C\uC9C0 \uD0DC\uC6B0\uACE0
+      \uC788\uC5C8\uB2E4."
+    triggerInnerVoice: 0
+    innerVoiceContext: 
+    unlockQuestIds: []
+  canFail: 0
+  timeLimit: 0
+  onFail:
+    moodDelta: 0
+    expReward: 0
+    memoryLine: 
+    triggerInnerVoice: 0
+    innerVoiceContext: 
+    unlockQuestIds: []
+  startLine: "\uB0A8\uC11C\uCABD \uD53C\uB09C\uCC98\uC5D0 \uC18C\uC724\uC774\uAC00
+    \uC228\uC5B4 \uC788\uC5B4\uC694. \uC694\uBB3C\uB4E4\uC744 \uBB3C\uB9AC\uCE58\uACE0
+    \uAF2D \uC544\uC774\uB97C \uAD6C\uD574 \uC8FC\uC138\uC694."
+  completeLine: "\uC18C\uC724\uC740 \uBB34\uC0AC\uD558\uB2E4. \uC544\uC774\uAC00
+    \uBCF8 \uBD88\uC740 \uC790\uC5F0\uC758 \uBD88\uC774 \uC544\uB2C8\uC5C8\uB2E4.
+    \uB204\uAD70\uAC00 \uB9C8\uC744\uC758 \uAE30\uC5B5\uAE4C\uC9C0 \uD0DC\uC6B0\uACE0
+    \uC788\uC5C8\uB2E4."
+  failLine: 

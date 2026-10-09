@@ -31,8 +31,10 @@ public static class RpgSkillCatalog
         new RpgSkillDefinition("불굴", "방어력 +6 / 단계", "호신", 5, 4, 2),
         new RpgSkillDefinition("운기조식", "최대 체력의 20% 회복. 단계마다 +8%.", "내공", 1, -1, 3, true, 20, 10),
         new RpgSkillDefinition("기맥 순환", "초당 마나 회복 +0.6 / 단계", "내공", 3, 6, 3),
-        new RpgSkillDefinition("삼화취정", "초당 마나 회복 +1.2 / 단계. 운기조식 회복량 증가.", "내공", 5, 7, 2)
+        new RpgSkillDefinition("삼화취정", "초당 마나 회복 +1.2 / 단계. 운기조식 회복량 증가.", "내공", 5, 7, 2),
+        new RpgSkillDefinition("이기어검", "검 5자루를 8초간 띄워 주변 적을 고속 연격. 검마다 공격력의 35% 피해.", "궁극기", 1, -1, 1, true, 40, 45)
     };
     public static readonly int[] Hotbar = { 0, 3, 6 };
+    public const int Ultimate = 9;
     public static int Rank(int[] ranks, int id) => ranks != null && id >= 0 && id < ranks.Length ? ranks[id] : 0;
 }

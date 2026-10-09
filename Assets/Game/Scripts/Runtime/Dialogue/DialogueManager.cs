@@ -12,7 +12,8 @@ using System.Text.RegularExpressions;
 
 public class DialogueManager : MonoBehaviour
 {
-    public static bool IsDialogueOpen { get; private set; }
+    static bool llmDialogueOpen;
+    public static bool IsDialogueOpen { get => llmDialogueOpen || StoryConversationUI.IsOpen; private set => llmDialogueOpen = value; }
 
     [Header("UI References")]
     public GameObject dialoguePanel;
@@ -102,6 +103,7 @@ public class DialogueManager : MonoBehaviour
 
     public void OpenDialogue(string name, string personality, NPCInteraction npc = null)
     {
+        if (StoryConversationUI.IsOpen) return;
         var player = FindFirstObjectByType<PlayerStats>();
         if (player != null && !player.IsAlive) return;
         EnsureUI();

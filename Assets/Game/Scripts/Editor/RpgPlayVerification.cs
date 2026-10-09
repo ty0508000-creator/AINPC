@@ -40,6 +40,9 @@ public static class RpgPlayVerification
         if (state == PlayModeStateChange.EnteredPlayMode)
         {
             var player = new GameObject("Combat verification player");
+            player.AddComponent<SpriteRenderer>();
+            var animation = player.AddComponent<Animator>();
+            animation.runtimeAnimatorController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>("Assets/Art/Characters/Samurai/ElderSamurai.controller");
             var rb = player.AddComponent<Rigidbody2D>(); rb.gravityScale = 0;
             player.AddComponent<MoodSystem>();
             player.AddComponent<ControlManager>();
@@ -49,7 +52,7 @@ public static class RpgPlayVerification
             stats = player.AddComponent<PlayerStats>(); skills = player.GetComponent<RpgSkillController>();
             Set(player.GetComponent<RpgUI>(), "koreanFont", Resources.Load<TMPro.TMP_FontAsset>("Fonts/NeoDunggeunmoPro SDF"));
             player.GetComponent<RpgUI>().BakeSceneUI();
-            due = EditorApplication.timeSinceStartup + 0.75;
+            due = Time.time + 0.75;
             running = true; EditorApplication.update += Tick;
         }
         if (state == PlayModeStateChange.EnteredEditMode)
@@ -59,9 +62,18 @@ public static class RpgPlayVerification
         }
     }
 
+    static void CheckMotion(string state)
+    {
+        var animator = stats.GetComponent<Animator>();
+        animator.Update(0.02f);
+        animator.Update(0.02f);
+        Check(animator.GetCurrentAnimatorStateInfo(0).IsName(state), state + " animation plays on successful cast");
+        Check(stats.transform.Find("Skill ripple") != null, state + " visual effect is owned by player");
+    }
+
     static void Tick()
     {
-        if (!running || EditorApplication.timeSinceStartup < due) return;
+        if (!running || Time.time < due) return;
         running = false; EditorApplication.update -= Tick;
         try
         {
@@ -89,12 +101,15 @@ public static class RpgPlayVerification
             stats.TakeDamage(40);
             float hp = stats.HP, mana = stats.Mana;
             Check(skills.TryCast(6), "healing skill casts");
+            CheckMotion("RecoverCast");
             Check(Mathf.Approximately(stats.HP, hp + 20), "healing changes real HP");
             Check(Mathf.Approximately(stats.Mana, mana - 20), "healing mana consumption");
             float remainingMana = stats.Mana;
             Check(!skills.TryCast(6) && stats.Mana == remainingMana, "cooldown rejects repeated cast without mana loss");
+            Check(stats.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).IsName("RecoverCast"), "rejected cast preserves current motion");
             Check(skills.Remaining(6) > 9, "cooldown timer starts");
             Check(skills.TryCast(3), "guard casts");
+            CheckMotion("GuardCast");
             hp = stats.HP; stats.TakeDamage(20);
             Check(hp - stats.HP < 20 && hp - stats.HP > 0, "guard mitigates actual damage");
             stats.RestoreMana(100);
@@ -105,6 +120,7 @@ public static class RpgPlayVerification
             var enemy = target.AddComponent<MushroomMonster>(); target.GetComponent<Rigidbody2D>().gravityScale = 0;
             enemy.Initialize(data, null); Physics2D.SyncTransforms();
             Check(skills.TryCast(0), "offensive skill casts");
+            CheckMotion("MoonSlash");
             float currentHP = (float)typeof(MonsterBase).GetField("currentHP", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(enemy);
             Check(Mathf.Approximately(currentHP, 82), "18 damage applied once across multiple colliders");
             remainingMana = stats.Mana;
@@ -141,6 +157,9 @@ public static class RpgPlayVerification
             Check(stats.transform.position == new Vector3(9, 7, 0) && stats.HP == stats.MaxHP && stats.Mana == stats.MaxMana, "retry restores checkpoint and vitals");
             Check(mood.Mood == preservedMood, "retry preserves mood value");
             Check(skills.Remaining(0) == 0 && skills.Remaining(6) == 0 && skills.GuardRemaining == 0, "retry resets cooldowns and guard");
+            Check(stats.GetComponent<SpriteRenderer>().color == Color.white &&
+                System.Array.TrueForAll(stats.GetComponentsInChildren<LineRenderer>(), line => !line.gameObject.activeInHierarchy),
+                "retry clears skill effects and restores sprite tint");
             stats.TakeDamage(100000);
             Check(stats.IsAlive && stats.HP == stats.MaxHP, "respawn protection blocks immediate damage");
             string output = Path.GetFullPath("VerificationResults/RpgPlayVerification/result.txt");

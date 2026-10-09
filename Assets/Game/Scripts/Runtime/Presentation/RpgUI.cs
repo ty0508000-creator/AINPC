@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 /// <summary>씬에 저장된 HUD·수련·부활 UI의 표시와 입력을 관리한다.</summary>
 [DisallowMultipleComponent]
-public class RpgUI : MonoBehaviour
+public partial class RpgUI : MonoBehaviour
 {
     static RpgUI opened;
     public static bool IsOpen => opened != null;
@@ -41,10 +41,10 @@ public class RpgUI : MonoBehaviour
     float toastUntil, nextRefresh;
     Color ink = new Color(0.94f, 0.87f, 0.71f, 1f);
     Color panel = new Color(0.92f, 0.82f, 0.63f, 1f);
-    Color gold = new Color(0.43f, 0.23f, 0.10f);
-    Color jade = new Color(0.13f, 0.36f, 0.27f);
-    Color muted = new Color(0.37f, 0.30f, 0.22f);
-    readonly Color textInk = new Color(0.22f, 0.16f, 0.10f);
+    Color gold = new Color(0.72f, 0.68f, 0.51f);
+    Color jade = InkUiTheme.Jade;
+    Color muted = InkUiTheme.Muted;
+    readonly Color textInk = InkUiTheme.Ivory;
     readonly Color cream = new Color(1f, 0.94f, 0.78f);
 
     void Start()
@@ -73,16 +73,20 @@ public class RpgUI : MonoBehaviour
     {
         if (canvasRoot != null) return;
         ResolveFont(); LoadSkin(); Build();
+        InkUiTheme.Apply(canvasRoot);
+        BuildIllustratedLayout();
         identity.text = "Lv. 01";
         vitals.text = "HP 100/100     MP 50/50";
         moodLabel.text = "정신의 균형  100";
         for (int i = 0; i < 3; i++) hotLabels[i].text = RpgSkillCatalog.All[RpgSkillCatalog.Hotbar[i]].Name;
         for (int i = 0; i < 9; i++) nodeLabels[i].text = RpgSkillCatalog.All[i].Name;
+        BakeKeyboardShortcuts();
     }
 #endif
 
     void BindButtons()
     {
+        BindUltimateButtons();
         shortcutButton.onClick.AddListener(() => Open(false));
         closeButton.onClick.AddListener(Close);
         statsTab.onClick.AddListener(() => ShowPage(false));
@@ -106,8 +110,7 @@ public class RpgUI : MonoBehaviour
         }
         for (int i = 0; i < 3; i++)
         {
-            int slot = i;
-            hotButtons[i].onClick.AddListener(() => { if (skills != null) skills.TryCast(RpgSkillCatalog.Hotbar[slot]); });
+            ConfigureKeyboardSlot(hotButtons[i], RpgSkillCatalog.Hotbar[i]);
         }
     }
 
@@ -128,7 +131,7 @@ public class RpgUI : MonoBehaviour
         var canvas = canvasRoot.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 200;
         var scaler = canvasRoot.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1440, 900); scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
-        if (EventSystem.current == null)
+        if (EventSystem.current == null && UnityEngine.Object.FindFirstObjectByType<EventSystem>(FindObjectsInactive.Include) == null)
         {
             var events = new GameObject("RPG EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             events.transform.SetParent(canvasRoot.transform, false);
@@ -150,8 +153,7 @@ public class RpgUI : MonoBehaviour
         hotRect.pivot = new Vector2(0.5f, 0f); hotRect.anchoredPosition = new Vector2(0f, 22f);
         for (int i = 0; i < 3; i++)
         {
-            int slot = i;
-            var button = MakeButton(hotbar, "", 12 + i * 132, 10, 126, 60, () => { if (skills != null) skills.TryCast(RpgSkillCatalog.Hotbar[slot]); });
+            var button = MakeButton(hotbar, "", 12 + i * 132, 10, 126, 60, null);
             hotButtons[i] = button;
             hotLabels[i] = button.GetComponentInChildren<TMP_Text>(); hotLabels[i].fontSize = 14;
             cooldownFills[i] = Bar(hotbar, 12 + i * 132, 72, 126, 3, gold);
@@ -324,12 +326,14 @@ public class RpgUI : MonoBehaviour
     void ShowPage(int page)
     {
         statsPage.SetActive(page == 0); skillsPage.SetActive(page == 1); inventoryPage.SetActive(page == 2);
-        statsTab.GetComponentInChildren<TMP_Text>().text = page == 0 ? "능력치  C / 선택" : "능력치  C";
-        skillsTab.GetComponentInChildren<TMP_Text>().text = page == 1 ? "무공  K / 선택" : "무공  K";
-        inventoryTab.GetComponentInChildren<TMP_Text>().text = page == 2 ? "소지품  I / 선택" : "소지품  I";
-        statsTab.GetComponent<Image>().color = page == 0 ? new Color(0.80f, 1f, 0.84f) : Color.white;
-        skillsTab.GetComponent<Image>().color = page == 1 ? new Color(0.80f, 1f, 0.84f) : Color.white;
-        inventoryTab.GetComponent<Image>().color = page == 2 ? new Color(0.80f, 1f, 0.84f) : Color.white;
+        statsTab.GetComponentInChildren<TMP_Text>().text = "능력치";
+        skillsTab.GetComponentInChildren<TMP_Text>().text = "무공";
+        inventoryTab.GetComponentInChildren<TMP_Text>().text = "소지품";
+        Color selectedTab = illustratedLayout ? new Color(0.42f, 0.12f, 0.09f, 0.75f) : InkUiTheme.Selected;
+        Color idleTab = illustratedLayout ? Color.clear : InkUiTheme.Card;
+        statsTab.GetComponent<Image>().color = page == 0 ? selectedTab : idleTab;
+        skillsTab.GetComponent<Image>().color = page == 1 ? selectedTab : idleTab;
+        inventoryTab.GetComponent<Image>().color = page == 2 ? selectedTab : idleTab;
     }
     void LevelUp(int level) { Notify($"경지 상승 · Lv. {level}    능력치 +3 / 무공 +1"); Refresh(); }
     void Notify(string message) { toast.text = message.Replace('·', '/'); toastUntil = Time.unscaledTime + 3f; }
@@ -347,15 +351,16 @@ public class RpgUI : MonoBehaviour
         SetBar(moodFill, moodValue / 100f);
         moodLabel.text = $"{(control != null && !control.IsPlayerControlled ? "어둠이 지배 중" : "정신의 균형")}  {moodValue:0}    EXP {stats.EXP:0}/{stats.MaxEXP:0}";
         guardLabel.text = skills != null && skills.GuardRemaining > 0 ? $"금강호신 / {skills.GuardRemaining:0.0}s" : "";
+        RefreshUltimateUI();
         for (int i = 0; i < 3; i++)
         {
             int id = RpgSkillCatalog.Hotbar[i]; var skill = RpgSkillCatalog.All[id]; float remaining = skills != null ? skills.Remaining(id) : 0f;
             string state = stats.SkillRanks[id] == 0 ? "미습득" : remaining > 0 ? $"{remaining:0.0}s" : $"MP {skill.ManaCost:0}";
-            hotLabels[i].text = $"{i + 1}  {skill.Name}\n<size=11>{state}</size>";
+            hotLabels[i].text = $"{RpgSkillController.HotkeyLabel(id)}  {skill.Name}\n<size=11>{state}</size>";
             hotLabels[i].color = stats.SkillRanks[id] == 0 ? new Color(0.78f, 0.73f, 0.63f) : cream;
             SetBar(cooldownFills[i], remaining / skill.Cooldown);
         }
-        if (!overlay.activeSelf) return;
+        if (!overlay.activeSelf) { RefreshIllustratedWidgets(); return; }
         points.text = $"능력치 포인트  {stats.StatPoints}     /     무공 포인트  {stats.SkillPoints}";
         if (inventory == null || inventory.Items.Count == 0) inventoryList.text = "소지품이 없습니다.";
         else
@@ -378,17 +383,19 @@ public class RpgUI : MonoBehaviour
             nodeLabels[id].text = $"{skill.Name}\n<size=12>{(skill.Active ? "사용 무공" : "지속 효과")} / {stats.SkillRanks[id]}/{skill.MaxRank}</size>\n<size=11>Lv. {skill.RequiredLevel}</size>";
             string state = learned ? "수련 중" : stats.SkillLockReason(id).Length == 0 ? "습득 가능" : "미개방";
             nodeLabels[id].text += $" <size=11>{state}</size>";
-            nodeLabels[id].color = learned ? new Color(0.80f, 1f, 0.80f) : cream;
-            nodeImages[id].color = id == selected ? new Color(0.80f, 1f, 0.84f) : Color.white;
+            nodeLabels[id].color = learned ? InkUiTheme.Jade : InkUiTheme.Ivory;
+            nodeImages[id].color = id == selected ? InkUiTheme.Selected : InkUiTheme.Card;
             nodeImages[id].GetComponent<Outline>().enabled = id == selected;
         }
         var chosen = RpgSkillCatalog.All[selected]; string reason = stats.SkillLockReason(selected);
         detailTitle.text = chosen.Name;
         detailBody.text = $"{chosen.Branch}  /  {(chosen.Active ? "사용 무공" : "지속 효과")}\n\n{chosen.Description}\n\n" +
             (chosen.Active ? $"소모 내력 {chosen.ManaCost:0} / 대기 {chosen.Cooldown:0}초\n" : "습득 시 항상 적용\n") +
-            $"현재 {stats.SkillRanks[selected]} / {chosen.MaxRank} 단계\n필요 경지 Lv. {chosen.RequiredLevel}";
+            $"현재 {stats.SkillRanks[selected]} / {chosen.MaxRank} 단계\n" +
+            (selected == RpgSkillCatalog.Ultimate ? "모든 일반 무공 최고 단계 필요" : $"필요 경지 Lv. {chosen.RequiredLevel}");
         learnButton.interactable = reason.Length == 0;
         learnLabel.text = reason.Length > 0 ? reason : stats.SkillRanks[selected] == 0 ? "습득하기 / 1 포인트" : "다음 단계 / 1 포인트";
+        RefreshIllustratedWidgets();
     }
 
     RectTransform Box(Transform parent, string name, float x, float y, float w, float h, Color color)

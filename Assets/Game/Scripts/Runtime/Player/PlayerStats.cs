@@ -35,7 +35,7 @@ public class PlayerStats : MonoBehaviour, IDamageable
     public int StatPoints { get; private set; } = 5;
     public int SkillPoints { get; private set; } = 3;
     public int[] AttributeRanks { get; private set; } = new int[4];
-    public int[] SkillRanks { get; private set; } = new int[9];
+    public int[] SkillRanks { get; private set; } = new int[RpgSkillCatalog.All.Length];
     public int AttackBonus => AttributeRanks[1] * 2 + SkillRanks[1] * 3 + SkillRanks[2] * 6;
     public int Defense => AttributeRanks[2] * 2 + SkillRanks[4] * 3 + SkillRanks[5] * 6;
     public float ManaRegen => 1f + SkillRanks[7] * 0.6f + SkillRanks[8] * 1.2f;
@@ -202,6 +202,14 @@ public class PlayerStats : MonoBehaviour, IDamageable
         if (id < 0 || id >= RpgSkillCatalog.All.Length) return "존재하지 않는 무공";
         var skill = RpgSkillCatalog.All[id];
         if (SkillRanks[id] >= skill.MaxRank) return "최고 단계";
+        if (id == RpgSkillCatalog.Ultimate)
+        {
+            int mastered = 0;
+            for (int i = 0; i < RpgSkillCatalog.Ultimate; i++)
+                if (SkillRanks[i] >= RpgSkillCatalog.All[i].MaxRank) mastered++;
+            if (mastered < RpgSkillCatalog.Ultimate)
+                return $"모든 무공 최고 단계 필요 ({mastered}/{RpgSkillCatalog.Ultimate})";
+        }
         if (Level < skill.RequiredLevel) return $"레벨 {skill.RequiredLevel} 필요";
         if (skill.Prerequisite >= 0 && SkillRanks[skill.Prerequisite] == 0)
             return RpgSkillCatalog.All[skill.Prerequisite].Name + " 습득 필요";

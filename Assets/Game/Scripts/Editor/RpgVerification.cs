@@ -47,10 +47,36 @@ public static class RpgVerification
             stats.Save();
             var saved = SaveSystem.LoadPlayer();
             Check(saved.progressionVersion == 1 && saved.skillRanks[1] == 1 && saved.statPoints == 6, "save roundtrip");
+            var priorRanks = (int[])stats.SkillRanks.Clone();
+            Check(!stats.LearnSkill(RpgSkillCatalog.Ultimate), "ultimate requires mastery rather than level and one prerequisite");
+            for (int i = 0; i < RpgSkillCatalog.Ultimate; i++) stats.SkillRanks[i] = RpgSkillCatalog.All[i].MaxRank;
+            for (int i = 0; i < RpgSkillCatalog.Ultimate; i++)
+            {
+                stats.SkillRanks[i]--;
+                int pointsBefore = stats.SkillPoints;
+                Check(!stats.LearnSkill(RpgSkillCatalog.Ultimate) && stats.SkillPoints == pointsBefore,
+                    "ultimate rejects incomplete mastery for skill " + i + " without consuming points");
+                stats.SkillRanks[i]++;
+            }
+            Check(stats.LearnSkill(RpgSkillCatalog.Ultimate), "ultimate unlocks when all nine skills are mastered");
+            for (int i = 0; i < RpgSkillCatalog.Ultimate; i++) stats.SkillRanks[i] = priorRanks[i];
+            stats.Save();
+            Check(SaveSystem.LoadPlayer().skillRanks[RpgSkillCatalog.Ultimate] == 1, "ultimate rank persists in appended save slot");
             var second = new GameObject("Reload check").AddComponent<PlayerStats>();
             Invoke(second, "Awake");
+            Check(second.SkillRanks[RpgSkillCatalog.Ultimate] == 1, "ultimate rank survives reload");
             Check(second.MaxHP == stats.MaxHP && second.AttackBonus == stats.AttackBonus && second.SkillPoints == stats.SkillPoints, "reload preserves investments without doubling");
             UnityEngine.Object.DestroyImmediate(second.gameObject);
+
+            var nineSlotSave = SaveSystem.LoadPlayer();
+            Array.Resize(ref nineSlotSave.skillRanks, 9);
+            File.WriteAllText(Path.Combine(saves, "player_save.json"), JsonUtility.ToJson(nineSlotSave));
+            var nineSlotPlayer = new GameObject("Nine-slot save check").AddComponent<PlayerStats>();
+            Invoke(nineSlotPlayer, "Awake");
+            Check(nineSlotPlayer.SkillRanks.Length == 10 && nineSlotPlayer.SkillRanks[1] == 1 && nineSlotPlayer.SkillRanks[9] == 0,
+                "existing nine-slot saves preserve ranks and default ultimate to unlearned");
+            UnityEngine.Object.DestroyImmediate(nineSlotPlayer.gameObject);
+            stats.Save();
 
             string savePath = Path.Combine(saves, "player_save.json");
             File.WriteAllText(savePath, "{}");
@@ -60,6 +86,7 @@ public static class RpgVerification
             var migrated = new GameObject("Legacy migration check").AddComponent<PlayerStats>();
             Invoke(migrated, "Awake");
             Check(migrated.StatPoints == 11 && migrated.SkillPoints == 5 && migrated.MaxHP == 140, "legacy save migration grants earned points");
+            Check(migrated.SkillRanks.Length == 10 && migrated.SkillRanks[RpgSkillCatalog.Ultimate] == 0, "legacy save adds empty ultimate slot");
             migrated.Save();
             Invoke(migrated, "Load");
             Check(migrated.StatPoints == 11 && migrated.SkillPoints == 5, "migration runs only once");
@@ -82,10 +109,20 @@ public static class RpgVerification
             Check(board != null && paper != null && wood != null, "wooden artwork resolves at runtime");
             Check(board.border.x > 0 && paper.border.x > 0 && wood.border.x > 0, "nine-slice borders configured");
             ui.Open(false);
+            var ultimateLearning = (Button)typeof(RpgUI).GetField("ultimateSelectButton", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(ui);
+            ultimateLearning.onClick.Invoke();
+            Check(GameObject.Find("Skill details").GetComponentInChildren<TMP_Text>().text == "이기어검", "ultimate learning button selects detail panel");
+            Capture(output, "ultimate.png");
+            ui.Open(false);
             var window = GameObject.Find("Cultivation").GetComponent<Image>();
-            Check(window.sprite == board && window.type == Image.Type.Sliced, "real package artwork applied to window");
+            Check(window.sprite == null && window.color.r < 0.1f && window.color.a > 0.9f, "illustrated ink surface applied to window");
+            var bodyFont = Resources.Load<TMP_FontAsset>("Fonts/UiBody SDF");
+            var titleFont = Resources.Load<TMP_FontAsset>("Fonts/UiTitle SDF");
+            Check(bodyFont != null && titleFont != null && bodyFont != titleFont, "body and title typography resolve independently");
+            Check(Resources.Load<Sprite>("UiArt/ElderPortrait") != null && Resources.Load<Sprite>("UiArt/ElderAttack") != null, "actual elder sprite portrait and attack artwork resolve");
+            Check(Resources.LoadAll<Sprite>("UiArt").Length >= 11, "nine skill icons and elder artwork available");
             var buttons = (Button[])typeof(RpgUI).GetField("attributeButtons", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(ui);
-            Check(Array.TrueForAll(buttons, b => b.image.sprite == wood && b.image.type == Image.Type.Sliced), "all attribute buttons use sliced wood");
+            Check(Array.TrueForAll(buttons, b => b.image.sprite == null && b.GetComponent<Outline>() != null), "attribute buttons use restrained ink edges");
             int beforePoints = stats.StatPoints;
             float beforeHP = stats.MaxHP;
             buttons[0].onClick.Invoke();

@@ -6,6 +6,7 @@ public class MonsterSpawnPoint : MonoBehaviour
 
     public bool IsEmpty => currentMonster == null;
     public MonsterBase CurrentMonster => currentMonster;
+    public float LastClearedTime { get; private set; } = float.NegativeInfinity;
 
     public MonsterBase Spawn(MonsterBase prefab, MonsterData data)
     {
@@ -19,8 +20,11 @@ public class MonsterSpawnPoint : MonoBehaviour
 
     public void Clear(MonsterBase monster)
     {
-        if (currentMonster == monster)
+        if (ReferenceEquals(currentMonster, monster))
+        {
             currentMonster = null;
+            LastClearedTime = Time.time;
+        }
     }
 
     private void OnDrawGizmos()
