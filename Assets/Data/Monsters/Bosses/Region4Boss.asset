@@ -13,11 +13,12 @@ MonoBehaviour:
   m_Name: Region4Boss
   m_EditorClassIdentifier: 
   monsterName: Region4Boss
-  level: 10
-  maxHP: 300
-  expReward: 100
-  attackDamage: 10
+  level: 17
+  maxHP: 31000
+  expReward: 16400
+  attackDamage: 178
   attackRange: 0.9
   attackCooldown: 1.2
   moveSpeed: 1.2
   aggroRange: 10
+  dropTier: 5

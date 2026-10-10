@@ -13,11 +13,12 @@ MonoBehaviour:
   m_Name: Region3Boss
   m_EditorClassIdentifier: 
   monsterName: Region3Boss
-  level: 8
-  maxHP: 500
-  expReward: 300
-  attackDamage: 20
+  level: 13
+  maxHP: 18750
+  expReward: 3240
+  attackDamage: 101
   attackRange: 8
   attackCooldown: 0.9
   moveSpeed: 2.5
   aggroRange: 10
+  dropTier: 4

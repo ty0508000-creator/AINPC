@@ -20,3 +20,10 @@ MonoBehaviour:
   description: "\uB3D9\uAD74 \uAE4A\uC740 \uACF3\uC5D0 \uBC84\uB824\uC838 \uC788\uB358
     \uB0A1\uC740 \uAC80. \uB0A0\uC740 \uBB34\uB38C\uC84C\uC9C0\uB9CC \uC544\uC9C1
     \uC4F8 \uB9CC\uD558\uB2E4."
+  tier: 1
+  attack: 4
+  critChance: 0.03
+  attackSpeed: 1
+  maxHp: 0
+  defense: 0
+  evasion: 0

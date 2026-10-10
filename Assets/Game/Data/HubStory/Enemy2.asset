@@ -21,3 +21,4 @@ MonoBehaviour:
   attackCooldown: 2.8
   moveSpeed: 2
   aggroRange: 8
+  dropTier: 2

@@ -13,11 +13,12 @@ MonoBehaviour:
   m_Name: Region2Boss
   m_EditorClassIdentifier: 
   monsterName: Region2Boss
-  level: 6
-  maxHP: 250
-  expReward: 150
-  attackDamage: 12
+  level: 9
+  maxHP: 10150
+  expReward: 640
+  attackDamage: 53
   attackRange: 1
   attackCooldown: 1.1
   moveSpeed: 1.8
   aggroRange: 10
+  dropTier: 3

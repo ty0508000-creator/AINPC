@@ -13,11 +13,12 @@ MonoBehaviour:
   m_Name: FinalBoss
   m_EditorClassIdentifier: 
   monsterName: FinalBoss
-  level: 12
-  maxHP: 800
-  expReward: 450
-  attackDamage: 24
+  level: 18
+  maxHP: 48250
+  expReward: 0
+  attackDamage: 295
   attackRange: 1.1
   attackCooldown: 1.3
   moveSpeed: 1.4
   aggroRange: 10
+  dropTier: 0

@@ -4870,7 +4870,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterSpawnArea
   monsterPrefab: {fileID: 100005, guid: fccca755bf174a7994da775cf38dae95, type: 3}
-  monsterData: {fileID: 11400000, guid: 3371b05212084ebaaf002849097fa55b, type: 2}
+  monsterData: {fileID: 11400000, guid: 6b172e5149331294eb8e7ebb7d24f479, type: 2}
   spawnInterval: 10
   minimumRespawnDelay: 0
   spawnOnStart: 1
@@ -13801,7 +13801,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterSpawnArea
   monsterPrefab: {fileID: 100005, guid: a0878f365cf848ec82222bbd832fb46c, type: 3}
-  monsterData: {fileID: 11400000, guid: 43d4dea096ae4dac999926e823142016, type: 2}
+  monsterData: {fileID: 11400000, guid: 92e1ad14a14ce3d4784b81dd04801dbc, type: 2}
   spawnInterval: 10
   minimumRespawnDelay: 0
   spawnOnStart: 1
@@ -24638,7 +24638,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterSpawnArea
   monsterPrefab: {fileID: 100005, guid: 4d2bf11d52af49cfa365c3ce5f3be84a, type: 3}
-  monsterData: {fileID: 11400000, guid: 606a9f8c92384af1b2b7042f21ef98bd, type: 2}
+  monsterData: {fileID: 11400000, guid: 52c6feea9ead46f49a6cfdb1e8560d88, type: 2}
   spawnInterval: 10
   minimumRespawnDelay: 0
   spawnOnStart: 1
@@ -25831,7 +25831,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterSpawnArea
   monsterPrefab: {fileID: 100005, guid: 14029a04203d4d82b2a9eacc35a22d58, type: 3}
-  monsterData: {fileID: 11400000, guid: 22e76e4f1ba340468ab9169a063e95f7, type: 2}
+  monsterData: {fileID: 11400000, guid: 6ec36e34a5eac5d4aa439ce6d05dd9a7, type: 2}
   spawnInterval: 10
   minimumRespawnDelay: 0
   spawnOnStart: 1

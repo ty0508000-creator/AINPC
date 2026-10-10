@@ -30,6 +30,7 @@ public static class EquipmentVerification
         try
         {
             VerifyTables();
+            VerifyAssets();
             var db = CreateTestDatabase(created);
             ItemDatabase.Instance = db;
             VerifyInventory(db, created);
@@ -113,6 +114,46 @@ public static class EquipmentVerification
 
         UnityEngine.Object.DestroyImmediate(sword);
         UnityEngine.Object.DestroyImmediate(armor);
+    }
+
+    // ── 생성된 에셋 ─────────────────────────────────────────────
+
+    static void VerifyAssets()
+    {
+        var db = AssetDatabase.LoadAssetAtPath<ItemDatabase>("Assets/Resources/ItemDatabase.asset");
+        var equipment = db.items.Where(i => i != null && i.category != ItemCategory.Misc).ToList();
+        Check(equipment.Count == 15, $"장비 15종 ({equipment.Count})");
+        foreach (var category in new[] { ItemCategory.Weapon, ItemCategory.Armor, ItemCategory.Accessory })
+            for (int tier = 1; tier <= 5; tier++)
+                Check(equipment.Count(i => i.category == category && i.tier == tier) == 1, $"{category} {tier}단계 하나");
+        Check(equipment.All(i => i.icon != null && i.maxStack == 1 && !string.IsNullOrWhiteSpace(i.description)), "모두 아이콘·설명, 겹침 1");
+        var iron = db.Find("iron_sword");
+        Check(iron.displayName == "무쇠검" && iron.attack == 9 && Mathf.Approximately(iron.critChance, .07f) && Mathf.Approximately(iron.attackSpeed, 1.08f), "무쇠검 수치");
+        var dragon = db.Find("dragonscale_armor");
+        Check(dragon.displayName == "용린갑" && dragon.maxHp == 150 && dragon.defense == 29 && Mathf.Approximately(dragon.evasion, .05f), "용린갑 수치");
+        var cave = db.Find("cave_sword");
+        Check(cave.attack == 4 && Mathf.Approximately(cave.critChance, .03f) && Mathf.Approximately(cave.attackSpeed, 1f) && cave.tier == 1, "낡은 검 수치");
+        Check(db.Find("heaven_talisman")?.displayName == "천상의 부적" && db.Find("old_talisman")?.tier == 1, "장신구 이름·단계");
+
+        MonsterData Monster(string path) => AssetDatabase.LoadAssetAtPath<MonsterData>(path);
+        var bat3 = Monster("Assets/Data/Monsters/Region3/Region3_Bat.asset");
+        Check(bat3 != null && bat3.Level == 11 && bat3.MaxHP == 445 && bat3.AttackDamage == 55 && bat3.ExpReward == 641 && bat3.DropTier == 4, "3지역 박쥐");
+        var mushroom2 = Monster("Assets/Data/Monsters/Region2/Region2_Mushroom.asset");
+        Check(mushroom2 != null && mushroom2.MaxHP == 85 && mushroom2.DropTier == 3 && mushroom2.MonsterName == Monster("Assets/Data/Monsters/MushroomData.asset").MonsterName,
+            "2지역 버섯, 이름은 원본 유지");
+        var boss4 = Monster("Assets/Data/Monsters/Bosses/Region4Boss.asset");
+        Check(boss4.MaxHP == 31000 && boss4.AttackDamage == 178 && boss4.DropTier == 5 && boss4.Level == 17, "4지역 보스");
+        Check(Monster("Assets/Data/Monsters/Bosses/FinalBoss.asset").DropTier == 0 && Monster("Assets/Data/Monsters/Bosses/FinalBoss.asset").MaxHP == 48250, "최종보스");
+        Check(Monster("Assets/Game/Data/HubStory/Enemy1.asset").DropTier == 2 && Monster("Assets/Game/Data/HubStory/AshKing.asset").DropTier == 2, "1지역 사냥터·재의 왕 2단계");
+        Check(Monster("Assets/Game/Data/HubStory/Enemy1.asset").MaxHP == 30, "1지역 수치 유지");
+
+        string mushroomGuid = AssetDatabase.AssetPathToGUID("Assets/Data/Monsters/MushroomData.asset");
+        foreach (int region in new[] { 2, 3, 4 })
+        {
+            string scene = File.ReadAllText($"Assets/Scenes/Region{region}.unity");
+            Check(!scene.Contains(mushroomGuid) && scene.Contains(AssetDatabase.AssetPathToGUID($"Assets/Data/Monsters/Region{region}/Region{region}_Mushroom.asset")),
+                $"Region{region} 씬이 지역 데이터를 씀");
+        }
     }
 
     // ── 아이템 개체·장착·저장 ───────────────────────────────────

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6b38b9253c145afac04bbf71cdb9c14, type: 3}
+  m_Name: cloth_armor
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
+  itemId: cloth_armor
+  displayName: "\uCC9C\uAC11\uC637"
+  icon: {fileID: 21300000, guid: f66ae0a9b7d312a41bc5bd404125f0b6, type: 3}
+  maxStack: 1
+  category: 2
+  description: "\uB450\uAEBC\uC6B4 \uCC9C\uC744 \uACB9\uACB9\uC774 \uB204\uBE48 \uC637.
+    \uC5C6\uB294 \uAC83\uBCF4\uB2E4\uB294 \uB0AB\uB2E4."
+  tier: 1
+  attack: 0
+  critChance: 0
+  attackSpeed: 1
+  maxHp: 10
+  defense: 1
+  evasion: 0.01

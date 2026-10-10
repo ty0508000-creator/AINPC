@@ -169,7 +169,10 @@ public static class InventoryVerification
             Check(initial.text == items[1].displayName.Substring(0, 1), "item without an icon shows its first letter");
             Check(!bagSlots[2].transform.Find("HoverFrame").gameObject.activeSelf, "hover frame is hidden by default");
             Check(usedSlotCountText.text == "15 / 15", "used slot counter matches the bag");
-            Check(equipmentSlots.All(s => s.transform.Find("EmptySlotSilhouette").GetComponent<Image>().enabled), "empty equipment slots show silhouettes");
+            // 새 게임은 천갑옷·낡은 부적을 낀 채 시작하고, 무기는 동굴에서 줍기 전까지 비어 있다.
+            Check(equipmentSlots[0].transform.Find("EmptySlotSilhouette").GetComponent<Image>().enabled &&
+                  equipmentSlots.Skip(1).All(s => s.transform.Find("EquippedItemIcon").GetComponent<Image>().enabled),
+                "empty weapon slot shows its silhouette, starter armor and talisman show icons");
             Capture(instance, output, "inventory-open.png", 1440, 900);
 
             window.OnSlotPointerEnter(bagSlots[2]);
