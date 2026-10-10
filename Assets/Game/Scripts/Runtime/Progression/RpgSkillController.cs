@@ -47,7 +47,7 @@ public class RpgSkillController : MonoBehaviour
 
     void Update()
     {
-        if (Keyboard.current == null || stats == null || !stats.IsAlive || recoveryFrame == Time.frameCount || RpgUI.LastClosedFrame == Time.frameCount || RpgUI.IsOpen || DialogueManager.IsDialogueOpen || PauseMenuUI.IsOpen || Time.timeScale == 0f) return;
+        if (Keyboard.current == null || stats == null || !stats.IsAlive || recoveryFrame == Time.frameCount || RpgUI.LastClosedFrame == Time.frameCount || RpgUI.IsOpen || InventoryWindow.IsOpen || DialogueManager.IsDialogueOpen || PauseMenuUI.IsOpen || Time.timeScale == 0f) return;
         if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject != null &&
             EventSystem.current.currentSelectedGameObject.GetComponent<TMPro.TMP_InputField>() != null) return;
         foreach (int id in RpgSkillCatalog.Hotbar)
@@ -58,7 +58,7 @@ public class RpgSkillController : MonoBehaviour
     public bool TryCast(int id)
     {
         if (stats == null || id < 0 || id >= RpgSkillCatalog.All.Length || !RpgSkillCatalog.All[id].Active) return false;
-        if (RpgUI.IsOpen || DialogueManager.IsDialogueOpen || PauseMenuUI.IsOpen || Time.timeScale == 0f || stats.HP <= 0f) return false;
+        if (RpgUI.IsOpen || InventoryWindow.IsOpen || DialogueManager.IsDialogueOpen || PauseMenuUI.IsOpen || Time.timeScale == 0f || stats.HP <= 0f) return false;
         if (control != null && !control.IsPlayerControlled) return Fail("지금은 몸을 제어할 수 없습니다.");
         if (stats.SkillRanks[id] == 0) return Fail("무공창 [K]에서 먼저 습득하세요.");
         if (Remaining(id) > 0f) return Fail("아직 재사용 대기 중입니다.");

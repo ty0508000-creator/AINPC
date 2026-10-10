@@ -69,7 +69,7 @@ public sealed class FlyingSwordUltimate : MonoBehaviour
         { Cancel(); return; }
         if (Time.timeScale == 0) return;
         // Menus and dialogue suspend new attacks. The duration uses the same game clock as cooldowns.
-        bool blocked = RpgUI.IsOpen || DialogueManager.IsDialogueOpen || PauseMenuUI.IsOpen;
+        bool blocked = RpgUI.IsOpen || InventoryWindow.IsOpen || DialogueManager.IsDialogueOpen || PauseMenuUI.IsOpen;
         if (!blocked && Time.time >= nextLaunch)
         {
             nextLaunch = Time.time + LaunchInterval;

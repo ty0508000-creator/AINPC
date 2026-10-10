@@ -15,14 +15,13 @@ public class PauseMenuUI : MonoBehaviour
     /// <summary>메뉴가 열려 있는가. 플레이어 조작을 막는 데 쓴다.</summary>
     public static bool IsOpen { get; private set; }
 
-    private enum Tab { None, Inventory, Settings }
+    private enum Tab { None, Settings }
 
     private TMP_FontAsset font;
     [SerializeField] private CanvasGroup group;
     [SerializeField] private RectTransform contentArea;
     [SerializeField] private TMP_Text toast;
-    [SerializeField] private GameObject homePage, inventoryPage, settingsPage;
-    [SerializeField] private TMP_Text inventoryText;
+    [SerializeField] private GameObject homePage, settingsPage;
     private float toastTimer;
     private Tab openTab = Tab.None;
 
@@ -32,7 +31,7 @@ public class PauseMenuUI : MonoBehaviour
     {
         if (group == null) { enabled = false; return; }
         menuButtons[0].onClick.AddListener(Close);
-        menuButtons[1].onClick.AddListener(() => ShowTab(Tab.Inventory));
+        menuButtons[1].onClick.AddListener(OpenInventoryWindow);
         menuButtons[2].onClick.AddListener(() => ShowTab(Tab.Settings));
         menuButtons[3].onClick.AddListener(SaveGame);
         menuButtons[4].onClick.AddListener(GoToTitle);
@@ -48,10 +47,6 @@ public class PauseMenuUI : MonoBehaviour
         homePage.transform.SetParent(contentArea, false);
         Stretch((RectTransform)homePage.transform);
         MakeText((RectTransform)homePage.transform, "왼쪽에서 항목을 고르세요", 22f, Vector2.zero, Color.white, TextAlignmentOptions.Center);
-        inventoryPage = new GameObject("Inventory", typeof(RectTransform));
-        inventoryPage.transform.SetParent(contentArea, false);
-        Stretch((RectTransform)inventoryPage.transform);
-        inventoryText = MakeText((RectTransform)inventoryPage.transform, "소지품이 없습니다.", 22f, Vector2.zero, Color.white, TextAlignmentOptions.Center);
         settingsPage = new GameObject("Settings", typeof(RectTransform));
         settingsPage.transform.SetParent(contentArea, false);
         Stretch((RectTransform)settingsPage.transform);
@@ -72,7 +67,8 @@ public class PauseMenuUI : MonoBehaviour
             return;
 
         // 대화창도 ESC 로 닫히므로 겹치지 않게 비켜 준다
-        if (DialogueManager.IsDialogueOpen || RpgUI.IsOpen || RpgUI.LastClosedFrame == Time.frameCount)
+        if (DialogueManager.IsDialogueOpen || RpgUI.IsOpen || RpgUI.LastClosedFrame == Time.frameCount ||
+            InventoryWindow.IsOpen || InventoryWindow.LastClosedFrame == Time.frameCount)
             return;
 
         if (IsOpen)
@@ -158,25 +154,20 @@ public class PauseMenuUI : MonoBehaviour
         openTab = tab;
 
         homePage.SetActive(tab == Tab.None);
-        inventoryPage.SetActive(tab == Tab.Inventory);
         settingsPage.SetActive(tab == Tab.Settings);
-        if (tab == Tab.Inventory)
-        {
-            var inventory = FindFirstObjectByType<PlayerInventory>();
-            inventoryText.text = "소지품이 없습니다.";
-            if (inventory != null && inventory.Items.Count > 0)
-            {
-                inventoryText.text = "";
-                foreach (var item in inventory.Items) inventoryText.text += $"{item.displayName} × {item.quantity}\n";
-            }
-        }
     }
 
-    private void BuildInventoryPlaceholder()
+    /// <summary>메뉴를 닫고 인벤토리 창을 연다. 인벤토리 창은 게임을 멈추지 않으므로 메뉴 안에 두지 않는다.</summary>
+    private void OpenInventoryWindow()
     {
-        MakeText(contentArea, "인벤토리", 34f, new Vector2(0f, 150f), Color.white, TextAlignmentOptions.Center);
-        MakeText(contentArea, "아직 아이템 시스템이 없습니다.\n포션·장비가 들어오면 여기에 표시됩니다.",
-            20f, new Vector2(0f, 60f), new Color(0.6f, 0.6f, 0.66f), TextAlignmentOptions.Center);
+        var window = FindFirstObjectByType<InventoryWindow>();
+        if (window == null)
+        {
+            ShowToast("이 장면에는 인벤토리 창이 없습니다");
+            return;
+        }
+        Close();
+        window.Open();
     }
 
     // ── 조립 ────────────────────────────────────────────────────
@@ -226,7 +217,7 @@ public class PauseMenuUI : MonoBehaviour
         // 왼쪽 항목들
         float y = 180f;
         AddMenuButton(windowRect, "계속하기", ref y, Close);
-        AddMenuButton(windowRect, "인벤토리", ref y, () => ShowTab(Tab.Inventory));
+        AddMenuButton(windowRect, "인벤토리", ref y, OpenInventoryWindow);
         AddMenuButton(windowRect, "설정", ref y, () => ShowTab(Tab.Settings));
         AddMenuButton(windowRect, "저장", ref y, SaveGame);
         AddMenuButton(windowRect, "타이틀로", ref y, GoToTitle);

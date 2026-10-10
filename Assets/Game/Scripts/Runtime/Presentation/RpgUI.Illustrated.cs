@@ -100,7 +100,7 @@ public partial class RpgUI
             else if (text.text.StartsWith("레벨업"))
             { text.text = "투자는 즉시 저장됩니다.  수련 중에도 전투는 계속됩니다."; Place(text.rectTransform, 310, 689, 780, 25); text.fontSize = 13; }
         }
-        Button[] tabs = { statsTab, skillsTab, inventoryTab };
+        Button[] tabs = { statsTab, skillsTab };
         for (int i = 0; i < tabs.Length; i++)
         {
             Place(tabs[i].GetComponent<RectTransform>(), 42, 270 + i * 62, 204, 44);
@@ -115,8 +115,6 @@ public partial class RpgUI
         Place((RectTransform)window.Find("Divider"), 280, 70, 1, 590);
         Place(statsPage.GetComponent<RectTransform>(), 310, 105, 1092, 450);
         statsPage.transform.localScale = Vector3.one * 0.84f;
-        Place(inventoryPage.GetComponent<RectTransform>(), 310, 105, 1092, 450);
-        inventoryPage.transform.localScale = Vector3.one * 0.84f;
         Place(skillsPage.GetComponent<RectTransform>(), 310, 90, 940, 565);
         foreach (Transform child in skillsPage.transform)
         {

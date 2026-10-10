@@ -40,7 +40,7 @@ public class ScenePortal : MonoBehaviour
             return;
 
         var player = other.GetComponentInParent<PlayerStats>();
-        if (!player.IsAlive || DialogueManager.IsDialogueOpen || RpgUI.IsOpen || PauseMenuUI.IsOpen) return;
+        if (!player.IsAlive || DialogueManager.IsDialogueOpen || RpgUI.IsOpen || InventoryWindow.IsOpen || PauseMenuUI.IsOpen) return;
         if (!string.IsNullOrEmpty(requiredQuestId) && (QuestManager.Instance == null || !QuestManager.Instance.IsCompleted(requiredQuestId)))
         { GameFlow.Instance.ShowNotice(lockedMessage); return; }
 

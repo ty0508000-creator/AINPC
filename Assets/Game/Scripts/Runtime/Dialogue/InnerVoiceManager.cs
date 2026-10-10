@@ -14,7 +14,8 @@ public class InnerVoiceManager : MonoBehaviour
     [Header("Trigger")]
     [SerializeField] private float checkInterval = 30f;
     [SerializeField] private float triggerChance = 0.1f;
-    [SerializeField] private KeyCode testOpenKey = KeyCode.I;
+    // I 는 인벤토리 창이 쓴다.
+    [SerializeField] private KeyCode testOpenKey = KeyCode.P;
 
     [Header("LLM (내면 전용 LLMAgent 별도 연결)")]
     [SerializeField] private LLMAgent llmAgent;

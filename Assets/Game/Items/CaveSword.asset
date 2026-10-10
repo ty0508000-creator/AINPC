@@ -16,3 +16,7 @@ MonoBehaviour:
   displayName: "\uB0A1\uC740 \uAC80"
   icon: {fileID: 21300000, guid: 6718cc9ee815f0b46b6b832ae2e5da00, type: 3}
   maxStack: 1
+  category: 1
+  description: "\uB3D9\uAD74 \uAE4A\uC740 \uACF3\uC5D0 \uBC84\uB824\uC838 \uC788\uB358
+    \uB0A1\uC740 \uAC80. \uB0A0\uC740 \uBB34\uB38C\uC84C\uC9C0\uB9CC \uC544\uC9C1
+    \uC4F8 \uB9CC\uD558\uB2E4."

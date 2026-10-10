@@ -21,7 +21,7 @@ public sealed class StoryConversationUI : MonoBehaviour
     }
     public bool Open(string title, string body, string label, Action confirm)
     {
-        if (panel == null || IsOpen || DialogueManager.IsDialogueOpen || RpgUI.IsOpen || PauseMenuUI.IsOpen) return false;
+        if (panel == null || IsOpen || DialogueManager.IsDialogueOpen || RpgUI.IsOpen || InventoryWindow.IsOpen || PauseMenuUI.IsOpen) return false;
         opened = this; confirmation = confirm; openingFrame = Time.frameCount;
         titleText.text = title; bodyText.text = body; actionText.text = label;
         previousTimeScale = Time.timeScale; Time.timeScale = 0; panel.SetActive(true); return true;

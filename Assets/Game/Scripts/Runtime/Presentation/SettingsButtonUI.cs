@@ -19,7 +19,7 @@ public class SettingsButtonUI : MonoBehaviour
     void Update()
     {
         // 메뉴나 성장 창이 이미 떠 있으면 톱니바퀴는 비켜 준다
-        bool hidden = PauseMenuUI.IsOpen || RpgUI.IsOpen || DialogueManager.IsDialogueOpen
+        bool hidden = PauseMenuUI.IsOpen || RpgUI.IsOpen || InventoryWindow.IsOpen || DialogueManager.IsDialogueOpen
                       || GameFlow.Instance.IsLoading;
         group.alpha = hidden ? 0f : 1f;
         group.blocksRaycasts = !hidden;

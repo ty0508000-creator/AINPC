@@ -135,12 +135,8 @@ public static class RpgVerification
             Capture(output, "skills.png");
             Capture(output, "skills-1280x720.png", 1280, 720);
             Capture(output, "skills-1920x1080.png", 1920, 1080);
-            var inventoryTab = (UnityEngine.UI.Button)typeof(RpgUI).GetField("inventoryTab", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(ui);
-            inventoryTab.onClick.Invoke();
-            var inventoryPage = (GameObject)typeof(RpgUI).GetField("inventoryPage", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(ui);
-            var inventoryList = (TMPro.TMP_Text)typeof(RpgUI).GetField("inventoryList", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(ui);
-            Check(inventoryPage.activeSelf && inventoryList.text.Contains("검증 두루마리") && inventoryList.text.Contains("2"), "inventory tab shows saved item quantities");
-            Capture(output, "inventory.png");
+            // 소지품은 수련록 탭이 아니라 별도 인벤토리 창(InventoryWindow)에서 보여 준다. InventoryVerification 참고.
+            Check(typeof(RpgUI).GetField("inventoryTab", BindingFlags.Instance | BindingFlags.NonPublic) == null, "cultivation window no longer has an inventory tab");
             Invoke(ui, "Close");
             Check(!RpgUI.IsOpen, "closing releases input lock");
             Capture(output, "hud.png");

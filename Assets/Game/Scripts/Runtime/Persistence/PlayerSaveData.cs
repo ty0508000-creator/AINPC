@@ -4,6 +4,8 @@ public class InventorySaveEntry
     public string itemId;
     public string displayName;
     public int quantity;
+    // 가방 칸 번호. 이 필드가 생기기 전 저장은 0 으로 읽히며 PlayerInventory.Load 가 겹침을 풀어 준다.
+    public int slotIndex;
 }
 
 [System.Serializable]
