@@ -276,13 +276,14 @@ public sealed class PlayerInventory : MonoBehaviour
                     equipped[i].slotIndex = -1;
                 }
         }
-        else GiveStarterGear();   // 새 게임이거나 장비 기능 이전 저장. 한 번 저장되면 equipped 가 생겨 다시 주지 않는다.
+        else GiveStarterGear(legacySave: data != null);   // 새 게임이거나 장비 기능 이전 저장. 한 번 저장되면 equipped 가 생겨 다시 주지 않는다.
         RecalculateStats();
         Changed?.Invoke();
         EquipmentChanged?.Invoke();
     }
 
-    void GiveStarterGear()
+    /// <param name="legacySave">장비 기능 이전 저장. 동굴을 이미 지났을 수 있어 검이 없으면 낡은 검을 새로 쥐여 준다.</param>
+    void GiveStarterGear(bool legacySave)
     {
         var database = ItemDatabase.Instance;
         if (database == null) return;
@@ -301,6 +302,8 @@ public sealed class PlayerInventory : MonoBehaviour
             sword.slotIndex = -1;
             equipped[EquipIndex(swordDefinition.category)] = sword;
         }
+        else if (sword == null && legacySave && swordDefinition != null)
+            equipped[EquipIndex(swordDefinition.category)] = CreateInstance(swordDefinition, ItemRarity.Normal, rng);
     }
 
     public static void Validate(InventorySaveEntry[] inventory, InventorySaveEntry[] equippedItems = null)

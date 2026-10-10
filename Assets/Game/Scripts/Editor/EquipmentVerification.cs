@@ -256,6 +256,9 @@ public static class EquipmentVerification
         Check(reloaded.GetEquipped(ItemCategory.Weapon)?.itemId == "cave_sword" && reloaded.GetItemInSlot(0) == null &&
               reloaded.GetEquipped(ItemCategory.Armor)?.itemId == "cloth_armor" &&
               reloaded.GetEquipped(ItemCategory.Accessory)?.options.Count == 1, "LegacySaveGetsStarterGear");
+        // 동굴을 이미 지난 옛 저장은 검이 없어도 낡은 검을 받는다. 기본 공격력이 6 으로 내려가 1지역이 어려워지지 않게.
+        reloaded.Load(new PlayerSaveData { level = 4, inventory = Array.Empty<InventorySaveEntry>() });
+        Check(reloaded.GetEquipped(ItemCategory.Weapon)?.itemId == "cave_sword" && reloaded.Count("cave_sword") == 1, "LegacySaveWithoutSwordGetsCaveSword");
 
         Check(Throws(() => PlayerInventory.Validate(new[] { new InventorySaveEntry { itemId = "iron_sword", quantity = 1, rarity = 5 } }, null)),
             "등급 범위 밖은 거부");
