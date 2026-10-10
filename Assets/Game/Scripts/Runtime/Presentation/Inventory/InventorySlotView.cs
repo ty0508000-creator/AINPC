@@ -4,12 +4,12 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
-/// 가방의 한 칸. 마우스를 올리면 툴팁을 띄우고, 끌어서 다른 칸에 놓으면 아이템 자리를 옮긴다.
+/// 가방의 한 칸. 마우스를 올리면 툴팁을 띄우고, 끌어서 다른 칸에 놓으면 아이템 자리를 옮긴다. 우클릭하면 장비를 장착한다.
 /// 실제 처리는 <see cref="InventoryWindow"/> 가 하고 이 칸은 입력만 전달한다.
 /// </summary>
 [RequireComponent(typeof(RectTransform))]
 public sealed class InventorySlotView : MonoBehaviour,
-    IPointerEnterHandler, IPointerExitHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
+    IPointerEnterHandler, IPointerExitHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler, IPointerClickHandler
 {
     [SerializeField] InventoryWindow window;
     [SerializeField] int slotIndex;
@@ -29,11 +29,13 @@ public sealed class InventorySlotView : MonoBehaviour,
     }
 #endif
 
-    public void ShowItem(Sprite icon, string displayName)
+    /// <param name="frameColor">칸 테두리 색. 장비는 등급색, 그 밖은 흰색.</param>
+    public void ShowItem(Sprite icon, string displayName, Color frameColor)
     {
         itemIcon.sprite = icon;
         itemIcon.enabled = icon != null;
         itemInitialText.text = icon == null && !string.IsNullOrEmpty(displayName) ? displayName.Substring(0, 1) : "";
+        GetComponent<Image>().color = frameColor;
         SetFaded(false);
     }
 
@@ -42,6 +44,7 @@ public sealed class InventorySlotView : MonoBehaviour,
         itemIcon.sprite = null;
         itemIcon.enabled = false;
         itemInitialText.text = "";
+        GetComponent<Image>().color = Color.white;
         SetFaded(false);
     }
 
@@ -66,4 +69,9 @@ public sealed class InventorySlotView : MonoBehaviour,
     public void OnDrag(PointerEventData eventData) => window.UpdateItemDrag(eventData);
     public void OnEndDrag(PointerEventData eventData) => window.EndItemDrag();
     public void OnDrop(PointerEventData eventData) => window.DropItemOn(this);
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData.button == PointerEventData.InputButton.Right) window.OnSlotRightClick(this);
+    }
 }

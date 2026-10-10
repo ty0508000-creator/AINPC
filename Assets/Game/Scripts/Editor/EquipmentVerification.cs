@@ -35,6 +35,7 @@ public static class EquipmentVerification
             VerifyInventory(db, created);
             VerifyCombat(db, created);
             VerifyDrops(db, created);
+            VerifyWindow(db, created);
             result = $"PASS {checks} checks";
         }
         catch (Exception e)
@@ -372,6 +373,82 @@ public static class EquipmentVerification
         Check(inventory.GetEquipped(ItemCategory.Weapon)?.rarity == ItemRarity.Epic && inventory.Count("iron_sword") == 1, "PickupAutoEquipsEmptySlot");
         Check(pickup == null, "주운 오브젝트는 사라짐");
     }
+
+    // ── 인벤토리 창 ─────────────────────────────────────────────
+
+    static void VerifyWindow(ItemDatabase db, List<UnityEngine.Object> created)
+    {
+        // 앞 검사에서 만든 플레이어가 남아 있으면 창이 엉뚱한 인벤토리에 붙는다.
+        foreach (var old in UnityEngine.Object.FindObjectsByType<PlayerStats>(FindObjectsSortMode.None)) UnityEngine.Object.DestroyImmediate(old.gameObject);
+        SaveSystem.DeleteSave();
+        var swordIcon = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/CaveSword.png");
+        db.Find("iron_sword").icon = swordIcon;
+        db.Find("cave_sword").icon = swordIcon;
+        var stats = CreatePlayer(created);
+        var inventory = stats.GetComponent<PlayerInventory>();
+        var iron = PlayerInventory.CreateInstance(db.Find("iron_sword"), ItemRarity.Epic, new System.Random(1));
+        inventory.TryAddInstance(iron);
+        inventory.TryAdd(db.Find("cave_sword"));
+
+        var instance = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(InventoryUiBuilder.PrefabPath));
+        created.Add(instance);
+        var window = instance.GetComponent<InventoryWindow>();
+        var bag = Field<InventorySlotView[]>(window, "bagSlots");
+        var equipment = Field<EquipmentSlotView[]>(window, "equipmentSlots");
+        var tooltip = Field<ItemTooltip>(window, "itemTooltip");
+        var weaponSlot = equipment.First(s => s.AcceptedCategory == ItemCategory.Weapon);
+        var eventSystem = new GameObject("Equipment verification EventSystem", typeof(UnityEngine.EventSystems.EventSystem)).GetComponent<UnityEngine.EventSystems.EventSystem>();
+        created.Add(eventSystem.gameObject);
+        Invoke(window, "Awake");
+        Check(window.Open(), "창 열림");
+
+        int ironSlot = iron.slotIndex;
+        Check(bag[ironSlot].GetComponent<UnityEngine.UI.Image>().color == ItemRarityTable.Color(ItemRarity.Epic), "Epic 칸 테두리가 보라색");
+
+        RightClick(bag[ironSlot].gameObject, eventSystem);
+        Check(inventory.GetEquipped(ItemCategory.Weapon) == iron, "가방 칸 우클릭 → 장착");
+        Check(weaponSlot.transform.Find("EquippedItemIcon").GetComponent<UnityEngine.UI.Image>().enabled &&
+              !weaponSlot.transform.Find("EmptySlotSilhouette").GetComponent<UnityEngine.UI.Image>().enabled &&
+              weaponSlot.GetComponent<UnityEngine.UI.Image>().color == ItemRarityTable.Color(ItemRarity.Epic), "장비 칸에 아이콘·등급색 표시");
+        Check(bag[ironSlot].GetComponent<UnityEngine.UI.Image>().color == Color.white, "빈 칸 테두리는 흰색");
+
+        int caveSlot = inventory.Items.First(e => e.itemId == "cave_sword").slotIndex;
+        window.OnSlotPointerEnter(bag[caveSlot]);
+        var texts = tooltip.GetComponentsInChildren<TMPro.TMP_Text>(true);
+        var nameText = texts.First(t => t.name == "ItemNameText");
+        string body = texts.First(t => t.name == "ItemDescriptionText").text;
+        Check(nameText.color == ItemRarityTable.Color(ItemRarity.Normal), "툴팁 이름이 등급색");
+        Check(texts.First(t => t.name == "ItemCategoryText").text == "Normal · 1단계 무기", "툴팁 종류 줄");
+        Check(body.Contains("공격력 +4") && body.Contains("▼8"), "툴팁 능력치와 장착품 비교(▼)");
+        Check(!texts.First(t => t.name == "ItemQuantityText").gameObject.activeSelf, "장비는 수량 줄을 숨김");
+        window.OnSlotPointerExit(bag[caveSlot]);
+
+        Invoke(weaponSlot, "OnPointerEnter", new UnityEngine.EventSystems.PointerEventData(eventSystem));
+        Check(tooltip.gameObject.activeSelf && nameText.text == iron.displayName, "장비 칸 호버 → 장착품 툴팁");
+        Invoke(weaponSlot, "OnPointerExit", new UnityEngine.EventSystems.PointerEventData(eventSystem));
+
+        RightClick(weaponSlot.gameObject, eventSystem);
+        Check(inventory.GetEquipped(ItemCategory.Weapon) == null && inventory.Items.Contains(iron), "장비 칸 우클릭 → 해제");
+
+        var pointer = new UnityEngine.EventSystems.PointerEventData(eventSystem) { button = UnityEngine.EventSystems.PointerEventData.InputButton.Left };
+        window.BeginItemDrag(bag[iron.slotIndex], pointer);
+        window.DropItemOnEquipment(equipment.First(s => s.AcceptedCategory == ItemCategory.Armor));
+        window.EndItemDrag();
+        Check(inventory.GetEquipped(ItemCategory.Weapon) == null && inventory.GetEquipped(ItemCategory.Armor)?.itemId != "iron_sword", "다른 부위 칸에 놓으면 장착 안 됨");
+        window.BeginItemDrag(bag[iron.slotIndex], pointer);
+        window.DropItemOnEquipment(weaponSlot);
+        window.EndItemDrag();
+        Check(inventory.GetEquipped(ItemCategory.Weapon) == iron, "가방 → 무기 칸 드래그 → 장착");
+        window.Close();
+    }
+
+    static void RightClick(GameObject target, UnityEngine.EventSystems.EventSystem eventSystem) =>
+        UnityEngine.EventSystems.ExecuteEvents.Execute(target,
+            new UnityEngine.EventSystems.PointerEventData(eventSystem) { button = UnityEngine.EventSystems.PointerEventData.InputButton.Right },
+            UnityEngine.EventSystems.ExecuteEvents.pointerClickHandler);
+
+    static T Field<T>(object target, string name) =>
+        (T)target.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(target);
 
     static void Invoke(object target, string method, params object[] args) =>
         target.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).Invoke(target, args);

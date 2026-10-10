@@ -1,3 +1,4 @@
+using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,6 +20,7 @@ public sealed class ItemTooltip : MonoBehaviour
     [SerializeField] TMP_Text itemQuantityText;
 
     RectTransform Rect => (RectTransform)transform;
+    Color? defaultNameColor;
 
 #if UNITY_EDITOR
     /// <summary>에디터에서 UI 를 만들 때 참조를 연결한다.</summary>
@@ -30,13 +32,20 @@ public sealed class ItemTooltip : MonoBehaviour
 #endif
 
     /// <param name="definition">아이템 정의. 목록에 없는 옛 아이템이면 null 이고 저장된 이름만 보여 준다.</param>
+    /// <param name="equipped">같은 부위에 장착 중인 장비. 있으면 능력치 차이(▲▼)를 보여 준다. 자기 자신이거나 null 이면 비교하지 않는다.</param>
     /// <param name="window">툴팁이 가리지 않게 비켜 줄 창. 툴팁은 이 창 바깥 왼쪽, 칸과 같은 높이에 붙는다.</param>
-    public void Show(InventoryEntry entry, ItemDefinition definition, RectTransform slot, RectTransform window)
+    public void Show(InventoryEntry entry, ItemDefinition definition, InventoryEntry equipped, RectTransform slot, RectTransform window)
     {
+        if (defaultNameColor == null) defaultNameColor = itemNameText.color;
+        bool isEquipment = definition != null && definition.maxStack == 1 && definition.category != ItemCategory.Misc;
         itemNameText.text = entry.displayName;
-        itemCategoryText.text = ItemDefinition.CategoryLabel(definition != null ? definition.category : ItemCategory.Misc);
+        itemNameText.color = isEquipment ? ItemRarityTable.Color(entry.rarity) : defaultNameColor.Value;
+        string categoryLabel = ItemDefinition.CategoryLabel(definition != null ? definition.category : ItemCategory.Misc);
+        itemCategoryText.text = isEquipment ? $"{ItemRarityTable.Label(entry.rarity)} · {definition.tier}단계 {categoryLabel}" : categoryLabel;
         string description = definition != null ? definition.description : null;
-        itemDescriptionText.text = string.IsNullOrWhiteSpace(description) ? "설명이 없습니다." : description;
+        if (string.IsNullOrWhiteSpace(description)) description = "설명이 없습니다.";
+        itemDescriptionText.text = isEquipment ? StatText(entry, definition, equipped) + "\n" + description : description;
+        itemQuantityText.gameObject.SetActive(!isEquipment);
         itemQuantityText.text = $"보유 수량  {entry.quantity}";
         gameObject.SetActive(true);
         LayoutRebuilder.ForceRebuildLayoutImmediate(Rect);
@@ -44,6 +53,39 @@ public sealed class ItemTooltip : MonoBehaviour
     }
 
     public void Hide() => gameObject.SetActive(false);
+
+    static readonly ItemStat[] WeaponStats = { ItemStat.Attack, ItemStat.CritChance, ItemStat.AttackSpeed };
+    static readonly ItemStat[] ArmorStats = { ItemStat.MaxHp, ItemStat.Defense, ItemStat.Evasion };
+
+    /// <summary>기본 능력치·옵션 줄과, 장착품과 다른 능력치의 차이.</summary>
+    static string StatText(InventoryEntry entry, ItemDefinition definition, InventoryEntry equipped)
+    {
+        var mine = new EquipmentStats();
+        mine.AddItem(definition, entry.rarity, entry.options);
+        var text = new StringBuilder();
+        var baseStats = definition.category == ItemCategory.Weapon ? WeaponStats : definition.category == ItemCategory.Armor ? ArmorStats : new ItemStat[0];
+        foreach (var stat in baseStats)
+        {
+            float value = mine[stat];
+            foreach (var option in entry.options) if (option.stat == stat) value -= option.value;
+            text.Append(ItemOptionTable.Label(stat)).Append(' ').Append(ItemOptionTable.FormatValue(stat, value)).Append('\n');
+        }
+        foreach (var option in entry.options) text.Append("<color=#C9B27C>◆ ").Append(ItemOptionTable.Format(option)).Append("</color>\n");
+
+        if (equipped == null || equipped == entry) return text.ToString();
+        var other = new EquipmentStats();
+        other.AddItem(ItemDatabase.Instance != null ? ItemDatabase.Instance.Find(equipped.itemId) : null, equipped.rarity, equipped.options);
+        var compare = new StringBuilder();
+        foreach (ItemStat stat in System.Enum.GetValues(typeof(ItemStat)))
+        {
+            float difference = mine[stat] - other[stat];
+            if (Mathf.Abs(difference) < 0.0001f) continue;
+            string amount = ItemOptionTable.FormatValue(stat, Mathf.Abs(difference)).Substring(1);
+            compare.Append(ItemOptionTable.Label(stat)).Append(difference > 0 ? " <color=#7CFC9A>▲" : " <color=#FF7A7A>▼").Append(amount).Append("</color>\n");
+        }
+        if (compare.Length > 0) text.Append("<color=#8A9A94>장착 중인 장비와 비교</color>\n").Append(compare);
+        return text.ToString();
+    }
 
     void PlaceBeside(RectTransform slot, RectTransform window)
     {

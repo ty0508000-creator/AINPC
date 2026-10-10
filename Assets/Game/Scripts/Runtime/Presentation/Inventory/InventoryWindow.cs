@@ -33,6 +33,10 @@ public sealed class InventoryWindow : MonoBehaviour
     PlayerInventory inventory;
     InventorySlotView draggingFromSlot;
     InventorySlotView hoveredSlot;
+    EquipmentSlotView hoveredEquipment;
+
+    // 런타임 정의 목록. 검증 코드가 ItemDatabase.Instance 를 바꿔 끼우면 그것을 따른다.
+    ItemDatabase Database => ItemDatabase.Instance != null ? ItemDatabase.Instance : itemDatabase;
 
 #if UNITY_EDITOR
     /// <summary>에디터에서 UI 를 만들 때 참조를 연결한다.</summary>
@@ -136,13 +140,20 @@ public sealed class InventoryWindow : MonoBehaviour
         {
             var entry = inventory.GetItemInSlot(slot.SlotIndex);
             if (entry == null) slot.ShowEmpty();
-            else slot.ShowItem(itemDatabase != null ? itemDatabase.Find(entry.itemId)?.icon : null, entry.displayName);
+            else slot.ShowItem(Database?.Find(entry.itemId)?.icon, entry.displayName, FrameColor(entry));
         }
-        foreach (var slot in equipmentSlots) slot.ShowEmpty();
+        foreach (var slot in equipmentSlots)
+        {
+            var equipped = inventory.GetEquipped(slot.AcceptedCategory);
+            if (equipped == null) slot.ShowEmpty();
+            else slot.ShowItem(Database?.Find(equipped.itemId)?.icon, equipped.rarity);
+            slot.SetHovered(slot == hoveredEquipment);
+        }
         usedSlotCountText.text = $"{inventory.UsedSlotCount} / {PlayerInventory.SlotCount}";
 
         if (draggingFromSlot != null) draggingFromSlot.SetFaded(true);
         if (hoveredSlot != null && draggingFromSlot == null) ShowTooltipFor(hoveredSlot);
+        else if (hoveredEquipment != null && draggingFromSlot == null) ShowTooltipFor(hoveredEquipment);
         else itemTooltip.Hide();
     }
 
@@ -150,15 +161,30 @@ public sealed class InventoryWindow : MonoBehaviour
     {
         var entry = inventory.GetItemInSlot(slot.SlotIndex);
         if (entry == null) { itemTooltip.Hide(); return; }
-        itemTooltip.Show(entry, itemDatabase != null ? itemDatabase.Find(entry.itemId) : null, slot.Rect, (RectTransform)windowPanel.transform);
+        var definition = Database?.Find(entry.itemId);
+        var equipped = definition != null ? inventory.GetEquipped(definition.category) : null;
+        itemTooltip.Show(entry, definition, equipped, slot.Rect, (RectTransform)windowPanel.transform);
     }
+
+    void ShowTooltipFor(EquipmentSlotView slot)
+    {
+        var entry = inventory.GetEquipped(slot.AcceptedCategory);
+        if (entry == null) { itemTooltip.Hide(); return; }
+        itemTooltip.Show(entry, Database?.Find(entry.itemId), null, slot.Rect, (RectTransform)windowPanel.transform);
+    }
+
+    // 장비(겹침 1)는 등급색 테두리, 겹치는 아이템은 흰색.
+    Color FrameColor(InventoryEntry entry) =>
+        Database?.Find(entry.itemId)?.maxStack == 1 ? ItemRarityTable.Color(entry.rarity) : Color.white;
 
     void HideTransientParts()
     {
         if (itemTooltip != null) itemTooltip.Hide();
         if (dragIcon != null) dragIcon.gameObject.SetActive(false);
         if (hoveredSlot != null) hoveredSlot.SetHovered(false);
+        if (hoveredEquipment != null) hoveredEquipment.SetHovered(false);
         hoveredSlot = null;
+        hoveredEquipment = null;
     }
 
     // ── 칸 입력 (InventorySlotView 가 호출) ─────────────────────
@@ -187,7 +213,7 @@ public sealed class InventoryWindow : MonoBehaviour
         itemTooltip.Hide();
 
         var entry = inventory.GetItemInSlot(slot.SlotIndex);
-        var icon = itemDatabase != null ? itemDatabase.Find(entry.itemId)?.icon : null;
+        var icon = Database?.Find(entry.itemId)?.icon;
         dragIcon.sprite = icon;
         dragIcon.color = icon != null ? Color.white : new Color(1f, 1f, 1f, 0.4f);
         dragIcon.gameObject.SetActive(true);
@@ -210,6 +236,46 @@ public sealed class InventoryWindow : MonoBehaviour
         inventory.MoveItem(from.SlotIndex, target.SlotIndex);
         // 놓은 칸 위에 마우스가 그대로 있으니 옮겨진 아이템 정보를 바로 보여 준다.
         if (hoveredSlot == target) ShowTooltipFor(target);
+    }
+
+    /// <summary>가방 칸 우클릭: 장비면 해당 부위에 장착한다.</summary>
+    public void OnSlotRightClick(InventorySlotView slot)
+    {
+        if (openWindow != this || draggingFromSlot != null) return;
+        inventory.Equip(slot.SlotIndex);
+    }
+
+    /// <summary>장비 칸 우클릭: 가방 빈칸으로 벗는다. 가방이 가득 차면 그대로.</summary>
+    public void UnequipFrom(EquipmentSlotView slot)
+    {
+        if (openWindow != this || draggingFromSlot != null) return;
+        inventory.Unequip(slot.AcceptedCategory);
+    }
+
+    /// <summary>가방 칸을 장비 칸에 놓았을 때. 부위가 맞을 때만 장착한다.</summary>
+    public void DropItemOnEquipment(EquipmentSlotView target)
+    {
+        if (draggingFromSlot == null) return;
+        var from = draggingFromSlot;
+        CancelItemDrag();
+        var entry = inventory.GetItemInSlot(from.SlotIndex);
+        if (entry != null && Database?.Find(entry.itemId)?.category == target.AcceptedCategory) inventory.Equip(from.SlotIndex);
+    }
+
+    public void OnEquipmentPointerEnter(EquipmentSlotView slot)
+    {
+        if (openWindow != this) return;
+        hoveredEquipment = slot;
+        slot.SetHovered(true);
+        if (draggingFromSlot == null) ShowTooltipFor(slot);
+    }
+
+    public void OnEquipmentPointerExit(EquipmentSlotView slot)
+    {
+        slot.SetHovered(false);
+        if (hoveredEquipment != slot) return;
+        hoveredEquipment = null;
+        itemTooltip.Hide();
     }
 
     /// <summary>칸 밖에 놓았을 때도 불린다. 이미 놓기가 처리됐으면 아무것도 하지 않는다.</summary>
