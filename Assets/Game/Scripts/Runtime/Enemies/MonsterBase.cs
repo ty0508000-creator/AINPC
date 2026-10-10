@@ -132,6 +132,14 @@ public abstract class MonsterBase : MonoBehaviour, IDamageable
             targetStats.OnKill();
         }
 
+        if (monsterData != null && monsterData.DropTier > 0)
+        {
+            bool boss = GetComponent<StageBoss>() != null || this is AshKingBoss;
+            float dropRateBonus = targetStats != null ? targetStats.Gear[ItemStat.DropRate] : 0f;
+            var drop = ItemDrop.Roll(monsterData.DropTier, boss, dropRateBonus, ItemDatabase.Instance, ItemDrop.Rng);
+            if (drop != null) ItemDrop.Spawn(drop, transform.position);
+        }
+
         // 퀘스트 진행 보고 (Kill 목표의 targetId 는 MonsterData 의 monsterName)
         if (monsterData != null)
             QuestManager.Instance?.ReportKill(monsterData.MonsterName);

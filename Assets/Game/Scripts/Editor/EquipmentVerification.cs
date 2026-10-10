@@ -34,6 +34,7 @@ public static class EquipmentVerification
             ItemDatabase.Instance = db;
             VerifyInventory(db, created);
             VerifyCombat(db, created);
+            VerifyDrops(db, created);
             result = $"PASS {checks} checks";
         }
         catch (Exception e)
@@ -133,6 +134,9 @@ public static class EquipmentVerification
         var leather = Def(created, "leather_armor", ItemCategory.Armor, 2); leather.maxHp = 30; leather.defense = 5; leather.evasion = .02f;
         Def(created, "old_talisman", ItemCategory.Accessory, 1);
         Def(created, "jade_norigae", ItemCategory.Accessory, 2);
+        Def(created, "steel_sword", ItemCategory.Weapon, 3);
+        Def(created, "chain_armor", ItemCategory.Armor, 3);
+        Def(created, "silver_bracelet", ItemCategory.Accessory, 3);
         db.items = created.OfType<ItemDefinition>().ToList();
         for (int i = 0; i < PlayerInventory.SlotCount; i++) db.items.Add(Def(created, $"filler_{i:00}", ItemCategory.Misc, 1, 5));
         return db;
@@ -314,6 +318,63 @@ public static class EquipmentVerification
         Check(Mathf.Approximately(stats.HP, hpBefore + 7f), "처치 시 회복");
         Check(Mathf.Approximately(stats.MaxMana, stats.BaseMaxMana + 20f) && stats.Defense == 3, "최대 내력·방어력 옵션");
     }
+
+    // ── 드롭과 줍기 ─────────────────────────────────────────────
+
+    static void VerifyDrops(ItemDatabase db, List<UnityEngine.Object> created)
+    {
+        var rng = new System.Random(42);
+        int dropped = 0, wrongTier = 0;
+        for (int i = 0; i < 100000; i++)
+        {
+            var entry = ItemDrop.Roll(2, false, 0f, db, rng);
+            if (entry == null) continue;
+            dropped++;
+            if (db.Find(entry.itemId).tier != 2) wrongTier++;
+        }
+        Check(Math.Abs(dropped / 100000f - 0.01f) < 0.002f && wrongTier == 0, $"HuntingRate: {dropped / 1000f:0.00}%, 모두 2단계");
+
+        dropped = 0;
+        for (int i = 0; i < 100000; i++) if (ItemDrop.Roll(2, false, 1f, db, rng) != null) dropped++;
+        Check(Math.Abs(dropped / 100000f - 0.02f) < 0.003f, $"DropRateBonus: {dropped / 1000f:0.00}%");
+
+        var categories = new HashSet<ItemCategory>();
+        bool allBoss = true;
+        for (int i = 0; i < 1000; i++)
+        {
+            var entry = ItemDrop.Roll(3, true, 0f, db, rng);
+            allBoss &= entry != null && entry.rarity != ItemRarity.Normal && db.Find(entry.itemId).tier == 3;
+            if (entry != null) categories.Add(db.Find(entry.itemId).category);
+        }
+        Check(allBoss && categories.Count == 3, "BossAlwaysDrops: Normal 없음, 세 부위 모두");
+        Check(ItemDrop.Roll(5, true, 0f, db, rng) == null, "해당 단계 정의가 없으면 드롭 없음");
+        var accessory = ItemDrop.Roll(3, true, 0f, db, new System.Random(3));
+        for (int seed = 4; db.Find(accessory.itemId).category != ItemCategory.Accessory; seed++) accessory = ItemDrop.Roll(3, true, 0f, db, new System.Random(seed));
+        Check(accessory.options.Count >= 1, "장신구 드롭에는 옵션이 붙음");
+
+        // 줍기: 가방이 가득 차면 남고, 비어 있는 장착 칸에는 바로 낀다.
+        SaveSystem.DeleteSave();
+        var stats = CreatePlayer(created);
+        stats.gameObject.AddComponent<BoxCollider2D>();
+        var inventory = stats.GetComponent<PlayerInventory>();
+        for (int i = 0; inventory.UsedSlotCount < PlayerInventory.SlotCount; i++) inventory.TryAdd(db.Find($"filler_{i:00}"));
+        var pickup = ItemDrop.Spawn(PlayerInventory.CreateInstance(db.Find("iron_sword"), ItemRarity.Epic, rng), Vector3.zero);
+        created.Add(pickup.gameObject);
+        Check(pickup.GetComponent<YSortRenderer>() != null && pickup.GetComponent<Collider2D>().isTrigger &&
+              pickup.GetComponent<SpriteRenderer>() != null, "드롭 오브젝트: 정렬·트리거·스프라이트");
+        var label = pickup.GetComponentInChildren<TMPro.TMP_Text>();
+        Check(label != null && label.color == ItemRarityTable.Color(ItemRarity.Epic), "이름표가 등급색");
+        Invoke(pickup, "OnTriggerEnter2D", stats.GetComponent<Collider2D>());
+        Check(pickup != null && inventory.GetEquipped(ItemCategory.Weapon) == null && inventory.Count("iron_sword") == 0, "PickupStaysWhenBagFull");
+
+        inventory.Remove("filler_00");
+        Invoke(pickup, "OnTriggerEnter2D", stats.GetComponent<Collider2D>());
+        Check(inventory.GetEquipped(ItemCategory.Weapon)?.rarity == ItemRarity.Epic && inventory.Count("iron_sword") == 1, "PickupAutoEquipsEmptySlot");
+        Check(pickup == null, "주운 오브젝트는 사라짐");
+    }
+
+    static void Invoke(object target, string method, params object[] args) =>
+        target.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).Invoke(target, args);
 
     static float SumOption(PlayerInventory inventory, ItemStat stat) =>
         new[] { ItemCategory.Weapon, ItemCategory.Armor, ItemCategory.Accessory }
