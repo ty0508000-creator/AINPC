@@ -267,7 +267,8 @@ public sealed class PlayerInventory : MonoBehaviour
                 entry.slotIndex = claimable ? saved.slotIndex : FirstFreeSlot();
                 items.Add(entry);
             }
-        if (data?.equipped != null)
+        // JsonUtility 는 null 배열을 [] 로 쓰므로 빈 배열도 장비 기능 이전 저장으로 본다.
+        if (data?.equipped != null && data.equipped.Length > 0)
         {
             for (int i = 0; i < equipped.Length && i < data.equipped.Length; i++)
                 if (data.equipped[i] != null && !string.IsNullOrWhiteSpace(data.equipped[i].itemId))
@@ -313,18 +314,26 @@ public sealed class PlayerInventory : MonoBehaviour
         foreach (var item in inventory)
         {
             if (item == null || string.IsNullOrWhiteSpace(item.itemId) || item.quantity <= 0 ||
-                item.slotIndex < -1 || item.slotIndex >= SlotCount || !ValidRarity(item))
+                item.slotIndex < -1 || item.slotIndex >= SlotCount || !ValidRarity(item) || !ValidOptions(item))
                 throw new InvalidDataException("잘못된 인벤토리 저장 항목");
             // 겹치는 아이템은 한 줄이어야 한다. 겹침 1 장비는 개체마다 한 줄이라 같은 id 가 여러 번 나온다.
             bool instanced = ItemDatabase.Instance != null && ItemDatabase.Instance.Find(item.itemId)?.maxStack == 1;
             if (!ids.Add(item.itemId) && !instanced) throw new InvalidDataException("잘못된 인벤토리 저장 항목");
         }
-        if (equippedItems == null) return;
+        if (equippedItems == null || equippedItems.Length == 0) return;   // 장비 기능 이전 저장
         if (equippedItems.Length != EquipmentSlotCount) throw new InvalidDataException("장착 칸 저장 오류");
         foreach (var item in equippedItems)
-            if (item != null && !string.IsNullOrWhiteSpace(item.itemId) && (item.quantity <= 0 || !ValidRarity(item)))
+            if (item != null && !string.IsNullOrWhiteSpace(item.itemId) && (item.quantity <= 0 || !ValidRarity(item) || !ValidOptions(item)))
                 throw new InvalidDataException("장착 칸 저장 오류");
     }
 
     static bool ValidRarity(InventorySaveEntry item) => item.rarity >= 0 && item.rarity <= (int)ItemRarity.Legendary;
+
+    static bool ValidOptions(InventorySaveEntry item)
+    {
+        if (item.options == null) return true;
+        foreach (var option in item.options)
+            if (!Enum.IsDefined(typeof(ItemStat), option.stat) || float.IsNaN(option.value) || float.IsInfinity(option.value)) return false;
+        return true;
+    }
 }

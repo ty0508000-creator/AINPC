@@ -19,6 +19,9 @@ public static class RpgVerification
         string saves = Path.Combine(output, Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(saves);
         SaveSystem.VerificationDirectory = saves;
+        // 장비 없는 성장 공식만 본다. 시작 장비(무작위 부적 옵션 포함)는 EquipmentVerification 이 검사한다.
+        ItemDatabase.Instance = ScriptableObject.CreateInstance<ItemDatabase>();
+        ItemDatabase.Instance.hideFlags = HideFlags.HideAndDontSave;   // NewScene 의 미사용 에셋 정리에 지워지지 않게
         try
         {
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -155,7 +158,7 @@ public static class RpgVerification
             File.WriteAllText(Path.Combine(output, "result.txt"), "FAIL: " + e);
             EditorApplication.Exit(1);
         }
-        finally { SaveSystem.VerificationDirectory = null; }
+        finally { SaveSystem.VerificationDirectory = null; ItemDatabase.Instance = null; }
     }
 
     static void Check(bool condition, string name)

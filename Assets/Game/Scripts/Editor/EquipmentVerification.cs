@@ -263,6 +263,13 @@ public static class EquipmentVerification
         Check(Throws(() => PlayerInventory.Validate(new[] { new InventorySaveEntry { itemId = "iron_sword", quantity = 1, rarity = 5 } }, null)),
             "등급 범위 밖은 거부");
         Check(Throws(() => PlayerInventory.Validate(Array.Empty<InventorySaveEntry>(), new InventorySaveEntry[2])), "장착 칸 수가 3이 아니면 거부");
+        // JsonUtility 는 null 배열을 [] 로 쓴다. 플레이어 없이 옛 저장을 다시 쓰면 equipped 가 빈 배열이 된다.
+        Check(!Throws(() => PlayerInventory.Validate(Array.Empty<InventorySaveEntry>(), new InventorySaveEntry[0])), "빈 장착 배열은 옛 저장으로 허용");
+        reloaded.Load(new PlayerSaveData { level = 2, inventory = Array.Empty<InventorySaveEntry>(), equipped = new InventorySaveEntry[0] });
+        Check(reloaded.GetEquipped(ItemCategory.Armor)?.itemId == "cloth_armor", "빈 장착 배열 저장도 시작 장비를 받음");
+        Check(Throws(() => PlayerInventory.Validate(new[] { new InventorySaveEntry { itemId = "jade_norigae", quantity = 1, options = new[] { new ItemOption { stat = (ItemStat)99, value = 1 } } } })) &&
+              Throws(() => PlayerInventory.Validate(new[] { new InventorySaveEntry { itemId = "jade_norigae", quantity = 1, options = new[] { new ItemOption { stat = ItemStat.MaxHp, value = float.NaN } } } })),
+            "옵션 종류·값이 잘못된 저장은 거부");
     }
 
     // ── 전투 반영 ───────────────────────────────────────────────
@@ -329,6 +336,22 @@ public static class EquipmentVerification
         float hpBefore = stats.HP;
         int dealt = stats.DealDamage(probe, 20);
         Check(Mathf.Approximately(stats.HP, hpBefore + dealt * 0.5f), "흡혈 회복");
+        // 흡혈은 실제로 깎은 체력만큼만. 넘친 피해와 이미 쓰러진 몬스터에게 준 피해는 회복하지 않는다.
+        var monsterObject = new GameObject("Lifesteal target", typeof(SpriteRenderer), typeof(Rigidbody2D), typeof(BoxCollider2D));
+        created.Add(monsterObject);
+        var monster = monsterObject.AddComponent<MushroomMonster>();
+        var monsterData = ScriptableObject.CreateInstance<MonsterData>();
+        created.Add(monsterData);
+        var so = new SerializedObject(monsterData);
+        so.FindProperty("maxHP").floatValue = 10f; so.FindProperty("expReward").floatValue = 0f; so.ApplyModifiedPropertiesWithoutUndo();
+        monster.Initialize(monsterData, null);
+        stats.TakeDamage(40);
+        hpBefore = stats.HP;
+        stats.DealDamage(monster, 100);
+        Check(Mathf.Approximately(stats.HP, hpBefore + 5f), "넘친 피해는 흡혈하지 않음 (체력 10 × 0.5)");
+        hpBefore = stats.HP;
+        stats.DealDamage(monster, 50);
+        Check(Mathf.Approximately(stats.HP, hpBefore), "쓰러진 몬스터 타격은 흡혈하지 않음");
 
         // 회피: 상한 15%.
         inventory.Unequip(ItemCategory.Accessory);

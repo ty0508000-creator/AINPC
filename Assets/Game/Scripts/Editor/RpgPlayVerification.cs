@@ -39,6 +39,9 @@ public static class RpgPlayVerification
         if (!SessionState.GetBool(Pending, false)) return;
         if (state == PlayModeStateChange.EnteredPlayMode)
         {
+            // 장비 없는 전투·회복 공식만 본다. 시작 장비는 EquipmentVerification 이 검사한다.
+            ItemDatabase.Instance = ScriptableObject.CreateInstance<ItemDatabase>();
+            ItemDatabase.Instance.hideFlags = HideFlags.HideAndDontSave;   // NewScene 의 미사용 에셋 정리에 지워지지 않게
             var player = new GameObject("Combat verification player");
             player.AddComponent<SpriteRenderer>();
             var animation = player.AddComponent<Animator>();
@@ -122,7 +125,7 @@ public static class RpgPlayVerification
             Check(skills.TryCast(0), "offensive skill casts");
             CheckMotion("MoonSlash");
             float currentHP = (float)typeof(MonsterBase).GetField("currentHP", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(enemy);
-            Check(Mathf.Approximately(currentHP, 82), "18 damage applied once across multiple colliders");
+            Check(Mathf.Approximately(currentHP, 100 - Mathf.RoundToInt(attack.AttackPower * 1.8f)), "MoonSlash damage applied once across multiple colliders");
             remainingMana = stats.Mana;
             Check(!skills.TryCast(0) && stats.Mana == remainingMana, "attack cooldown prevents repeated damage");
             var ui = stats.GetComponent<RpgUI>(); ui.Open(true);

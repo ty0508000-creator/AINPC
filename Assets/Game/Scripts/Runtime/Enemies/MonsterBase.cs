@@ -15,6 +15,8 @@ public abstract class MonsterBase : MonoBehaviour, IDamageable
     public event System.Action<MonsterBase> Died;
 
     private float currentHP;
+    /// <summary>남은 체력. 흡혈이 실제로 깎은 양을 재는 데 쓴다.</summary>
+    public float CurrentHP => currentHP;
     private float lastAttackTime = -999f;
     private Vector2 moveDirection;
 

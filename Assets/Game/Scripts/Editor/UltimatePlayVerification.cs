@@ -35,6 +35,9 @@ public static class UltimatePlayVerification
         if (!SessionState.GetBool(Pending, false)) return;
         if (state == PlayModeStateChange.EnteredPlayMode)
         {
+            // 무작위 부적 옵션(치명타 등)이 피해 검사를 흔들지 않게 장비 없이 시작한다.
+            ItemDatabase.Instance = ScriptableObject.CreateInstance<ItemDatabase>();
+            ItemDatabase.Instance.hideFlags = HideFlags.HideAndDontSave;   // NewScene 의 미사용 에셋 정리에 지워지지 않게
             var player = new GameObject("Ultimate test player");
             player.AddComponent<SpriteRenderer>();
             player.AddComponent<Animator>().runtimeAnimatorController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>("Assets/Art/Characters/Samurai/ElderSamurai.controller");
@@ -84,7 +87,7 @@ public static class UltimatePlayVerification
                     target.Initialize(data, null); Physics2D.SyncTransforms(); due = Time.time + 1.2f; break;
                 case 2:
                     Check(ultimate.HitCount >= 10, "swords deliver rapid repeated attacks");
-                    Check(Mathf.Approximately(HP(target), 10000 - ultimate.HitCount * 4), "each flight damages once despite multiple colliders");
+                    Check(Mathf.Approximately(HP(target), 10000 - ultimate.HitCount * Mathf.Max(1, Mathf.RoundToInt(stats.GetComponent<Player_Attack>().AttackPower * 0.35f))), "each flight damages once despite multiple colliders");
                     hits = ultimate.HitCount; stats.GetComponent<RpgUI>().Open(true); due = Time.time + 0.25f; break;
                 case 3:
                     Check(ultimate.HitCount == hits, "open UI suspends sword damage");

@@ -98,8 +98,12 @@ public class PlayerStats : MonoBehaviour, IDamageable
         if (target is Component component && (component.GetComponent<StageBoss>() != null || component is AshKingBoss))
             damage *= 1f + Gear[ItemStat.BossDamage];
         int dealt = Mathf.Max(1, Mathf.RoundToInt(damage));
+        var monster = target as MonsterBase;
+        float hpBefore = monster != null ? monster.CurrentHP : 0f;
         target.TakeDamage(dealt);
-        if (Gear[ItemStat.LifeSteal] > 0f) Heal(dealt * Gear[ItemStat.LifeSteal]);
+        // 흡혈은 실제로 깎은 체력만큼. 넘친 피해, 이미 쓰러졌거나 피해를 무시한 몬스터는 회복하지 않는다.
+        float removed = monster != null ? hpBefore - monster.CurrentHP : dealt;
+        if (Gear[ItemStat.LifeSteal] > 0f && removed > 0f) Heal(removed * Gear[ItemStat.LifeSteal]);
         return dealt;
     }
 
