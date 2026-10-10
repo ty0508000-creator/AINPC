@@ -127,7 +127,10 @@ public abstract class MonsterBase : MonoBehaviour, IDamageable
             FindPlayer();
 
         if (targetStats != null && monsterData != null)
+        {
             targetStats.AddEXP(monsterData.ExpReward);
+            targetStats.OnKill();
+        }
 
         // 퀘스트 진행 보고 (Kill 목표의 targetId 는 MonsterData 의 monsterName)
         if (monsterData != null)

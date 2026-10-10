@@ -21,6 +21,8 @@ public class RpgSkillController : MonoBehaviour
     public event Action<string> OnFeedback;
     public float GuardRemaining => Mathf.Max(0f, guardUntil - Time.time);
     public float DamageMultiplier => GuardRemaining > 0f ? 0.65f - stats.SkillRanks[3] * 0.08f : 1f;
+    /// <summary>공격속도를 반영한 재사용 대기시간.</summary>
+    public float CooldownFor(int id) => RpgSkillCatalog.All[id].Cooldown / (GetComponent<PlayerStats>()?.AttackSpeed ?? 1f);
     public float Remaining(int id) => id >= 0 && id < readyAt.Length ? Mathf.Max(0f, readyAt[id] - Time.time) : 0f;
     // WASD 주변 키. E는 상호작용, R은 사망 상태에서만 재도전으로 사용한다.
     public static Key Hotkey(int id) => id == 0 ? Key.Q : id == 3 ? Key.R : id == 6 ? Key.F : id == RpgSkillCatalog.Ultimate ? Key.Z : Key.None;
@@ -67,7 +69,7 @@ public class RpgSkillController : MonoBehaviour
         if (id == 6 && stats.HP >= stats.MaxHP) return Fail("체력이 이미 가득 찼습니다.");
         var skill = RpgSkillCatalog.All[id];
         if (!stats.TrySpendMana(skill.ManaCost)) return Fail("내력이 부족합니다.");
-        readyAt[id] = Time.time + skill.Cooldown;
+        readyAt[id] = Time.time + CooldownFor(id);
         if (id == 0)
         {
             var mover = GetComponent<Player_Controller>();
@@ -84,7 +86,7 @@ public class RpgSkillController : MonoBehaviour
             {
                 var monster = hit.GetComponentInParent<MonsterBase>();
                 if (monster != null && struck.Add(monster))
-                    monster.TakeDamage(Mathf.RoundToInt(attack.AttackPower * (1.8f + (stats.SkillRanks[0] - 1) * 0.4f)));
+                    stats.DealDamage(monster, Mathf.RoundToInt(attack.AttackPower * (1.8f + (stats.SkillRanks[0] - 1) * 0.4f)));
             }
             PlayMotion("MoonSlash", direction);
             StartCoroutine(Ring(transform.position, radius, new Color(0.85f, 0.93f, 1f), direction, 0.45f));

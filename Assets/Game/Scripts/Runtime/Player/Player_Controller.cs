@@ -73,6 +73,7 @@ public class Player_Controller : MonoBehaviour
         if (isAIControlled)
             return;
 
-        rb.linearVelocity = moveInput.normalized * moveSpeed;
+        float gearSpeed = GetComponent<PlayerInventory>()?.Stats[ItemStat.MoveSpeed] ?? 0f;
+        rb.linearVelocity = moveInput.normalized * moveSpeed * (1f + gearSpeed);
     }
 }

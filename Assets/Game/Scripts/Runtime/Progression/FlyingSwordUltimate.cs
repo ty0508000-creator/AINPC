@@ -103,7 +103,7 @@ public sealed class FlyingSwordUltimate : MonoBehaviour
             if (Vector3.Distance(sword.transform.position, destination) > 0.12f) continue;
             if (sword.phase == 1)
             {
-                sword.target.TakeDamage(damage); HitCount++; sword.phase = 2; sword.target = null;
+                stats.DealDamage(sword.target, damage); HitCount++; sword.phase = 2; sword.target = null;
             }
             else { sword.phase = 0; sword.availableAt = Time.time + 0.06f; sword.trail.emitting = false; }
         }

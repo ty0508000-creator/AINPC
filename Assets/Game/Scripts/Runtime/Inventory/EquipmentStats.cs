@@ -18,6 +18,9 @@ public sealed class EquipmentStats
 
     public void Clear() => Array.Clear(values, 0, values.Length);
 
+    /// <summary>0.5 는 올린다. Mathf.Round 는 짝수 쪽으로 반올림해 52.5 가 52 가 된다.</summary>
+    public static float RoundHalfUp(float value) => (float)Math.Round(value, MidpointRounding.AwayFromZero);
+
     public void AddItem(ItemDefinition definition, ItemRarity rarity, IReadOnlyList<ItemOption> options)
     {
         if (definition != null)
@@ -25,14 +28,14 @@ public sealed class EquipmentStats
             float m = ItemRarityTable.Multiplier(rarity);
             if (definition.category == ItemCategory.Weapon)
             {
-                values[(int)ItemStat.Attack] += Mathf.Round(definition.attack * m);
+                values[(int)ItemStat.Attack] += RoundHalfUp(definition.attack * m);
                 values[(int)ItemStat.CritChance] += definition.critChance * m;
                 values[(int)ItemStat.AttackSpeed] += (definition.attackSpeed - 1f) * m;
             }
             else if (definition.category == ItemCategory.Armor)
             {
-                values[(int)ItemStat.MaxHp] += Mathf.Round(definition.maxHp * m);
-                values[(int)ItemStat.Defense] += Mathf.Round(definition.defense * m);
+                values[(int)ItemStat.MaxHp] += RoundHalfUp(definition.maxHp * m);
+                values[(int)ItemStat.Defense] += RoundHalfUp(definition.defense * m);
                 values[(int)ItemStat.Evasion] += definition.evasion * m;
             }
         }

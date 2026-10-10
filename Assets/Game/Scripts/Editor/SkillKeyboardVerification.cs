@@ -38,7 +38,7 @@ public static class SkillKeyboardVerification
             var player=UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player.prefab"));
             player.AddComponent<Player_Attack>();stats=player.AddComponent<PlayerStats>();skills=player.GetComponent<RpgSkillController>();
             player.GetComponent<RpgUI>().BakeSceneUI();player.GetComponent<RpgUI>().BakeUltimateWidgets();
-            stats.MaxMana=150;stats.RestoreMana(150);foreach(int id in new[]{0,3,6,9})stats.SkillRanks[id]=1;
+            stats.BaseMaxMana=150;stats.RestoreMana(150);foreach(int id in new[]{0,3,6,9})stats.SkillRanks[id]=1;
             stage=checks=0;due=EditorApplication.timeSinceStartup+.75;EditorApplication.update+=Tick;
         }
         if(state==PlayModeStateChange.EnteredEditMode) {

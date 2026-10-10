@@ -42,7 +42,15 @@ public sealed class PlayerInventory : MonoBehaviour
     /// <summary>장착 칸이 바뀔 때 알린다. 능력치 갱신용.</summary>
     public event Action EquipmentChanged;
 
-    void Awake() => Load(SaveSystem.LoadPlayer());
+    bool loaded;
+
+    void Awake() => EnsureLoaded();
+
+    /// <summary>저장에서 한 번만 읽는다. PlayerStats 가 체력을 자르기 전에 먼저 부른다.</summary>
+    public void EnsureLoaded()
+    {
+        if (!loaded) Load(SaveSystem.LoadPlayer());
+    }
 
     /// <summary>가방과 장착 칸을 합친 보유 수.</summary>
     public int Count(string itemId)
@@ -246,6 +254,7 @@ public sealed class PlayerInventory : MonoBehaviour
 
     public void Load(PlayerSaveData data)
     {
+        loaded = true;
         items.Clear();
         Array.Clear(equipped, 0, equipped.Length);
         if (data?.inventory != null)

@@ -241,8 +241,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
   Level: 1
-  MaxHP: 100
-  MaxMana: 50
+  BaseMaxHP: 100
+  BaseMaxMana: 50
   MaxEXP: 100
   hpIncreasePerLevel: 20
   manaIncreasePerLevel: 10
@@ -260,7 +260,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c66cf11fb42b7843a973b95864b8d8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player_Attack
-  attackDamage: 10
+  attackDamage: 6
   attackRange: 1
   attackWidth: 1
   attackCooldown: 0.8

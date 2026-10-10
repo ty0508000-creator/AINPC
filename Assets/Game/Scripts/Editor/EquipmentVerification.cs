@@ -33,6 +33,7 @@ public static class EquipmentVerification
             var db = CreateTestDatabase(created);
             ItemDatabase.Instance = db;
             VerifyInventory(db, created);
+            VerifyCombat(db, created);
             result = $"PASS {checks} checks";
         }
         catch (Exception e)
@@ -172,11 +173,11 @@ public static class EquipmentVerification
         int changed = 0;
         inventory.EquipmentChanged += () => changed++;
         Check(inventory.Equip(caveSlot) && inventory.GetEquipped(ItemCategory.Weapon)?.itemId == "cave_sword" &&
-              inventory.GetItemInSlot(caveSlot) == null && inventory.Stats[ItemStat.Attack] == 4 && changed == 1, "빈 무기 칸에 장착");
+              inventory.GetItemInSlot(caveSlot) == null && inventory.Stats[ItemStat.Attack] == 4 + SumOption(inventory, ItemStat.Attack) && changed == 1, "빈 무기 칸에 장착");
         Check(!inventory.TryAdd(db.Find("cave_sword")) && inventory.Count("cave_sword") == 1, "장착한 낡은 검도 보유 수에 들어가 다시 줍지 않음");
         int epicSlot = Enumerable.Range(0, PlayerInventory.SlotCount).First(i => inventory.GetItemInSlot(i)?.rarity == ItemRarity.Epic);
         Check(inventory.Equip(epicSlot) && inventory.GetEquipped(ItemCategory.Weapon).rarity == ItemRarity.Epic &&
-              inventory.GetItemInSlot(epicSlot)?.itemId == "cave_sword" && inventory.Stats[ItemStat.Attack] == 12, "EquipSwapsBack");
+              inventory.GetItemInSlot(epicSlot)?.itemId == "cave_sword" && inventory.Stats[ItemStat.Attack] == 12 + SumOption(inventory, ItemStat.Attack), "EquipSwapsBack");
         Check(!inventory.Equip(PlayerInventory.SlotCount - 1), "빈 칸 장착은 실패");
 
         // 가방이 가득 차면 해제하지 않는다.
@@ -213,6 +214,105 @@ public static class EquipmentVerification
         Check(Throws(() => PlayerInventory.Validate(new[] { new InventorySaveEntry { itemId = "iron_sword", quantity = 1, rarity = 5 } }, null)),
             "등급 범위 밖은 거부");
         Check(Throws(() => PlayerInventory.Validate(Array.Empty<InventorySaveEntry>(), new InventorySaveEntry[2])), "장착 칸 수가 3이 아니면 거부");
+    }
+
+    // ── 전투 반영 ───────────────────────────────────────────────
+
+    sealed class DamageProbe : IDamageable
+    {
+        public int total, hits;
+        public void TakeDamage(int damage) { total += damage; hits++; }
+    }
+
+    /// <summary>옵션을 정해 둔 장신구를 장착한다. 무작위 옵션이 검사를 흔들지 않게 한다.</summary>
+    static void EquipAccessory(PlayerInventory inventory, params ItemOption[] options)
+    {
+        var entry = new InventoryEntry { itemId = "jade_norigae", displayName = "검증 장신구", rarity = ItemRarity.Normal, options = options.ToList() };
+        if (!inventory.TryAddInstance(entry)) throw new Exception("장신구를 넣을 칸이 없음");
+        inventory.Equip(entry.slotIndex);
+    }
+
+    static ItemOption Opt(ItemStat stat, float value) => new ItemOption { stat = stat, value = value };
+
+    static void VerifyCombat(ItemDatabase db, List<UnityEngine.Object> created)
+    {
+        SaveSystem.DeleteSave();
+        var rng = new System.Random(5);
+        var stats = CreatePlayer(created);
+        var inventory = stats.GetComponent<PlayerInventory>();
+        var attack = stats.gameObject.AddComponent<Player_Attack>();
+        var skills = stats.GetComponent<RpgSkillController>();
+        EquipAccessory(inventory);
+        Check(inventory.TryAdd(db.Find("cave_sword")), "낡은 검 획득");
+        inventory.Equip(inventory.Items.First(e => e.itemId == "cave_sword").slotIndex);
+        Check(attack.AttackPower == 10, "BaseAttackUnchanged: 기본 6 + 낡은 검 4");
+
+        // 최대 체력 보너스는 저장되는 기본값과 섞이지 않는다.
+        float baseHp = stats.BaseMaxHP;
+        Check(stats.MaxHP == baseHp + inventory.Stats[ItemStat.MaxHp], "최대 체력 = 기본 + 장비");
+        var leather = PlayerInventory.CreateInstance(db.Find("leather_armor"), ItemRarity.Legendary, rng);
+        inventory.TryAddInstance(leather); inventory.Equip(leather.slotIndex);
+        Check(stats.MaxHP == baseHp + 53 && stats.Defense == 9, "가죽갑옷 Legendary: 체력 +53, 방어 +9");
+        stats.Heal(9999f);
+        stats.Save();
+        var reloaded = CreatePlayer(created);
+        Check(Mathf.Approximately(reloaded.BaseMaxHP, baseHp) && Mathf.Approximately(reloaded.MaxHP, baseHp + 53) &&
+              Mathf.Approximately(reloaded.HP, baseHp + 53), "MaxHpBonusNotPersisted");
+
+        Check(Mathf.Approximately(stats.HP, stats.MaxHP), "체력 가득");
+        inventory.Unequip(ItemCategory.Armor);
+        Check(Mathf.Approximately(stats.HP, baseHp) && Mathf.Approximately(stats.MaxHP, baseHp), "UnequipClampsHp");
+
+        // 치명타: 확률 상한 60%, 피해 150%.
+        inventory.Unequip(ItemCategory.Accessory);
+        EquipAccessory(inventory, Opt(ItemStat.CritChance, 0.9f));
+        UnityEngine.Random.InitState(1);
+        var probe = new DamageProbe();
+        for (int i = 0; i < 4000; i++) stats.DealDamage(probe, 10);
+        float average = probe.total / (float)probe.hits;
+        Check(Math.Abs(average - 13f) < 0.3f, $"CritDoublesDamage: 평균 {average:0.00} ≈ 13");
+        Check(stats.DealDamage(null, 10) == 0 && stats.DealDamage(probe, 0) == 0, "대상 없음·0 피해는 무시");
+
+        // 흡혈: 준 피해의 비율만큼 회복.
+        inventory.Unequip(ItemCategory.Accessory);
+        EquipAccessory(inventory, Opt(ItemStat.LifeSteal, 0.5f));
+        stats.TakeDamage(40);
+        float hpBefore = stats.HP;
+        int dealt = stats.DealDamage(probe, 20);
+        Check(Mathf.Approximately(stats.HP, hpBefore + dealt * 0.5f), "흡혈 회복");
+
+        // 회피: 상한 15%.
+        inventory.Unequip(ItemCategory.Accessory);
+        EquipAccessory(inventory, Opt(ItemStat.Evasion, 0.5f));
+        int dodged = 0;
+        for (int i = 0; i < 2000; i++)
+        {
+            stats.Heal(9999f);
+            float before = stats.HP;
+            stats.TakeDamage(10);
+            if (Mathf.Approximately(stats.HP, before)) dodged++;
+        }
+        Check(dodged / 2000f > 0.11f && dodged / 2000f < 0.19f, $"EvasionCapped: {dodged / 20f:0.0}%");
+
+        // 공격속도: 기본 공격·돌진·무공 쿨타임 ÷ 공격속도.
+        inventory.Unequip(ItemCategory.Accessory);
+        EquipAccessory(inventory, Opt(ItemStat.AttackSpeed, 0.25f));
+        Check(Mathf.Approximately(stats.AttackSpeed, 1.25f), "공격속도 1.25");
+        Check(Mathf.Approximately(skills.CooldownFor(0), RpgSkillCatalog.All[0].Cooldown / 1.25f), "AttackSpeedShortensCooldown: 무공");
+        Check(Mathf.Approximately(attack.AttackInterval, 0.8f / 1.25f) && Mathf.Approximately(attack.DashInterval, 5f / 1.25f),
+            "AttackSpeedShortensCooldown: 기본 공격·돌진");
+
+        // 경험치·처치 회복·재생.
+        inventory.Unequip(ItemCategory.Accessory);
+        EquipAccessory(inventory, Opt(ItemStat.ExpGain, 0.5f), Opt(ItemStat.KillHeal, 7f), Opt(ItemStat.MaxMana, 20f), Opt(ItemStat.Defense, 3f));
+        float exp = stats.EXP;
+        stats.AddEXP(10f);
+        Check(Mathf.Approximately(stats.EXP, exp + 15f), "획득 경험치 +50%");
+        stats.TakeDamage(30);
+        hpBefore = stats.HP;
+        stats.OnKill();
+        Check(Mathf.Approximately(stats.HP, hpBefore + 7f), "처치 시 회복");
+        Check(Mathf.Approximately(stats.MaxMana, stats.BaseMaxMana + 20f) && stats.Defense == 3, "최대 내력·방어력 옵션");
     }
 
     static float SumOption(PlayerInventory inventory, ItemStat stat) =>

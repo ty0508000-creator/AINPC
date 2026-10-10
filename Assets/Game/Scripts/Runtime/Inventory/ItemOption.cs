@@ -89,7 +89,7 @@ public static class ItemOptionTable
             pool.RemoveAt(pick);
             var range = Ranges[(int)stat];
             float value = Mathf.Lerp(Mathf.Lerp(range.min1, range.min5, t), Mathf.Lerp(range.max1, range.max5, t), (float)rng.NextDouble()) * multiplier;
-            if (IsInteger(stat)) value = Mathf.Round(value);
+            if (IsInteger(stat)) value = EquipmentStats.RoundHalfUp(value);
             result.Add(new ItemOption { stat = stat, value = value });
         }
         return result;

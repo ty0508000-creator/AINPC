@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using System;
 
 public class PlayerStats : MonoBehaviour, IDamageable
@@ -16,10 +17,13 @@ public class PlayerStats : MonoBehaviour, IDamageable
     public int Level = 1;
 
     [Header("HP")]
-    public float MaxHP = 100f;
+    /// <summary>레벨·능력치로 늘어난 최대 체력. 저장되는 값이며 장비 보너스는 들어 있지 않다.</summary>
+    [FormerlySerializedAs("MaxHP")] public float BaseMaxHP = 100f;
+    public float MaxHP => BaseMaxHP + Gear[ItemStat.MaxHp];
 
     [Header("Mana")]
-    public float MaxMana = 50f;
+    [FormerlySerializedAs("MaxMana")] public float BaseMaxMana = 50f;
+    public float MaxMana => BaseMaxMana + Gear[ItemStat.MaxMana];
 
     [Header("EXP")]
     public float MaxEXP = 100f;
@@ -37,21 +41,33 @@ public class PlayerStats : MonoBehaviour, IDamageable
     public int SkillPoints { get; private set; } = 3;
     public int[] AttributeRanks { get; private set; } = new int[4];
     public int[] SkillRanks { get; private set; } = new int[RpgSkillCatalog.All.Length];
-    public int AttackBonus => AttributeRanks[1] * 2 + SkillRanks[1] * 3 + SkillRanks[2] * 6;
-    public int Defense => AttributeRanks[2] * 2 + SkillRanks[4] * 3 + SkillRanks[5] * 6;
-    public float ManaRegen => 1f + SkillRanks[7] * 0.6f + SkillRanks[8] * 1.2f;
+    public int AttackBonus => AttributeRanks[1] * 2 + SkillRanks[1] * 3 + SkillRanks[2] * 6 + Mathf.RoundToInt(Gear[ItemStat.Attack]);
+    public int Defense => AttributeRanks[2] * 2 + SkillRanks[4] * 3 + SkillRanks[5] * 6 + Mathf.RoundToInt(Gear[ItemStat.Defense]);
+    public float ManaRegen => 1f + SkillRanks[7] * 0.6f + SkillRanks[8] * 1.2f + Gear[ItemStat.ManaRegen];
     public event Action<int> OnLevelUp;
 
     public event Action OnStatsChanged;
 
     private Player_Attack playerAttack;
+    private PlayerInventory inventory;
+    static readonly EquipmentStats NoGear = new EquipmentStats();
+
+    /// <summary>장착 장비 능력치 합계. 인벤토리가 없으면 전부 0.</summary>
+    public EquipmentStats Gear => inventory != null ? inventory.Stats : NoGear;
+
+    /// <summary>공격속도 배율. 기본 공격 간격·돌진·무공 쿨타임을 이 값으로 나눈다.</summary>
+    public float AttackSpeed => Gear.AttackSpeed;
 
     void Awake()
     {
         playerAttack = GetComponent<Player_Attack>();
         CheckpointPosition = transform.position;
         CheckpointScene = gameObject.scene.path;
-        if (GetComponent<PlayerInventory>() == null) gameObject.AddComponent<PlayerInventory>();
+        inventory = GetComponent<PlayerInventory>();
+        if (inventory == null) inventory = gameObject.AddComponent<PlayerInventory>();
+        // 체력을 최대치로 자르기 전에 장비부터 읽어야 장비 체력만큼 깎이지 않는다.
+        inventory.EnsureLoaded();
+        inventory.EquipmentChanged += OnEquipmentChanged;
         Load();
         if (GetComponent<RpgSkillController>() == null) gameObject.AddComponent<RpgSkillController>();
         if (GetComponent<RpgUI>() == null) gameObject.AddComponent<RpgUI>();
@@ -61,6 +77,7 @@ public class PlayerStats : MonoBehaviour, IDamageable
     {
         if (damage <= 0 || !IsAlive || Time.time < protectedUntil) return;
         if (playerAttack != null && playerAttack.IsInvincible) return;
+        if (UnityEngine.Random.value < Gear.Evasion) return;
         var skills = GetComponent<RpgSkillController>();
         float reduction = skills != null ? skills.DamageMultiplier : 1f;
         int received = Mathf.Max(1, Mathf.RoundToInt(damage * 100f / (100f + Defense * 4f) * reduction));
@@ -68,6 +85,35 @@ public class PlayerStats : MonoBehaviour, IDamageable
         OnStatsChanged?.Invoke();
 
         if (HP <= 0f) OnDeath();
+    }
+
+    /// <summary>
+    /// 플레이어가 주는 모든 피해가 거치는 곳. 치명타·보스 피해·흡혈을 적용해 대상에게 주고, 준 피해를 돌려준다.
+    /// </summary>
+    public int DealDamage(IDamageable target, int baseDamage)
+    {
+        if (target == null || baseDamage <= 0) return 0;
+        float damage = baseDamage;
+        if (UnityEngine.Random.value < Gear.CritChance) damage *= EquipmentStats.BaseCritDamage + Gear[ItemStat.CritDamage];
+        if (target is Component component && (component.GetComponent<StageBoss>() != null || component is AshKingBoss))
+            damage *= 1f + Gear[ItemStat.BossDamage];
+        int dealt = Mathf.Max(1, Mathf.RoundToInt(damage));
+        target.TakeDamage(dealt);
+        if (Gear[ItemStat.LifeSteal] > 0f) Heal(dealt * Gear[ItemStat.LifeSteal]);
+        return dealt;
+    }
+
+    /// <summary>몬스터를 쓰러뜨렸을 때. 처치 시 회복 옵션을 적용한다.</summary>
+    public void OnKill()
+    {
+        if (Gear[ItemStat.KillHeal] > 0f) Heal(Gear[ItemStat.KillHeal]);
+    }
+
+    void OnEquipmentChanged()
+    {
+        HP = Mathf.Min(HP, MaxHP);
+        Mana = Mathf.Min(Mana, MaxMana);
+        OnStatsChanged?.Invoke();
     }
 
     public void Heal(float amount)
@@ -104,7 +150,7 @@ public class PlayerStats : MonoBehaviour, IDamageable
     internal void ApplyExperience(float amount)
     {
         if (amount <= 0f || float.IsNaN(amount) || float.IsInfinity(amount)) return;
-        EXP += amount;
+        EXP += amount * (1f + Gear[ItemStat.ExpGain]);
         while (EXP >= MaxEXP)
         {
             EXP -= MaxEXP;
@@ -123,8 +169,8 @@ public class PlayerStats : MonoBehaviour, IDamageable
         Level++;
         StatPoints += 3;
         SkillPoints++;
-        MaxHP += hpIncreasePerLevel;
-        MaxMana += manaIncreasePerLevel;
+        BaseMaxHP += hpIncreasePerLevel;
+        BaseMaxMana += manaIncreasePerLevel;
         MaxEXP = Mathf.Round(MaxEXP * expRequirementMultiplier);
 
         if (healToFullOnLevelUp && IsAlive)
@@ -192,8 +238,8 @@ public class PlayerStats : MonoBehaviour, IDamageable
         int id = (int)attribute;
         if (StatPoints < 1 || id < 0 || id >= AttributeRanks.Length) return false;
         StatPoints--; AttributeRanks[id]++;
-        if (attribute == RpgAttribute.Vitality) { MaxHP += 20f; if (HP > 0f) HP += 20f; }
-        if (attribute == RpgAttribute.Spirit) { MaxMana += 10f; Mana += 10f; }
+        if (attribute == RpgAttribute.Vitality) { BaseMaxHP += 20f; if (HP > 0f) HP += 20f; }
+        if (attribute == RpgAttribute.Spirit) { BaseMaxMana += 10f; Mana += 10f; }
         OnStatsChanged?.Invoke(); Save(); return true;
     }
 
@@ -233,6 +279,7 @@ public class PlayerStats : MonoBehaviour, IDamageable
     void Update()
     {
         if (HP > 0f && Mana < MaxMana && Time.deltaTime > 0f) RestoreMana(ManaRegen * Time.deltaTime);
+        if (HP > 0f && HP < MaxHP && Gear[ItemStat.HpRegen] > 0f && Time.deltaTime > 0f) Heal(Gear[ItemStat.HpRegen] * Time.deltaTime);
     }
 
     void Load()
@@ -246,12 +293,12 @@ public class PlayerStats : MonoBehaviour, IDamageable
         }
 
         Level  = Mathf.Max(1, data.level);
-        MaxHP  = Mathf.Max(1f, data.maxHP);
+        BaseMaxHP = Mathf.Max(1f, data.maxHP);
         HP     = Mathf.Clamp(data.hp, 0f, MaxHP);
         State = HP <= 0f ? LifeState.Dead : LifeState.Alive;
         if (data.hasCheckpoint && data.checkpointScene == gameObject.scene.path)
             CheckpointPosition = data.checkpointPosition;
-        MaxMana = Mathf.Max(1f, data.maxMana);
+        BaseMaxMana = Mathf.Max(1f, data.maxMana);
         Mana   = Mathf.Clamp(data.mana, 0f, MaxMana);
         MaxEXP = Mathf.Max(1f, data.maxEXP);
         EXP    = Mathf.Max(0f, data.exp);

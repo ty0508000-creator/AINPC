@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 public class Player_Attack : MonoBehaviour
 {
     [Header("Normal Attack (LMB)")]
-    [SerializeField] private int attackDamage = 10;
+    [SerializeField] private int attackDamage = 6;   // 낡은 검(+4)을 끼면 장비 도입 전과 같은 10
     [SerializeField] private float attackRange = 1f;
     [SerializeField] private float attackWidth = 1f;
     [SerializeField] private float attackCooldown = 0.8f;
@@ -31,6 +31,19 @@ public class Player_Attack : MonoBehaviour
     public bool IsInvincible { get; private set; }
     public int AttackPower => attackDamage + (GetComponent<PlayerStats>()?.AttackBonus ?? 0);
     public LayerMask EnemyLayer => enemyLayer;
+    float SpeedMultiplier => GetComponent<PlayerStats>()?.AttackSpeed ?? 1f;
+    /// <summary>공격속도를 반영한 기본 공격 간격.</summary>
+    public float AttackInterval => attackCooldown / SpeedMultiplier;
+    /// <summary>공격속도를 반영한 돌진 쿨타임.</summary>
+    public float DashInterval => dashCooldown / SpeedMultiplier;
+
+    // 치명타·보스 피해·흡혈은 PlayerStats.DealDamage 가 처리한다.
+    void Hit(IDamageable target, int damage)
+    {
+        var stats = GetComponent<PlayerStats>();
+        if (stats != null) stats.DealDamage(target, damage);
+        else target.TakeDamage(damage);
+    }
 
     private Player_Controller playerController;
     private Animator animator;
@@ -113,7 +126,7 @@ public class Player_Attack : MonoBehaviour
 
         if (IsInvincible) return;
 
-        if (Mouse.current.leftButton.wasPressedThisFrame && Time.time - lastAttackTime >= attackCooldown)
+        if (Mouse.current.leftButton.wasPressedThisFrame && Time.time - lastAttackTime >= AttackInterval)
             NormalAttack();
 
         HandleDashCharge();
@@ -147,7 +160,7 @@ public class Player_Attack : MonoBehaviour
             var damageable = hit.GetComponentInParent<IDamageable>();
             if (damageable != null && damaged.Add(damageable))
             {
-                damageable.TakeDamage(AttackPower);
+                Hit(damageable, AttackPower);
                 hitAny = true;
             }
         }
@@ -173,7 +186,7 @@ public class Player_Attack : MonoBehaviour
 
     void HandleDashCharge()
     {
-        if (Mouse.current.rightButton.isPressed && Time.time - lastDashTime < dashCooldown)
+        if (Mouse.current.rightButton.isPressed && Time.time - lastDashTime < DashInterval)
             return;
 
         if (Mouse.current.rightButton.isPressed)
@@ -247,7 +260,7 @@ public class Player_Attack : MonoBehaviour
             var damageable = hit.collider.GetComponentInParent<IDamageable>();
             if (damageable != null && hitSet.Add(damageable))
             {
-                damageable.TakeDamage(damage);
+                Hit(damageable, damage);
                 hitAny = true;
             }
         }
@@ -267,10 +280,10 @@ public class Player_Attack : MonoBehaviour
     }
 
     // ── AI용 인터페이스 ───────────────────────────────────────────
-    public bool DashReady => Time.time - lastDashTime >= dashCooldown;
+    public bool DashReady => Time.time - lastDashTime >= DashInterval;
 
     /// <summary>일반 공격 쿨타임이 돌았는가. AI 가 치고 빠지는 박자를 맞추는 데 쓴다.</summary>
-    public bool AttackReady => Time.time - lastAttackTime >= attackCooldown;
+    public bool AttackReady => Time.time - lastAttackTime >= AttackInterval;
     public float MaxDashRange => maxDashDistance;
     public float NormalAttackRange => attackRange;
 
@@ -279,7 +292,7 @@ public class Player_Attack : MonoBehaviour
     {
         if (GetComponent<PlayerStats>() is PlayerStats stats && !stats.IsAlive) return;
         if (DialogueManager.IsDialogueOpen) return;
-        if (IsInvincible || Time.time - lastDashTime < dashCooldown) return;
+        if (IsInvincible || Time.time - lastDashTime < DashInterval) return;
 
         lastDashTime = Time.time;
         float ratio = Mathf.Clamp01(Mathf.InverseLerp(minDashDistance, maxDashDistance, desiredDistance));
@@ -291,7 +304,7 @@ public class Player_Attack : MonoBehaviour
     {
         if (GetComponent<PlayerStats>() is PlayerStats stats && !stats.IsAlive) return;
         if (DialogueManager.IsDialogueOpen) return;
-        if (Time.time - lastAttackTime < attackCooldown) return;
+        if (Time.time - lastAttackTime < AttackInterval) return;
         lastAttackTime = Time.time;
         TrySetTrigger("Attack");
 
@@ -311,7 +324,7 @@ public class Player_Attack : MonoBehaviour
             var damageable = hit.GetComponentInParent<IDamageable>();
             if (damageable != null && damaged.Add(damageable))
             {
-                damageable.TakeDamage(AttackPower);
+                Hit(damageable, AttackPower);
                 hitAny = true;
             }
         }
