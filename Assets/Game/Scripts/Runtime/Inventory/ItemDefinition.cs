@@ -19,6 +19,15 @@ public sealed class ItemDefinition : ScriptableObject
     public ItemCategory category = ItemCategory.Misc;
     [TextArea(2, 5)] public string description;
 
+    [Header("장비 (Normal 기준, 등급 배율을 곱한다)")]
+    [Range(1, 5)] public int tier = 1;
+    [Tooltip("무기")] public int attack;
+    [Tooltip("무기. 비율(0.07 = 7%)")] public float critChance;
+    [Tooltip("무기. 1.08 이면 쿨타임이 1/1.08")] public float attackSpeed = 1f;
+    [Tooltip("갑옷")] public int maxHp;
+    [Tooltip("갑옷")] public int defense;
+    [Tooltip("갑옷. 비율(0.02 = 2%)")] public float evasion;
+
     /// <summary>툴팁 등에 보여 줄 종류 이름.</summary>
     public static string CategoryLabel(ItemCategory category) => category switch
     {
