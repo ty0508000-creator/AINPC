@@ -15,7 +15,7 @@ using UnityEngine.UI;
 public static class InventoryUiBuilder
 {
     public const string PrefabPath = "Assets/Game/Prefabs/UI/InventoryCanvas.prefab";
-    public const string ItemDatabasePath = "Assets/Game/Items/ItemDatabase.asset";
+    public const string ItemDatabasePath = "Assets/Resources/ItemDatabase.asset";
     public const string ArtFolder = "Assets/Art/UI/Inventory";
 
     /// <summary>플레이어가 돌아다니는 게임 씬. 수련록(RpgUI)과 ESC 메뉴가 있는 씬과 같다.</summary>

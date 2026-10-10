@@ -10,6 +10,15 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "ItemDatabase", menuName = "AINPC/Item Database")]
 public sealed class ItemDatabase : ScriptableObject
 {
+    static ItemDatabase instance;
+
+    /// <summary>Resources/ItemDatabase 를 처음 쓸 때 불러온다. 검증 코드는 임시 목록으로 바꿔 끼운다(null 이면 다시 불러온다).</summary>
+    public static ItemDatabase Instance
+    {
+        get { if (instance == null) instance = Resources.Load<ItemDatabase>("ItemDatabase"); return instance; }
+        set => instance = value;
+    }
+
     public List<ItemDefinition> items = new();
 
     public ItemDefinition Find(string itemId)

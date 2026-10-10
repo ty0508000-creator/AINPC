@@ -6,6 +6,9 @@ public class InventorySaveEntry
     public int quantity;
     // 가방 칸 번호. 이 필드가 생기기 전 저장은 0 으로 읽히며 PlayerInventory.Load 가 겹침을 풀어 준다.
     public int slotIndex;
+    // 장비 개체의 등급(ItemRarity)과 장신구 옵션. 이 필드가 생기기 전 저장은 Normal·옵션 없음으로 읽힌다.
+    public int rarity;
+    public ItemOption[] options;
 }
 
 [System.Serializable]
@@ -41,4 +44,6 @@ public class PlayerSaveData
     public StoryChoiceSaveData storyChoices;
     // Version 2: inventory is committed with player and quest progress.
     public InventorySaveEntry[] inventory;
+    // 장착 칸(무기·갑옷·장신구). null 이면 장비 기능 이전 저장이라 시작 장비를 채운다. 빈 칸은 itemId 가 비어 있다.
+    public InventorySaveEntry[] equipped;
 }

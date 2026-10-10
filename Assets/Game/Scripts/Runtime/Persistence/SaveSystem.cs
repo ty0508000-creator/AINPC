@@ -131,7 +131,8 @@ public static class SaveSystem
         storyChoices = StoryChoiceManager.Instance != null ? StoryChoiceManager.Instance.Capture() : null,
         inventory = stats.GetComponent<PlayerInventory>() != null
             ? stats.GetComponent<PlayerInventory>().Capture()
-            : Array.Empty<InventorySaveEntry>()
+            : Array.Empty<InventorySaveEntry>(),
+        equipped = stats.GetComponent<PlayerInventory>() != null ? stats.GetComponent<PlayerInventory>().CaptureEquipped() : null
     };
 
     static List<string> CopyFlags(IEnumerable<string> source)
@@ -197,7 +198,7 @@ public static class SaveSystem
             throw new InvalidDataException("Mood 저장값 오류");
         if (data.snapshotVersion >= 1) QuestSaveSystem.Validate(data.quests);
         StoryChoiceManager.Validate(data.storyChoices);
-        if (data.snapshotVersion >= 2) PlayerInventory.Validate(data.inventory);
+        if (data.snapshotVersion >= 2) PlayerInventory.Validate(data.inventory, data.equipped);
         if (data.hasProgress && (!Finite(data.posX) || !Finite(data.posY)))
             throw new InvalidDataException("씬 진행 저장값 오류");
     }
