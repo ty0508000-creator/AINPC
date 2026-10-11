@@ -13,6 +13,8 @@ using UnityEngine.Tilemaps;
 /// <summary>마을과 네 사냥터의 스토리 연결을 씬 에셋으로 제작한다.</summary>
 public static class HubStorySetup
 {
+    // 옛 구조(사냥터마다 씬)를 만들던 제작 도구다. 지금 사냥터는 StageBuilder 가 합친 Stage1 의 Zone_Hunt1~4.
+    static string HuntingScene(int n) => "HuntingGround" + n;
     const string Data = "Assets/Game/Data/HubStory";
     static QuestData[] quests;
     static Sprite civilianSprite;
@@ -147,7 +149,7 @@ public static class HubStorySetup
         var entry = village.AddComponent<HubAreaEntry>(); entry.areaId = "hub_village"; entry.mainVillage = true;
         var road = Roads(root.transform);
         var offsets = new[] { new Vector2(-20,18), new Vector2(20,18), new Vector2(-20,-18), new Vector2(20,-18) };
-        for (int n = 1; n <= 4; n++) { var p = center + offsets[n-1]; Portal(root.transform,p,HubStoryIds.Scene(n),GameFlow.DefaultSpawn,n+" · "+names[n],HubStoryIds.Testimony); Spawn(root.transform,HubStoryIds.ReturnSpawn(n),p+(center-p).normalized*4); Road(road,center,p); }
+        for (int n = 1; n <= 4; n++) { var p = center + offsets[n-1]; Portal(root.transform,p,HuntingScene(n),GameFlow.DefaultSpawn,n+" · "+names[n],HubStoryIds.Testimony); Spawn(root.transform,HubStoryIds.ReturnSpawn(n),p+(center-p).normalized*4); Road(road,center,p); }
         Systems(scene, false); FinalizeScene(); EditorSceneManager.SaveScene(scene);
     }
     static void Hunting(int n)
@@ -162,7 +164,7 @@ public static class HubStorySetup
             if (corridor) { plan.water[x,y] = false; plan.block[x,y] = false; plan.path[x,y] = true; }
         }
         plan.props.RemoveAll(p => Mathf.Abs(p.bottomCenter.x)<=5 || Mathf.Abs(p.bottomCenter.y-8)<=5 || Mathf.Abs(p.bottomCenter.y+5)<=5);
-        string path = "Assets/Scenes/"+HubStoryIds.Scene(n)+".unity";
+        string path = "Assets/Scenes/"+HuntingScene(n)+".unity";
         if (!MapSceneBuilder.CreateScene(settings,plan,path,out var report)) throw new InvalidOperationException(report);
         var scene = SceneManager.GetActiveScene(); var root = new GameObject("HubStory");
         EquipPlayer();
@@ -186,7 +188,7 @@ public static class HubStorySetup
     public static void ApplyAndVerify()
     {
         try { Catalog(); Main(); for(int n=1;n<=4;n++) Hunting(n);
-            var builds=EditorBuildSettings.scenes.ToList(); for(int n=1;n<=4;n++) { string path="Assets/Scenes/"+HubStoryIds.Scene(n)+".unity"; if(!builds.Any(b=>b.path==path)) builds.Add(new EditorBuildSettingsScene(path,true)); }
+            var builds=EditorBuildSettings.scenes.ToList(); for(int n=1;n<=4;n++) { string path="Assets/Scenes/"+HuntingScene(n)+".unity"; if(!builds.Any(b=>b.path==path)) builds.Add(new EditorBuildSettingsScene(path,true)); }
             EditorBuildSettings.scenes=builds.ToArray(); AssetDatabase.SaveAssets(); HubStoryVerification.Run();
             EditorApplication.Exit(0);
         } catch(Exception ex) { Debug.LogException(ex); EditorApplication.Exit(1); }

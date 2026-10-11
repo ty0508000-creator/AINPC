@@ -6,44 +6,32 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Title.unity
+    path: Assets/Scenes/Main/Title.unity
     guid: d0598086b69cc9646bedec3a1878cf2f
   - enabled: 1
-    path: Assets/Scenes/Cave.unity
+    path: Assets/Scenes/Main/Cave.unity
     guid: 9ad15e745fae94344b93869ef123b56b
   - enabled: 1
-    path: Assets/Scenes/Main.unity
+    path: Assets/Scenes/Main/Stage1.unity
     guid: f7a5429a433e74a43b61728ee6afaea6
   - enabled: 1
-    path: Assets/Scenes/Region2.unity
+    path: Assets/Scenes/Main/Stage2.unity
     guid: 3aea433b3f621664fb5c0735e1812c55
   - enabled: 1
-    path: Assets/Scenes/Region3.unity
+    path: Assets/Scenes/Main/Stage3.unity
     guid: 8d8bba9c138b77b4895bb1709d566f04
   - enabled: 1
-    path: Assets/Scenes/Region4.unity
+    path: Assets/Scenes/Main/Stage4.unity
     guid: d286ca1b1bbd3784783656ab7138f97f
   - enabled: 1
-    path: Assets/Scenes/FinalBoss.unity
+    path: Assets/Scenes/Main/AshKingArena.unity
+    guid: bb8770d34b689be4caa70d721c8ee905
+  - enabled: 1
+    path: Assets/Scenes/Main/FinalBoss.unity
     guid: e2a30e34e10299a47b632a87c72c753c
   - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
-  - enabled: 1
-    path: Assets/Scenes/HuntingGround1.unity
-    guid: f63498bbd8fc7754188ce010c6834245
-  - enabled: 1
-    path: Assets/Scenes/HuntingGround2.unity
-    guid: 1536d7e0868ddb1459d5f4d10426c128
-  - enabled: 1
-    path: Assets/Scenes/HuntingGround3.unity
-    guid: 9893b815363d48545a89551b0475cde8
-  - enabled: 1
-    path: Assets/Scenes/HuntingGround4.unity
-    guid: 06c7285d9c4bbfb419e6c4a273b27812
-  - enabled: 1
-    path: Assets/Scenes/AshKingArena.unity
-    guid: bb8770d34b689be4caa70d721c8ee905
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}

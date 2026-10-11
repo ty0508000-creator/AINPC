@@ -25,12 +25,15 @@ public static class HubStoryVerification
         string output=Path.GetFullPath("VerificationResults/HubStory"); Directory.CreateDirectory(output);
         SaveSystem.VerificationDirectory=Path.Combine(output,"slot-"+Guid.NewGuid().ToString("N")); count=0;
         try {
-            foreach (string sceneName in new[]{"Main","HuntingGround1","HuntingGround2","HuntingGround3","HuntingGround4"}) {
-                var scene=EditorSceneManager.OpenScene("Assets/Scenes/"+sceneName+".unity",OpenSceneMode.Single);
+            foreach (string sceneName in new[]{GameFlow.FirstStageScene}) {
+                var scene=EditorSceneManager.OpenScene(StageBuilder.StagePath(1),OpenSceneMode.Single);
                 Check(All<QuestManager>().Length==1,"one quest manager: "+sceneName);
                 Check(All<PlayerStats>().Length==1 && All<Player_Attack>().Length==1,"complete playable character: "+sceneName);
                 Check(All<StoryConversationUI>().Length==1,"baked story UI: "+sceneName);
                 Check(All<SpawnPoint>().Any(s=>s.id==GameFlow.DefaultSpawn),"default arrival: "+sceneName);
+                // 사냥터는 같은 씬의 Zone_Hunt1~4. 입구·돌아오는 문·순간이동 대상이 모두 있어야 한다.
+                for(int n=1;n<=4;n++) Check(GameObject.Find(HubStoryIds.Zone(n))!=null&&All<SpawnPoint>().Any(s=>s.id==HubStoryIds.HuntSpawn(n))&&All<SpawnPoint>().Any(s=>s.id==HubStoryIds.ReturnSpawn(n)),"hunting zone "+n+" in "+sceneName);
+                foreach(var zonePortal in All<ZonePortal>().Where(z=>z.gameObject.activeInHierarchy)) { string spawn=(string)typeof(ZonePortal).GetField("targetSpawn",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(zonePortal); Check(All<SpawnPoint>().Any(s=>s.id==spawn&&s.gameObject.activeInHierarchy),"zone portal target exists: "+spawn); }
                 foreach(var portal in All<ScenePortal>()) {
                     string target=(string)typeof(ScenePortal).GetField("targetScene",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(portal);
                     Check(EditorBuildSettings.scenes.Any(s=>s.enabled&&Path.GetFileNameWithoutExtension(s.path)==target),"portal target enabled: "+target);
@@ -38,7 +41,7 @@ public static class HubStoryVerification
                 var camera=All<Camera>().FirstOrDefault(c=>c.CompareTag("MainCamera"));
                 if(camera!=null) {
                     Vector3 position=camera.transform.position; float size=camera.orthographicSize;
-                    camera.transform.position=new Vector3(0,0,-10); camera.orthographicSize=sceneName=="Main"?32:30;
+                    camera.transform.position=new Vector3(0,0,-10); camera.orthographicSize=32;
                     var texture=new RenderTexture(1200,900,24); camera.targetTexture=texture; camera.Render(); RenderTexture.active=texture;
                     var image=new Texture2D(1200,900,TextureFormat.RGB24,false); image.ReadPixels(new Rect(0,0,1200,900),0,0); image.Apply(); File.WriteAllBytes(Path.Combine(output,sceneName+".png"),image.EncodeToPNG());
                     camera.targetTexture=null; RenderTexture.active=null; UnityEngine.Object.DestroyImmediate(image); UnityEngine.Object.DestroyImmediate(texture);

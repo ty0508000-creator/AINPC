@@ -20,11 +20,9 @@ public static class InventoryUiBuilder
 
     /// <summary>플레이어가 돌아다니는 게임 씬. 수련록(RpgUI)과 ESC 메뉴가 있는 씬과 같다.</summary>
     public static readonly string[] GameScenes = {
-        "Assets/Scenes/Main.unity", "Assets/Scenes/Cave.unity", "Assets/Scenes/mapstory1.unity",
-        "Assets/Scenes/HuntingGround1.unity", "Assets/Scenes/HuntingGround2.unity",
-        "Assets/Scenes/HuntingGround3.unity", "Assets/Scenes/HuntingGround4.unity",
-        "Assets/Scenes/Region2.unity", "Assets/Scenes/Region3.unity", "Assets/Scenes/Region4.unity",
-        "Assets/Scenes/AshKingArena.unity", "Assets/Scenes/FinalBoss.unity",
+        "Assets/Scenes/Main/Stage1.unity", "Assets/Scenes/Main/Cave.unity", "Assets/Scenes/mapstory1.unity",
+        "Assets/Scenes/Main/Stage2.unity", "Assets/Scenes/Main/Stage3.unity", "Assets/Scenes/Main/Stage4.unity",
+        "Assets/Scenes/Main/AshKingArena.unity", "Assets/Scenes/Main/FinalBoss.unity",
     };
 
     // 수련록 창(RpgUI.Illustrated)과 같은 먹색 팔레트

@@ -21,9 +21,9 @@ public static class MergeIntegrationVerification
         checks=0;Directory.CreateDirectory("VerificationResults/Merge");
         try
         {
-            foreach(string scene in new[]{"HuntingGround1","Main"})
+            foreach(string scene in new[]{"Stage1"})
             {
-                EditorSceneManager.OpenScene("Assets/Scenes/"+scene+".unity");
+                EditorSceneManager.OpenScene(StageBuilder.SceneFolder+"/"+scene+".unity");
                 var view=UnityEngine.Object.FindFirstObjectByType<SceneSettingsView>(FindObjectsInactive.Include);
                 Check(view!=null,"settings view exists: "+scene);
                 typeof(SceneSettingsView).GetMethod("Start",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(view,null);
@@ -39,20 +39,20 @@ public static class MergeIntegrationVerification
         checks=0;Directory.CreateDirectory("VerificationResults/Merge");
         try
         {
-            foreach(string scene in new[]{"Main","HuntingGround1","HuntingGround2","HuntingGround3","HuntingGround4","AshKingArena","Cave","Region2","Region3","Region4","FinalBoss"})
+            foreach(string scene in new[]{"Stage1","AshKingArena","Cave","Stage2","Stage3","Stage4","FinalBoss"})
             {
-                EditorSceneManager.OpenScene("Assets/Scenes/"+scene+".unity");
+                EditorSceneManager.OpenScene(StageBuilder.SceneFolder+"/"+scene+".unity");
                 Check(UnityEngine.Object.FindObjectsByType<PlayerStats>(FindObjectsSortMode.None).Length==1,"one stats component: "+scene);
                 Check(UnityEngine.Object.FindObjectsByType<Player_Attack>(FindObjectsSortMode.None).Length==1,"one attack component: "+scene);
                 Check(UnityEngine.Object.FindObjectsByType<PlayerInventory>(FindObjectsSortMode.None).Length==1,"one inventory component: "+scene);
                 Check(UnityEngine.Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Count(e=>e.isActiveAndEnabled)==1,"one active event system: "+scene);
             }
-            EditorSceneManager.OpenScene("Assets/Scenes/Main.unity");
+            EditorSceneManager.OpenScene("Assets/Scenes/Main/Stage1.unity");
             Check(GameObject.Find("HubStory")!=null&&GameObject.Find("AshKingGate")!=null,"current hub and boss route preserved");
-            Check(UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include,FindObjectsSortMode.None).Where(t=>t.name.StartsWith("Zone_")).All(t=>!t.gameObject.activeInHierarchy),"alternative Main stage prototypes do not run simultaneously");
+            Check(UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include,FindObjectsSortMode.None).Where(t=>t.name=="Zone_Village"||t.name=="Zone_Boss").All(t=>!t.gameObject.activeInHierarchy),"alternative Main stage prototypes do not run simultaneously");
             Check(UnityEngine.Object.FindObjectsByType<SettingsButtonUI>(FindObjectsSortMode.None).Length==1,"remote settings button preserved");
             SessionState.SetInt("MergeIntegration.Checks",checks);SessionState.SetString(Slot,Path.GetFullPath("VerificationResults/Merge/Save-"+Guid.NewGuid().ToString("N")));SessionState.SetBool(Pending,true);SaveSystem.VerificationDirectory=SessionState.GetString(Slot,"");
-            EditorSceneManager.OpenScene("Assets/Scenes/Cave.unity");EditorApplication.EnterPlaymode();
+            EditorSceneManager.OpenScene("Assets/Scenes/Main/Cave.unity");EditorApplication.EnterPlaymode();
         }
         catch(Exception e){Debug.LogException(e);File.WriteAllText("VerificationResults/Merge/result.txt","FAIL "+checks+" "+e.Message);EditorApplication.Exit(1);}
     }
@@ -72,10 +72,11 @@ public static class MergeIntegrationVerification
                 Check(SceneManager.GetActiveScene().name=="Cave","tutorial scene runs");Check(!GameFlow.Instance.HasFlag(GameFlow.TutorialClearedFlag),"fresh slot has no tutorial flag");
                 var pickup=UnityEngine.Object.FindFirstObjectByType<ItemPickup>();Check(pickup!=null,"tutorial sword exists");Move(pickup.transform.position);due=EditorApplication.timeSinceStartup+.6;break;
             case 1:
+                var sword=UnityEngine.Object.FindFirstObjectByType<ItemPickup>();Check(sword!=null&&!GameFlow.Instance.HasFlag(GameFlow.TutorialClearedFlag),"touching the sword alone does not pick it up");Check(sword.TryPickUp(),"Ctrl picks up the touched sword");
                 Check(GameFlow.Instance.HasFlag(GameFlow.TutorialClearedFlag),"physical sword pickup opens cave exit");Check(SaveSystem.LoadPlayer().flags.Contains(GameFlow.TutorialClearedFlag),"tutorial flag saves with inventory");
-                var portal=UnityEngine.Object.FindObjectsByType<ScenePortal>(FindObjectsSortMode.None).Single(p=>(string)typeof(ScenePortal).GetField("targetScene",BindingFlags.NonPublic|BindingFlags.Instance).GetValue(p)=="Main");Move(portal.transform.position);due=EditorApplication.timeSinceStartup+2;break;
+                var portal=UnityEngine.Object.FindObjectsByType<ScenePortal>(FindObjectsSortMode.None).Single(p=>(string)typeof(ScenePortal).GetField("targetScene",BindingFlags.NonPublic|BindingFlags.Instance).GetValue(p)=="Stage1");Move(portal.transform.position);due=EditorApplication.timeSinceStartup+2;break;
             case 2:
-                Check(SceneManager.GetActiveScene().name=="Main","physical cave portal reaches Main");Check(Vector2.Distance(UnityEngine.Object.FindFirstObjectByType<PlayerStats>().transform.position,SpawnPoint.Find("cave_exit").transform.position)<1,"correct cave return spawn");Check(GameFlow.Instance.HasFlag(GameFlow.TutorialClearedFlag),"tutorial flag survives scene transition");
+                Check(SceneManager.GetActiveScene().name=="Stage1","physical cave portal reaches Stage1");Check(Vector2.Distance(UnityEngine.Object.FindFirstObjectByType<PlayerStats>().transform.position,SpawnPoint.Find("cave_exit").transform.position)<1,"correct cave return spawn");Check(GameFlow.Instance.HasFlag(GameFlow.TutorialClearedFlag),"tutorial flag survives scene transition");
                 GameFlow.Instance.SaveNow();Check(SaveSystem.LoadPlayer().flags.Contains(GameFlow.TutorialClearedFlag),"Main save preserves tutorial flag");UnityEngine.Object.DestroyImmediate(GameFlow.Instance.gameObject);Check(GameFlow.Instance.HasFlag(GameFlow.TutorialClearedFlag),"recreated game flow restores saved progression flags");Finish(true,"");break;
         }}catch(Exception e){Debug.LogException(e);Finish(false,e.Message);}
     }

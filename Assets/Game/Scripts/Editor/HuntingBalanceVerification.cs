@@ -26,7 +26,7 @@ public static class HuntingBalanceVerification
     {
         string output=Path.GetFullPath("VerificationResults/Balance/"+(strict?"Tuned":"Baseline"));Directory.CreateDirectory(output);
         SessionState.SetString(Output,output);SessionState.SetBool(Pending,true);SessionState.SetBool(Strict,strict);SaveSystem.VerificationDirectory=output+"/Save";
-        EditorSceneManager.OpenScene("Assets/Scenes/HuntingGround1.unity");
+        EditorSceneManager.OpenScene(StageBuilder.StagePath(1));
         SessionState.SetString("HuntingBalance.Attack",EditorJsonUtility.ToJson(UnityEngine.Object.FindFirstObjectByType<Player_Attack>()));
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);EditorApplication.EnterPlaymode();
     }
@@ -56,7 +56,7 @@ public static class HuntingBalanceVerification
         if(profile!=1){player.AddEXP(RouteExperience(region));}
         if(profile==2){for(int i=0;i<3;i++)Check(player.UpgradeAttribute(RpgAttribute.Strength),"starter strength investment");for(int i=0;i<2;i++)Check(player.UpgradeAttribute(RpgAttribute.Vitality),"starter vitality investment");for(int i=1;i<player.Level;i++){player.UpgradeAttribute(RpgAttribute.Strength);player.UpgradeAttribute(RpgAttribute.Vitality);player.UpgradeAttribute(RpgAttribute.Defense);}foreach(int id in RpgSkillCatalog.Hotbar)Check(player.LearnSkill(id),"starter active learned");if(player.Level>=3)Check(player.LearnSkill(1),"level three passive unlocked");if(player.Level>=4)Check(player.LearnSkill(0),"level four slash upgrade");}
         data=AssetDatabase.LoadAssetAtPath<MonsterData>("Assets/Game/Data/HubStory/Enemy"+region+".asset");
-        enemy=UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Game/Prefabs/RegionalEnemies/Region"+region+".prefab")).GetComponent<RegionalMonster>();enemy.transform.position=Vector3.zero;enemy.Initialize(data,null);
+        enemy=UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(StageBuilder.PrefabPath(1,region))).GetComponent<RegionalMonster>();enemy.transform.position=Vector3.zero;enemy.Initialize(data,null);
         opponents.Add(enemy);if(scenario>=12){var other=UnityEngine.Object.Instantiate(enemy);other.transform.position=new Vector3(1.5f,1);other.Initialize(data,null);opponents.Add(other);}
         Physics2D.SyncTransforms();start=ready=Time.time+.5f;active=false;damage=0;attacks=0;hp=previousHP=player.HP;warningAt=-1;evadeUntil=0;
         player.OnStatsChanged+=Observe;

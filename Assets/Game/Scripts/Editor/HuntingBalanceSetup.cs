@@ -38,7 +38,7 @@ public static class HuntingBalanceSetup
             for(int n=1;n<=4;n++){
                 ConfigureData(n,AssetDatabase.LoadAssetAtPath<MonsterData>("Assets/Game/Data/HubStory/Enemy"+n+".asset"));
                 var quest=AssetDatabase.LoadAssetAtPath<QuestData>("Assets/Game/Data/HubStory/hub_hunt_"+n+".asset");quest.onComplete.expReward=QuestExperience[n-1];EditorUtility.SetDirty(quest);
-                string prefab="Assets/Game/Prefabs/RegionalEnemies/Region"+n+".prefab";var root=PrefabUtility.LoadPrefabContents(prefab);
+                string prefab=StageBuilder.PrefabPath(1,n);var root=PrefabUtility.LoadPrefabContents(prefab);
                 ConfigureMonster(n,root.GetComponent<RegionalMonster>());PrefabUtility.SaveAsPrefabAsset(root,prefab);PrefabUtility.UnloadPrefabContents(root);
                 string scene="Assets/Scenes/HuntingGround"+n+".unity";string yaml=File.ReadAllText(scene);
                 if(Regex.Matches(yaml,@"(?m)^  spawnInterval: .*$").Count!=1)throw new Exception("Unexpected spawn areas in "+scene);

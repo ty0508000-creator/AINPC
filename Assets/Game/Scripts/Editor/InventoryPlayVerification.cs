@@ -39,7 +39,7 @@ public static class InventoryPlayVerification
         Directory.CreateDirectory(slot);
         SessionState.SetString(Slot, slot); SessionState.SetBool(Pending, true);
         SaveSystem.VerificationDirectory = slot;
-        EditorSceneManager.OpenScene("Assets/Scenes/Main.unity", OpenSceneMode.Single);
+        EditorSceneManager.OpenScene("Assets/Scenes/Main/Stage1.unity", OpenSceneMode.Single);
         EditorApplication.EnterPlaymode();
     }
 

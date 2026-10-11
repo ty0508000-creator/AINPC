@@ -45,7 +45,7 @@
 
 1. Unity Hub에서 **Unity 6000.3.10f1**로 프로젝트를 엽니다.
 2. 패키지 복원과 임포트를 기다립니다.
-3. `Assets/Scenes/Main.unity`를 엽니다. 타이틀부터 확인하려면 `Title.unity`를 엽니다.
+3. `Assets/Scenes/Main/Stage1.unity`(1지역)를 엽니다. 타이틀부터 확인하려면 `Assets/Scenes/Main/Title.unity`를 엽니다.
 4. 아래 모델 연결을 확인한 뒤 Play를 실행합니다.
 
 ### 모델 파일

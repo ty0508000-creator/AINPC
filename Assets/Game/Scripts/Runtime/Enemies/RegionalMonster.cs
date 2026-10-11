@@ -32,7 +32,14 @@ public sealed class RegionalMonster : MonsterBase
     public override void Initialize(MonsterData data, MonsterSpawnPoint ownerPoint)
     {
         base.Initialize(data, ownerPoint); home = transform.position; CurrentPhase = Phase.Walking;
-        readyAt = Time.time + .7f; AttackCount = 0; player = FindFirstObjectByType<PlayerStats>();
+        readyAt = Time.time + .7f; AttackCount = 0; player = FindFirstObjectByType<PlayerStats>(); initialized = true;
+    }
+    bool initialized;
+    // 씬에 직접 놓인 몬스터(지역 보스)는 출현 지점이 Initialize 를 불러 주지 않는다. 안 부르면 귀환 위치가 원점이 된다.
+    protected override void Start()
+    {
+        base.Start();
+        if (!initialized && Data != null) Initialize(Data, null);
     }
     protected override void Update()
     {

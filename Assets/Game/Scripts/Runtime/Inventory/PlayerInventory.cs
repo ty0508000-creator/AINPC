@@ -130,6 +130,16 @@ public sealed class PlayerInventory : MonoBehaviour
         return entry;
     }
 
+    /// <summary>가방에서 바로 그 개체를 뺀다(버리기). 장착 중이거나 가방에 없으면 false.</summary>
+    public bool RemoveInstance(InventoryEntry entry)
+    {
+        if (entry == null || !items.Remove(entry)) return false;
+        entry.slotIndex = -1;
+        Save();
+        Changed?.Invoke();
+        return true;
+    }
+
     public bool Remove(string itemId, int quantity = 1)
     {
         var entry = Find(itemId);

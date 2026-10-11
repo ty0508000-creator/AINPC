@@ -2,11 +2,19 @@
 
 작성 기준: 2026-09-29
 
-## 현재 병합 상태
+## 현재 상태 (2026-10-11 정리)
 
-이 문서의 지역 틀은 후속 제작용이다. 현재 첫 섬은 사용자가 선택한 별도 `HuntingGround1`~`4`와 `AshKingArena` 동선을 사용한다. Main에 생성된 `Zone_Village`·`Zone_Hunt1`~`4`·`Zone_Boss`는 씬에 보존하되 비활성화해 두 동선이 동시에 실행되지 않게 했다. `Region2`~`4`와 `FinalBoss` 씬·저작 도구는 보존했으며, 첫 섬의 결말이 자동으로 후속 지역을 열지는 않는다.
+빌드 씬은 모두 `Assets/Scenes/Main/` 에 있다: `Title` → `Cave` → `Stage1`(옛 Main) → `Stage2`~`Stage4`(옛 Region2~4) → `FinalBoss`, 그리고 1지역 보스 `AshKingArena`.
+씬 이동 없이 오가는 사냥터 4곳은 지역마다 `Zone_Hunt1`~`4` 로 같은 씬에 있다. 1지역은 따로 씬이던 `HuntingGround1`~`4` 를
+`Tools > AINPC > Stages` 로 `Stage1` 에 옮겼다(마을 오른쪽 x = 200 / 320 / 440 / 560, Y 는 그리기 순서 때문에 0 그대로).
+마을의 사냥터 문과 돌아오는 문은 같은 씬 안 순간이동(`ZonePortal`, 입구 `hunt_N` / `from_hunt_N`)이고, 사냥터 도착 보고·체크포인트는
+`Zone_HuntN` 의 트리거 영역에 들어설 때 일어난다. 재의 왕을 쓰러뜨리면 `region1.boss_cleared` 가 서고 `Stage1` 마을 북쪽 문이 `Stage2` 로 열린다.
+`Stage1` 의 비활성 `Zone_Village`·`Zone_Boss` 는 예전 빈 틀이라 켜지 않는다. 지역별 몬스터 16종과 보스는 [사냥터 밸런스](HUNTING_BALANCE.md).
 
-동굴의 검 획득·출구와 Main의 `cave_exit` 도착점, 설정 버튼·자동 저장 기능은 현재 동선과 함께 연결한다. 플레이어의 스탯·공격·인벤토리는 공통 프리팹에서 상속하고, 기존 씬의 추가 컴포넌트는 같은 참조 ID로 프리팹 컴포넌트를 가리켜 중복 실행을 막는다. 첫 섬 동작은 [마을 연결](HUB_STORY_CONNECTION.md)과 [재의 왕](ASH_KING_BOSS.md)을 기준으로 확인한다.
+옛 세이브의 씬 이름(`Main`, `Region2`~`4`, 씬 경로)은 이어하기에서 새 이름으로 옮기고, `HuntingGroundN` 에서 저장된 세이브는 `Stage1` 의 그 사냥터 입구에서 이어간다(`GameFlow.ResolveSavedScene`).
+검증: `StageVerification.Run`(구조·연결·16종·세이브 이름), `StageBalanceVerification.Run`(전투 시간, 배치 모드).
+
+동굴의 검 획득·출구와 Stage1의 `cave_exit` 도착점, 설정 버튼·자동 저장 기능은 현재 동선과 함께 연결한다. 플레이어의 스탯·공격·인벤토리는 공통 프리팹에서 상속하고, 기존 씬의 추가 컴포넌트는 같은 참조 ID로 프리팹 컴포넌트를 가리켜 중복 실행을 막는다. 첫 섬 동작은 [마을 연결](HUB_STORY_CONNECTION.md)과 [재의 왕](ASH_KING_BOSS.md)을 기준으로 확인한다.
 
 ### 병합 검증
 
@@ -27,7 +35,7 @@
 
 ```mermaid
 flowchart LR
-    T[튜토리얼<br/>Cave] --> R1[1지역<br/>Main]
+    T[튜토리얼<br/>Cave] --> R1[1지역<br/>Stage1]
     R1 <-->|앞: 1지역 중간보스 처치<br/>뒤: 항상 열림| R2[2지역]
     R2 <-->|앞: 2지역 중간보스 처치<br/>뒤: 항상 열림| R3[3지역]
     R3 <-->|앞: 3지역 중간보스 처치<br/>뒤: 항상 열림| R4[4지역]
@@ -40,23 +48,23 @@ flowchart LR
 |---|---|---|---|
 | 0 | `Title` | 새 게임 / 이어하기 | — |
 | 1 | `Cave` | 튜토리얼 동굴. 이동·공격·대화 학습 | 튜토리얼 완료 |
-| 2 | `Main` | 1지역 | 1지역 중간보스 처치 |
-| 3 | `Region2` | 2지역 | 2지역 중간보스 처치 |
-| 4 | `Region3` | 3지역 | 3지역 중간보스 처치 |
-| 5 | `Region4` | 4지역 | 4지역 중간보스 처치 |
+| 2 | `Stage1` | 1지역 | 1지역 중간보스 처치 |
+| 3 | `Stage2` | 2지역 | 2지역 중간보스 처치 |
+| 4 | `Stage3` | 3지역 | 3지역 중간보스 처치 |
+| 5 | `Stage4` | 4지역 | 4지역 중간보스 처치 |
 | 6 | `FinalBoss` | 최종보스전 | 엔딩 |
 
 - 튜토리얼은 기존 `Cave` 씬을 그대로 쓴다.
-- 1지역은 기존 `Main` 씬이다. 지금 `Main` 에 있는 마을이 1지역 마을이 되고,
+- 1지역은 기존 `Stage1` 씬이다. 지금 `Stage1` 에 있는 마을이 1지역 마을이 되고,
   사냥터와 보스 구역을 같은 씬에 덧붙인다.
-- `Region2`~`Region4`, `FinalBoss` 는 새로 만든다 (이름은 제안).
+- `Stage2`~`Stage4`, `FinalBoss` 는 새로 만든다 (이름은 제안).
 - Build Settings 에 위 순서대로 넣는다.
 
 ---
 
 ## 2. 지역 씬 구성
 
-모든 지역 씬(`Main`, `Region2`~`Region4`)은 같은 틀을 쓴다.
+모든 지역 씬(`Stage1`, `Stage2`~`Stage4`)은 같은 틀을 쓴다.
 
 ```mermaid
 flowchart TB
@@ -116,7 +124,7 @@ flowchart TB
 그림 배치는 손으로 그린 구조도와 같은 방향(좌상·우상·좌하·우하, 보스는 아래)으로 맞췄다.
 구역 크기가 상한을 넘으면 간격(200)을 늘린다.
 
-`Main` 은 마을이 이미 놓여 있으므로, 마을을 옮기지 말고 **마을 중심을 기준점으로 삼아**
+`Stage1` 은 마을이 이미 놓여 있으므로, 마을을 옮기지 말고 **마을 중심을 기준점으로 삼아**
 나머지 구역을 위 간격만큼 떨어뜨려 놓는다. 새로 만드는 지역 씬은 위 좌표를 그대로 쓴다.
 
 ---
@@ -150,7 +158,7 @@ Region2
     └─ Portal_ToNextRegion      (ScenePortal, 보스 처치 전에는 잠김)
 ```
 
-`Main` 에는 `Portal_ToPrevRegion` 을 두지 않는다 (튜토리얼로는 돌아가지 않는다).
+`Stage1` 에는 `Portal_ToPrevRegion` 을 두지 않는다 (튜토리얼로는 돌아가지 않는다).
 
 ### 입구 이름 규칙
 
@@ -184,20 +192,20 @@ Region2
 
 | 포탈 | 위치 | targetScene | targetSpawn | requiredFlag |
 |---|---|---|---|---|
-| 튜토리얼 출구 | `Cave` | `Main` | `default` | `tutorial.cleared` |
-| 1지역 → 2지역 | `Main` 보스 구역 | `Region2` | `default` | `region1.boss_cleared` |
-| 2지역 → 3지역 | `Region2` 보스 구역 | `Region3` | `default` | `region2.boss_cleared` |
-| 3지역 → 4지역 | `Region3` 보스 구역 | `Region4` | `default` | `region3.boss_cleared` |
-| 4지역 → 최종보스 | `Region4` 보스 구역 | `FinalBoss` | `default` | `region4.boss_cleared` |
+| 튜토리얼 출구 | `Cave` | `Stage1` | `default` | `tutorial.cleared` |
+| 1지역 → 2지역 | `Stage1` 마을 북쪽 (재의 왕 처치 후) | `Stage2` | `default` | `region1.boss_cleared` |
+| 2지역 → 3지역 | `Stage2` 보스 구역 | `Stage3` | `default` | `region2.boss_cleared` |
+| 3지역 → 4지역 | `Stage3` 보스 구역 | `Stage4` | `default` | `region3.boss_cleared` |
+| 4지역 → 최종보스 | `Stage4` 보스 구역 | `FinalBoss` | `default` | `region4.boss_cleared` |
 
 뒤로 가는 포탈 (마을에 둔다, 잠금 없음):
 
 | 포탈 | 위치 | targetScene | targetSpawn |
 |---|---|---|---|
-| 2지역 → 1지역 | `Region2` 마을 | `Main` | `from_next` |
-| 3지역 → 2지역 | `Region3` 마을 | `Region2` | `from_next` |
-| 4지역 → 3지역 | `Region4` 마을 | `Region3` | `from_next` |
-| 최종보스 → 4지역 | `FinalBoss` 입구 | `Region4` | `from_next` |
+| 2지역 → 1지역 | `Stage2` 마을 | `Stage1` | `from_next` |
+| 3지역 → 2지역 | `Stage3` 마을 | `Stage2` | `from_next` |
+| 4지역 → 3지역 | `Stage4` 마을 | `Stage3` | `from_next` |
+| 최종보스 → 4지역 | `FinalBoss` 입구 | `Stage4` | `from_next` |
 
 뒤로 가는 포탈은 그 지역에 들어온 순간 이미 앞 지역 보스를 잡은 상태이므로 잠글 필요가 없다.
 
@@ -284,32 +292,32 @@ Region2
 
 ## 8. 작업 순서
 
-1지역(`Main`)을 끝까지 연결한 뒤, 그 구성을 복제해서 2~4지역을 만든다.
+1지역(`Stage1`)을 끝까지 연결한 뒤, 그 구성을 복제해서 2~4지역을 만든다.
 
 > **진행 상황 (2026-10-04)** — 1~3, 5, 6 의 뼈대는 `Tools > AINPC > 스테이지 씬 만들기`
-> (`StageSceneBuilder`)로 깔았고 플레이로 확인했다. `Region2`~`Region4`, `FinalBoss` 도 같은 메뉴가
+> (`StageSceneBuilder`)로 깔았고 플레이로 확인했다. `Stage2`~`Stage4`, `FinalBoss` 도 같은 메뉴가
 > 회색 바닥 + 벽 + 같은 구역 구성으로 미리 만들어 두었다 (8단계의 "구성 복제"까지는 된 상태).
 > 이미 있는 씬은 건너뛰므로 다시 실행해도 손댄 씬을 덮어쓰지 않는다.
 >
 > 남은 것: 4(사냥터별 `MonsterData` 레벨 차등), 6(저장 후 이어하기 확인), 7(지형), 9(최종보스 연출·엔딩), 10(밸런스).
 >
 > 문서와 다르게 남아 있는 것:
-> - `Main` 은 기존 마을을 `Zone_Village` 로 묶지 않았다. 지형을 건드리지 않으려고 빈 `Zone_Village` 에
+> - `Stage1` 은 기존 마을을 `Zone_Village` 로 묶지 않았다. 지형을 건드리지 않으려고 빈 `Zone_Village` 에
 >   입구·포탈·체크포인트만 넣었고, 마을 중심은 동굴 출구(`cave_exit`) 자리다.
 >   `Cave` 출구는 `default` 대신 `cave_exit` 로 내리지만 두 입구는 같은 자리다.
 > - 보스 데이터는 `Assets/Data/Monsters/Bosses/` 의 임시 값이다 (일반 몬스터의 체력·경험치 10배, 공격 2배).
 
-1. **구역 뼈대** — `Main` 에 기존 마을을 `Zone_Village` 로 묶고, 빈 구역 루트 5개(사냥터 4, 보스 1)를
+1. **구역 뼈대** — `Stage1` 에 기존 마을을 `Zone_Village` 로 묶고, 빈 구역 루트 5개(사냥터 4, 보스 1)를
    3장 간격대로 배치한다.
 2. **순간이동** — `GameFlow.TeleportTo`, `CameraFollow.SnapToTarget`, `ZonePortal` 구현.
    회색 바닥만 깔린 상태에서 마을 ↔ 각 구역 왕복이 되는지 확인한다.
-3. **씬 연결** — `Cave` → `Main` → (임시) `Region2` 로 `ScenePortal` 연결. 보스 처치 flag 로
-   앞 포탈이 열리는지, `Region2` 에서 뒤 포탈로 `Main` 마을(`from_next`)에 내리는지 확인한다.
+3. **씬 연결** — `Cave` → `Stage1` → (임시) `Stage2` 로 `ScenePortal` 연결. 보스 처치 flag 로
+   앞 포탈이 열리는지, `Stage2` 에서 뒤 포탈로 `Stage1` 마을(`from_next`)에 내리는지 확인한다.
 4. **사냥터** — 사냥터 4곳에 `MonsterSpawnArea` 배치, 사냥터별 `MonsterData` 레벨 차등, 반복 스폰과 경험치 획득 확인.
 5. **중간보스** — 보스 배치, 처치 시 `region1.boss_cleared` 세우기.
 6. **저장·사망** — 마을 체크포인트 배치. 사냥터·보스에서 죽으면 마을에서 부활하는지, 저장 후 이어하기가 되는지 확인.
 7. **지형** — 맵 생성기(`Tools > 맵 생성기`)나 직접 타일맵으로 사냥터·보스 구역 지형을 입힌다.
-8. **복제** — 새 씬 `Region2`~`Region4` 를 만들고 같은 구역 구성과 포탈을 넣은 뒤, 몬스터·보스·지형만 바꾼다.
+8. **복제** — 새 씬 `Stage2`~`Stage4` 를 만들고 같은 구역 구성과 포탈을 넣은 뒤, 몬스터·보스·지형만 바꾼다.
 9. **최종보스** — `FinalBoss` 씬.
 10. **밸런스** — 사냥터·보스 레벨을 플레이로 조정한다.
 
@@ -320,8 +328,8 @@ Region2
 작업하면서 확정하고, 확정되면 위 내용을 고친다.
 
 - [ ] 사냥터·보스 구역의 몬스터 레벨과 종류 (6장 표).
-- [ ] `Region2`~`Region4`, `FinalBoss` 씬 이름.
-- [ ] 지역마다 둘 AI NPC 기획 (확정되면 지역 씬에 LLM 계열 컴포넌트를 붙인다. 지금은 `Main` 에만 있다).
+- [ ] `Stage2`~`Stage4`, `FinalBoss` 씬 이름.
+- [ ] 지역마다 둘 AI NPC 기획 (확정되면 지역 씬에 LLM 계열 컴포넌트를 붙인다. 지금은 `Stage1` 에만 있다).
 
 ### 확정된 것 (2026-10-04)
 
@@ -329,13 +337,13 @@ Region2
   (`StageBoss` 가 자기 처치 flag 가 이미 있으면 시작하자마자 사라진다).
 - 튜토리얼 완료 조건은 동굴의 `낡은 검` 줍기다. 주우면 `tutorial.cleared` 가 서고, 그 전에는 동굴 출구가 잠겨 있다.
 - 새 게임은 `Cave` 에서 시작한다 (`TitleScreenUI.firstScene`). 튜토리얼을 마친 뒤로는 동굴에 다시 들어가지 않는다.
-  돌아가는 포탈이 없고, 동굴에서 저장된 세이브라도 `tutorial.cleared` 가 있으면 이어하기는 `Main` 마을로 간다.
-- `Main` 마을 안의 예전 사냥 구역(`Stage1`~`Stage4`)은 지웠다. 사냥은 사냥터 구역에서만 한다.
+  돌아가는 포탈이 없고, 동굴에서 저장된 세이브라도 `tutorial.cleared` 가 있으면 이어하기는 `Stage1` 마을로 간다.
+- 1지역 마을 안의 예전 사냥 구역(당시 이름 Stage1~Stage4)은 지웠다. 사냥은 사냥터 구역에서만 한다.
 
 ### 확정된 것 (2026-09-29)
 
 - 튜토리얼 씬은 기존 `Cave` 를 그대로 쓴다.
-- 1지역은 기존 `Main` 씬이고, 지금 마을이 1지역 마을이다.
+- 1지역은 기존 `Stage1` 씬이고, 지금 마을이 1지역 마을이다.
 - 중간보스 구역은 처음부터 열려 있다. 레벨 밸런스로 바로 잡기 어렵게 만든다.
 - 사냥터 잠금은 없다. 몬스터 레벨로 다음 사냥터로 넘어가도록 유도한다.
 - 다음 지역으로 넘어간 뒤 이전 지역으로 돌아가는 포탈을 둔다.

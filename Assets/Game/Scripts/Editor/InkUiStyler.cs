@@ -20,7 +20,7 @@ public static class InkUiStyler
 
     public static void ApplyAllAndVerify()
     {
-        foreach (string path in new[] { "Assets/Scenes/Main.unity", "Assets/Scenes/MapGen_Village.unity", "Assets/Scenes/Title.unity", "Assets/Scenes/mapstory1.unity" })
+        foreach (string path in new[] { "Assets/Scenes/Main/Stage1.unity", "Assets/Scenes/MapGen_Village.unity", "Assets/Scenes/Main/Title.unity", "Assets/Scenes/mapstory1.unity" })
         {
             EditorSceneManager.OpenScene(path);
             ApplyCurrent();

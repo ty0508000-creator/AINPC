@@ -300,7 +300,7 @@ public class PlayerStats : MonoBehaviour, IDamageable
         BaseMaxHP = Mathf.Max(1f, data.maxHP);
         HP     = Mathf.Clamp(data.hp, 0f, MaxHP);
         State = HP <= 0f ? LifeState.Dead : LifeState.Alive;
-        if (data.hasCheckpoint && data.checkpointScene == gameObject.scene.path)
+        if (data.hasCheckpoint && GameFlow.ResolveSavedScene(data.checkpointScene, out string checkpointSpawn) == gameObject.scene.name && checkpointSpawn == null)   // 씬 이름이 바뀐 옛 저장도 같은 씬으로 본다
             CheckpointPosition = data.checkpointPosition;
         BaseMaxMana = Mathf.Max(1f, data.maxMana);
         Mana   = Mathf.Clamp(data.mana, 0f, MaxMana);

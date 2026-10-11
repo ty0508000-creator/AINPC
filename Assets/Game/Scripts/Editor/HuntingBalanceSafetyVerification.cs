@@ -26,7 +26,7 @@ public static class HuntingBalanceSafetyVerification
             var camera=new GameObject("Camera").AddComponent<Camera>();camera.tag="MainCamera";camera.orthographic=true;camera.orthographicSize=6;
             point=new GameObject("Respawn point").AddComponent<MonsterSpawnPoint>();point.transform.position=Vector3.right*3;
             area=new GameObject("Respawn area").AddComponent<MonsterSpawnArea>();area.enabled=false;
-            Set(area,"monsterPrefab",AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Game/Prefabs/RegionalEnemies/Region1.prefab").GetComponent<RegionalMonster>());Set(area,"monsterData",AssetDatabase.LoadAssetAtPath<MonsterData>("Assets/Game/Data/HubStory/Enemy1.asset"));Set(area,"spawnPoints",new[]{point});Set(area,"minimumRespawnDelay",1f);
+            Set(area,"monsterPrefab",AssetDatabase.LoadAssetAtPath<GameObject>(StageBuilder.PrefabPath(1,1)).GetComponent<RegionalMonster>());Set(area,"monsterData",AssetDatabase.LoadAssetAtPath<MonsterData>("Assets/Game/Data/HubStory/Enemy1.asset"));Set(area,"spawnPoints",new[]{point});Set(area,"minimumRespawnDelay",1f);
             area.SpawnEmptyPoints();Check(!point.IsEmpty,"first spawn has no respawn delay");point.CurrentMonster.TakeDamage(10000);area.SpawnEmptyPoints();Check(point.IsEmpty,"cleared point does not respawn on an immediate global tick");due=Time.time+.4f;break;
         case 2:
             area.SpawnEmptyPoints();Check(point.IsEmpty,"respawn remains blocked before minimum delay");due=Time.time+.75f;break;

@@ -8,7 +8,7 @@ public static class UltimateSetup
     public static void ApplyAndVerify()
     {
         CreateSword();
-        foreach (string path in new[] { "Assets/Scenes/Main.unity", "Assets/Scenes/mapstory1.unity" })
+        foreach (string path in new[] { "Assets/Scenes/Main/Stage1.unity", "Assets/Scenes/mapstory1.unity" })
         {
             var scene = EditorSceneManager.OpenScene(path);
             foreach (var root in scene.GetRootGameObjects())

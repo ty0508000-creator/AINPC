@@ -23,7 +23,7 @@ public static class SceneUiBaker
 
     public static void BakeAll()
     {
-        foreach (string path in new[] { "Assets/Scenes/Main.unity", "Assets/Scenes/Cave.unity", "Assets/Scenes/MapGen_Village.unity", "Assets/Scenes/Title.unity", "Assets/Scenes/mapstory1.unity" })
+        foreach (string path in new[] { "Assets/Scenes/Main/Stage1.unity", "Assets/Scenes/Main/Cave.unity", "Assets/Scenes/MapGen_Village.unity", "Assets/Scenes/Main/Title.unity", "Assets/Scenes/mapstory1.unity" })
         {
             var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
             Bake(scene);

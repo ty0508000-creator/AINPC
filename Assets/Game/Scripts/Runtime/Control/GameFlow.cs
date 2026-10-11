@@ -25,6 +25,35 @@ public class GameFlow : MonoBehaviour
     /// <summary>튜토리얼을 마치면 세우는 진행 표시. 동굴 출구가 이걸 보고 열린다.</summary>
     public const string TutorialClearedFlag = "tutorial.cleared";
 
+    /// <summary>1지역 씬. 동굴 다음, 마을과 사냥터 4곳이 함께 있다.</summary>
+    public const string FirstStageScene = "Stage1";
+
+    /// <summary>재의 왕을 쓰러뜨리면 세운다. Stage1 마을의 다음 지역 문이 열린다.</summary>
+    public const string Stage1ClearedFlag = "region1.boss_cleared";
+
+    /// <summary>
+    /// 세이브에 적힌 씬을 지금 이름으로 옮긴다. 경로로 저장된 것은 이름만 쓴다.
+    /// 사냥터가 따로 씬이던 시절의 위치는 Stage1 좌표가 아니므로 그 사냥터 입구로 보낸다(spawn 이 null 이 아님).
+    /// </summary>
+    public static string ResolveSavedScene(string saved, out string spawn)
+    {
+        spawn = null;
+        string name = string.IsNullOrEmpty(saved) ? FirstStageScene : System.IO.Path.GetFileNameWithoutExtension(saved);
+        if (name.StartsWith("HuntingGround") && int.TryParse(name.Substring("HuntingGround".Length), out int hunt))
+        {
+            spawn = HubStoryIds.HuntSpawn(hunt);
+            return FirstStageScene;
+        }
+        switch (name)
+        {
+            case "Main": case "Test": return FirstStageScene;
+            case "Region2": return "Stage2";
+            case "Region3": return "Stage3";
+            case "Region4": return "Stage4";
+            default: return name;
+        }
+    }
+
     private static GameFlow instance;
 
     /// <summary>없으면 만들어서 돌려준다.</summary>
@@ -214,9 +243,7 @@ public class GameFlow : MonoBehaviour
         if (data == null)
             return false;
 
-        string destination = data.hasProgress ? data.sceneName : data.checkpointScene;
-        if (string.IsNullOrEmpty(destination)) destination = "Main";
-        if (destination == "Test") destination = "Main";
+        string destination = ResolveSavedScene(data.hasProgress ? data.sceneName : data.checkpointScene, out string legacySpawn);
 
         Vector2 position = data.hasProgress
             ? new Vector2(data.posX, data.posY)
@@ -227,7 +254,14 @@ public class GameFlow : MonoBehaviour
         if (destination == TutorialScene && HasFlag(TutorialClearedFlag))
         {
             pendingSpawn = DefaultSpawn;
-            StartCoroutine(LoadRoutine("Main", null, saveOnArrival: true));
+            StartCoroutine(LoadRoutine(FirstStageScene, null, saveOnArrival: true));
+            return true;
+        }
+
+        if (legacySpawn != null)
+        {
+            pendingSpawn = legacySpawn;
+            StartCoroutine(LoadRoutine(destination, null, saveOnArrival: true));
             return true;
         }
 

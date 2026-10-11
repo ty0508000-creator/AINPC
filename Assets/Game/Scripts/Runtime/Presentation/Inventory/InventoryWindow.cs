@@ -34,6 +34,7 @@ public sealed class InventoryWindow : MonoBehaviour
     InventorySlotView draggingFromSlot;
     InventorySlotView hoveredSlot;
     EquipmentSlotView hoveredEquipment;
+    InventorySlotView selectedSlot;
 
     // 런타임 정의 목록. 검증 코드가 ItemDatabase.Instance 를 바꿔 끼우면 그것을 따른다.
     ItemDatabase Database => ItemDatabase.Instance != null ? ItemDatabase.Instance : itemDatabase;
@@ -58,6 +59,9 @@ public sealed class InventoryWindow : MonoBehaviour
     void Update()
     {
         if (IsOpen && openWindow == this && !CanStayOpen()) { Close(); return; }
+
+        var mouse = Mouse.current;
+        if (openWindow == this && mouse != null && mouse.leftButton.wasPressedThisFrame) HandleClickAt(mouse.position.ReadValue());
 
         var keyboard = Keyboard.current;
         if (keyboard == null || IsTypingInInputField()) return;
@@ -88,6 +92,7 @@ public sealed class InventoryWindow : MonoBehaviour
 
     public void Close()
     {
+        Select(null);
         CancelItemDrag();
         HideTransientParts();
         if (windowPanel != null) windowPanel.SetActive(false);
@@ -129,6 +134,8 @@ public sealed class InventoryWindow : MonoBehaviour
 
     void OnInventoryChanged()
     {
+        // 칸의 내용이 바뀌면(장착·이동·줍기) 선택을 푼다. 안 그러면 그 칸에 새로 온 아이템을 버리게 된다.
+        Select(null);
         if (openWindow == this) Refresh();
     }
 
@@ -199,7 +206,7 @@ public sealed class InventoryWindow : MonoBehaviour
 
     public void OnSlotPointerExit(InventorySlotView slot)
     {
-        slot.SetHovered(false);
+        slot.SetHovered(slot == selectedSlot);
         if (hoveredSlot != slot) return;
         hoveredSlot = null;
         itemTooltip.Hide();
@@ -280,6 +287,52 @@ public sealed class InventoryWindow : MonoBehaviour
 
     /// <summary>칸 밖에 놓았을 때도 불린다. 이미 놓기가 처리됐으면 아무것도 하지 않는다.</summary>
     public void EndItemDrag() => CancelItemDrag();
+
+    /// <summary>끌기를 마쳤을 때. 창 밖에 놓았으면 장비를 버린다.</summary>
+    public void EndItemDrag(PointerEventData eventData)
+    {
+        var from = draggingFromSlot;
+        CancelItemDrag();
+        if (from != null && eventData != null && !IsOverWindow(eventData.position)) Discard(from);
+    }
+
+    // ── 버리기 ──────────────────────────────────────────────────
+
+    /// <summary>가방 칸 좌클릭: 선택한다. 선택한 채 창 밖을 클릭하면 버린다. 다시 누르면 선택을 푼다.</summary>
+    public void OnSlotLeftClick(InventorySlotView slot)
+    {
+        if (openWindow != this || draggingFromSlot != null) return;
+        Select(selectedSlot == slot || inventory.GetItemInSlot(slot.SlotIndex) == null ? null : slot);
+    }
+
+    /// <summary>마우스를 누른 화면 좌표. 칸을 선택한 채 창 밖이면 그 장비를 버린다.</summary>
+    public void HandleClickAt(Vector2 screenPosition)
+    {
+        if (openWindow != this || selectedSlot == null || IsOverWindow(screenPosition)) return;
+        var slot = selectedSlot;
+        Select(null);
+        Discard(slot);
+    }
+
+    void Select(InventorySlotView slot)
+    {
+        if (selectedSlot != null && selectedSlot != hoveredSlot) selectedSlot.SetHovered(false);
+        selectedSlot = slot;
+        if (slot != null) slot.SetHovered(true);
+    }
+
+    bool IsOverWindow(Vector2 screenPosition) =>
+        RectTransformUtility.RectangleContainsScreenPoint((RectTransform)windowPanel.transform, screenPosition, null);
+
+    /// <summary>장비만 버린다(착용 중인 장비는 가방에 없으니 버릴 수 없다). 발밑에 떨어져 다시 주울 수 있다.</summary>
+    void Discard(InventorySlotView slot)
+    {
+        var entry = inventory.GetItemInSlot(slot.SlotIndex);
+        var definition = entry != null ? Database?.Find(entry.itemId) : null;
+        if (definition == null || definition.maxStack != 1 || definition.category == ItemCategory.Misc) return;
+        if (!inventory.RemoveInstance(entry)) return;
+        ItemDrop.Spawn(entry, inventory.transform.position);   // 발밑. 옆으로 띄우면 벽 안에 떨어질 수 있다
+    }
 
     void CancelItemDrag()
     {

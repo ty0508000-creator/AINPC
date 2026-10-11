@@ -31,7 +31,7 @@ public static class ItemDrop
         return PlayerInventory.CreateInstance(picked, rarity, rng);
     }
 
-    /// <summary>바닥에 장비를 떨어뜨린다. 아이콘과 등급색 이름표가 붙고, 밟으면 줍는다.</summary>
+    /// <summary>바닥에 장비를 떨어뜨린다. 아이콘과 등급색 이름표가 붙고, 닿은 채 Ctrl 을 누르면 줍는다.</summary>
     public static ItemPickup Spawn(InventoryEntry entry, Vector3 position)
     {
         var definition = ItemDatabase.Instance != null ? ItemDatabase.Instance.Find(entry.itemId) : null;
@@ -44,22 +44,30 @@ public static class ItemDrop
         trigger.isTrigger = true;
         trigger.radius = 0.4f / 0.6f;
         YSortRenderer.Attach(go);
-
-        var labelObject = new GameObject("Label");
-        labelObject.transform.SetParent(go.transform, false);
-        labelObject.transform.localPosition = new Vector3(0f, 0.75f, 0f);
-        var label = labelObject.AddComponent<TextMeshPro>();
-        var font = Resources.Load<TMP_FontAsset>("Fonts/UiBody SDF");
-        if (font != null) label.font = font;
-        label.text = entry.displayName;
-        label.fontSize = 2.4f;
-        label.alignment = TextAlignmentOptions.Center;
-        label.color = ItemRarityTable.Color(entry.rarity);
-        label.sortingOrder = YSortRenderer.WorldOverlayOrder;
-        label.rectTransform.sizeDelta = new Vector2(6f, 1f);
+        WorldLabel(go.transform, "Label", entry.displayName, ItemRarityTable.Color(entry.rarity), 0.45f);
 
         var pickup = go.AddComponent<ItemPickup>();
         pickup.Init(entry);
         return pickup;
+    }
+
+    /// <summary>월드에 뜨는 작은 글자. 바닥 아이템 이름표와 줍기 안내에 쓴다. 부모 크기와 관계없이 같은 크기로 보인다.</summary>
+    public static TextMeshPro WorldLabel(Transform parent, string name, string text, Color color, float height)
+    {
+        var labelObject = new GameObject(name);
+        labelObject.transform.SetParent(parent, false);
+        float scale = parent.lossyScale.x > 0f ? 1f / parent.lossyScale.x : 1f;
+        labelObject.transform.localScale = Vector3.one * scale;
+        labelObject.transform.localPosition = new Vector3(0f, height * scale, 0f);
+        var label = labelObject.AddComponent<TextMeshPro>();
+        var font = Resources.Load<TMP_FontAsset>("Fonts/UiBody SDF");
+        if (font != null) label.font = font;
+        label.text = text;
+        label.fontSize = 2.4f * 0.6f;
+        label.alignment = TextAlignmentOptions.Center;
+        label.color = color;
+        label.sortingOrder = YSortRenderer.WorldOverlayOrder;
+        label.rectTransform.sizeDelta = new Vector2(6f, 1f);
+        return label;
     }
 }

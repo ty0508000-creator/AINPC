@@ -14,6 +14,9 @@ public class ZonePortal : MonoBehaviour
     [Tooltip("이 진행 표시가 있어야 열린다. 비우면 항상 열려 있다")]
     [SerializeField] private string requiredFlag;
 
+    [Tooltip("이 퀘스트를 완료해야 열린다. 비우면 조건 없음")]
+    [SerializeField] private string requiredQuestId;
+
     [Tooltip("잠겨 있을 때 띄울 말")]
     [SerializeField] private string lockedMessage = "아직 갈 수 없다.";
 
@@ -35,6 +38,16 @@ public class ZonePortal : MonoBehaviour
 
         if (GameFlow.Instance.IsLoading)
             return;
+
+        // 씬 이동 포탈(ScenePortal)과 같은 조건: 살아 있고 대화·창이 닫혀 있어야 한다.
+        var player = other.GetComponentInParent<PlayerStats>();
+        if (!player.IsAlive || DialogueManager.IsDialogueOpen || RpgUI.IsOpen || InventoryWindow.IsOpen || PauseMenuUI.IsOpen) return;
+
+        if (!string.IsNullOrEmpty(requiredQuestId) && (QuestManager.Instance == null || !QuestManager.Instance.IsCompleted(requiredQuestId)))
+        {
+            GameFlow.Instance.ShowNotice(lockedMessage);
+            return;
+        }
 
         if (!string.IsNullOrEmpty(requiredFlag) && !GameFlow.Instance.HasFlag(requiredFlag))
         {

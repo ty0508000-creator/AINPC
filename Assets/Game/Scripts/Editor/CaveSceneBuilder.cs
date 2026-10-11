@@ -12,9 +12,9 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public static class CaveSceneBuilder
 {
-    const string CavePath = "Assets/Scenes/Cave.unity";
-    const string MainPath = "Assets/Scenes/Main.unity";
-    const string TitlePath = "Assets/Scenes/Title.unity";
+    const string CavePath = "Assets/Scenes/Main/Cave.unity";
+    const string MainPath = "Assets/Scenes/Main/Stage1.unity";
+    const string TitlePath = "Assets/Scenes/Main/Title.unity";
     const string PlayerPrefabPath = "Assets/Prefabs/Player.prefab";
     const string ItemDir = "Assets/Game/Items";
     const string SwordItemPath = ItemDir + "/CaveSword.asset";

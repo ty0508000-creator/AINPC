@@ -67,11 +67,12 @@ public sealed class InventorySlotView : MonoBehaviour,
     }
 
     public void OnDrag(PointerEventData eventData) => window.UpdateItemDrag(eventData);
-    public void OnEndDrag(PointerEventData eventData) => window.EndItemDrag();
+    public void OnEndDrag(PointerEventData eventData) => window.EndItemDrag(eventData);
     public void OnDrop(PointerEventData eventData) => window.DropItemOn(this);
 
     public void OnPointerClick(PointerEventData eventData)
     {
         if (eventData.button == PointerEventData.InputButton.Right) window.OnSlotRightClick(this);
+        else if (eventData.button == PointerEventData.InputButton.Left) window.OnSlotLeftClick(this);
     }
 }

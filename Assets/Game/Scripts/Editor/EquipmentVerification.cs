@@ -135,25 +135,10 @@ public static class EquipmentVerification
         Check(cave.attack == 4 && Mathf.Approximately(cave.critChance, .03f) && Mathf.Approximately(cave.attackSpeed, 1f) && cave.tier == 1, "낡은 검 수치");
         Check(db.Find("heaven_talisman")?.displayName == "천상의 부적" && db.Find("old_talisman")?.tier == 1, "장신구 이름·단계");
 
+        // 2~4지역·최종 몬스터의 수치와 드롭 단계는 StageVerification 이 검사한다.
         MonsterData Monster(string path) => AssetDatabase.LoadAssetAtPath<MonsterData>(path);
-        var bat3 = Monster("Assets/Data/Monsters/Region3/Region3_Bat.asset");
-        Check(bat3 != null && bat3.Level == 11 && bat3.MaxHP == 445 && bat3.AttackDamage == 55 && bat3.ExpReward == 641 && bat3.DropTier == 4, "3지역 박쥐");
-        var mushroom2 = Monster("Assets/Data/Monsters/Region2/Region2_Mushroom.asset");
-        Check(mushroom2 != null && mushroom2.MaxHP == 85 && mushroom2.DropTier == 3 && mushroom2.MonsterName == Monster("Assets/Data/Monsters/MushroomData.asset").MonsterName,
-            "2지역 버섯, 이름은 원본 유지");
-        var boss4 = Monster("Assets/Data/Monsters/Bosses/Region4Boss.asset");
-        Check(boss4.MaxHP == 31000 && boss4.AttackDamage == 178 && boss4.DropTier == 5 && boss4.Level == 17, "4지역 보스");
-        Check(Monster("Assets/Data/Monsters/Bosses/FinalBoss.asset").DropTier == 0 && Monster("Assets/Data/Monsters/Bosses/FinalBoss.asset").MaxHP == 48250, "최종보스");
         Check(Monster("Assets/Game/Data/HubStory/Enemy1.asset").DropTier == 2 && Monster("Assets/Game/Data/HubStory/AshKing.asset").DropTier == 2, "1지역 사냥터·재의 왕 2단계");
         Check(Monster("Assets/Game/Data/HubStory/Enemy1.asset").MaxHP == 30, "1지역 수치 유지");
-
-        string mushroomGuid = AssetDatabase.AssetPathToGUID("Assets/Data/Monsters/MushroomData.asset");
-        foreach (int region in new[] { 2, 3, 4 })
-        {
-            string scene = File.ReadAllText($"Assets/Scenes/Region{region}.unity");
-            Check(!scene.Contains(mushroomGuid) && scene.Contains(AssetDatabase.AssetPathToGUID($"Assets/Data/Monsters/Region{region}/Region{region}_Mushroom.asset")),
-                $"Region{region} 씬이 지역 데이터를 씀");
-        }
     }
 
     // ── 아이템 개체·장착·저장 ───────────────────────────────────
@@ -432,13 +417,20 @@ public static class EquipmentVerification
               pickup.GetComponent<SpriteRenderer>() != null, "드롭 오브젝트: 정렬·트리거·스프라이트");
         var label = pickup.GetComponentInChildren<TMPro.TMP_Text>();
         Check(label != null && label.color == ItemRarityTable.Color(ItemRarity.Epic), "이름표가 등급색");
-        Invoke(pickup, "OnTriggerEnter2D", stats.GetComponent<Collider2D>());
-        Check(pickup != null && inventory.GetEquipped(ItemCategory.Weapon) == null && inventory.Count("iron_sword") == 0, "PickupStaysWhenBagFull");
+        var playerCollider = stats.GetComponent<Collider2D>();
+        Invoke(pickup, "OnTriggerEnter2D", playerCollider);
+        Check(pickup.transform.Find("PickupHint")?.gameObject.activeSelf == true, "닿으면 [Ctrl] 줍기 안내가 뜸");
+        Check(!pickup.TryPickUp() && pickup != null && inventory.Count("iron_sword") == 0, "PickupStaysWhenBagFull");
 
         inventory.Remove("filler_00");
-        Invoke(pickup, "OnTriggerEnter2D", stats.GetComponent<Collider2D>());
-        Check(inventory.GetEquipped(ItemCategory.Weapon)?.rarity == ItemRarity.Epic && inventory.Count("iron_sword") == 1, "PickupAutoEquipsEmptySlot");
+        Check(pickup != null && inventory.Count("iron_sword") == 0, "닿기만 해서는 줍지 않음 (Ctrl 필요)");
+        var farther = ItemDrop.Spawn(PlayerInventory.CreateInstance(db.Find("cave_sword"), ItemRarity.Normal, rng), new Vector3(0.3f, 0f, 0f));
+        created.Add(farther.gameObject);
+        Invoke(farther, "OnTriggerEnter2D", playerCollider);
+        Check(!farther.TryPickUp() && inventory.Count("cave_sword") == 0, "겹쳐 있으면 가장 가까운 것만 줍는다");
+        Check(pickup.TryPickUp() && inventory.GetEquipped(ItemCategory.Weapon)?.rarity == ItemRarity.Epic && inventory.Count("iron_sword") == 1, "PickupAutoEquipsEmptySlot");
         Check(pickup == null, "주운 오브젝트는 사라짐");
+        Check(farther.TryPickUp() && inventory.Count("cave_sword") == 1, "다음 Ctrl 은 남은 아이템을 줍는다");
     }
 
     // ── 인벤토리 창 ─────────────────────────────────────────────
@@ -506,8 +498,52 @@ public static class EquipmentVerification
         window.DropItemOnEquipment(weaponSlot);
         window.EndItemDrag();
         Check(inventory.GetEquipped(ItemCategory.Weapon) == iron, "가방 → 무기 칸 드래그 → 장착");
+
+        // 버리기: 착용 중인 장비는 못 버리고, 해제한 뒤 창 밖으로 끌거나 클릭 후 창 밖을 클릭하면 발밑에 떨어진다.
+        var outside = new Vector2(-10000f, -10000f);
+        Vector2 inside = Field<GameObject>(window, "windowPanel").transform.position;   // 오버레이 캔버스는 월드 좌표 = 화면 좌표
+        window.HandleClickAt(outside);
+        Check(inventory.GetEquipped(ItemCategory.Weapon) == iron, "착용 중인 장비는 버리지 않음");
+        RightClick(weaponSlot.gameObject, eventSystem);
+        window.BeginItemDrag(bag[iron.slotIndex], pointer);
+        window.EndItemDrag(new UnityEngine.EventSystems.PointerEventData(eventSystem) { position = inside });
+        Check(inventory.Items.Contains(iron), "창 안에 놓으면 버리지 않음");
+        window.BeginItemDrag(bag[iron.slotIndex], pointer);
+        window.EndItemDrag(new UnityEngine.EventSystems.PointerEventData(eventSystem) { position = outside });
+        var dropped = UnityEngine.Object.FindObjectsByType<ItemPickup>(FindObjectsSortMode.None).FirstOrDefault(p => p.name == "Drop_iron_sword");
+        if (dropped != null) created.Add(dropped.gameObject);
+        Check(!inventory.Items.Contains(iron) && dropped != null, "창 밖으로 끌면 바닥에 버림");
+
+        var cave = inventory.Items.First(e => e.itemId == "cave_sword");
+        LeftClick(bag[cave.slotIndex].gameObject, eventSystem);
+        window.HandleClickAt(inside);
+        Check(inventory.Items.Contains(cave), "클릭 후 창 안을 클릭하면 버리지 않음");
+        window.HandleClickAt(outside);
+        Check(!inventory.Items.Contains(cave), "클릭 후 창 밖을 클릭하면 버림");
+        // 선택한 칸의 내용이 바뀌면(장착으로 다른 장비가 돌아옴) 선택이 풀려 엉뚱한 장비를 버리지 않는다.
+        var leather = PlayerInventory.CreateInstance(db.Find("leather_armor"), ItemRarity.Rare, new System.Random(2));
+        inventory.TryAddInstance(leather);
+        int leatherSlot = leather.slotIndex;
+        LeftClick(bag[leatherSlot].gameObject, eventSystem);
+        RightClick(bag[leatherSlot].gameObject, eventSystem);
+        var returned = inventory.GetItemInSlot(leatherSlot);
+        window.HandleClickAt(outside);
+        Check(inventory.GetEquipped(ItemCategory.Armor) == leather && returned != null && inventory.Items.Contains(returned), "장착으로 칸이 바뀌면 선택이 풀려 버리지 않음");
+        inventory.TryAdd(db.Find("filler_00"));
+        var filler = inventory.Items.First(e => e.itemId == "filler_00");
+        LeftClick(bag[filler.slotIndex].gameObject, eventSystem);
+        window.HandleClickAt(outside);
+        window.BeginItemDrag(bag[filler.slotIndex], pointer);
+        window.EndItemDrag(new UnityEngine.EventSystems.PointerEventData(eventSystem) { position = outside });
+        Check(inventory.Items.Contains(filler), "장비가 아닌 아이템은 버리지 않음");
+        foreach (var p in UnityEngine.Object.FindObjectsByType<ItemPickup>(FindObjectsSortMode.None)) created.Add(p.gameObject);
         window.Close();
     }
+
+    static void LeftClick(GameObject target, UnityEngine.EventSystems.EventSystem eventSystem) =>
+        UnityEngine.EventSystems.ExecuteEvents.Execute(target,
+            new UnityEngine.EventSystems.PointerEventData(eventSystem) { button = UnityEngine.EventSystems.PointerEventData.InputButton.Left },
+            UnityEngine.EventSystems.ExecuteEvents.pointerClickHandler);
 
     static void RightClick(GameObject target, UnityEngine.EventSystems.EventSystem eventSystem) =>
         UnityEngine.EventSystems.ExecuteEvents.Execute(target,

@@ -16,7 +16,7 @@ public static class HuntingRegionSetup
             Directory.CreateDirectory("Assets/Game/Prefabs/RegionalEnemies"); AssetDatabase.Refresh();
             string[] species={"Mushroom","Bat","Skeleton","Goblin"};
             for(int n=1;n<=4;n++) {
-                string prefab="Assets/Game/Prefabs/RegionalEnemies/Region"+n+".prefab";
+                string prefab=StageBuilder.PrefabPath(1,n);
                 var source=PrefabUtility.LoadPrefabContents("Assets/Prefabs/Monsters/"+species[n-1]+".prefab");
                 UnityEngine.Object.DestroyImmediate(source.GetComponent<MonsterBase>());
                 var monster=source.AddComponent<RegionalMonster>(); Set(monster,"style",(RegionalMonster.Style)(n-1)); HuntingBalanceSetup.ConfigureMonster(n,monster);

@@ -78,7 +78,7 @@ public static class IllustratedUiSetup
     public static void ApplyAllAndVerify()
     {
         Prepare();
-        foreach (string path in new[] { "Assets/Scenes/Main.unity", "Assets/Scenes/mapstory1.unity" })
+        foreach (string path in new[] { "Assets/Scenes/Main/Stage1.unity", "Assets/Scenes/mapstory1.unity" })
         {
             EditorSceneManager.OpenScene(path);
             ApplyCurrent();

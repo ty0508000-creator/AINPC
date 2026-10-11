@@ -29,6 +29,7 @@ public sealed class AshKingArena : MonoBehaviour
     void Victory()
     {
         battleGate.SetActive(false);
+        GameFlow.Instance.SetFlag(GameFlow.Stage1ClearedFlag);   // Stage1 마을의 다음 지역 문이 열린다
         if(Boss!=null){var visual=new GameObject("재의 왕 쓰러짐");visual.transform.SetParent(transform);visual.transform.position=Boss.transform.position;visual.transform.localScale=Boss.transform.localScale;var sprite=visual.AddComponent<SpriteRenderer>();sprite.sprite=Boss.GetComponent<SpriteRenderer>().sprite;sprite.sortingOrder=1000-Mathf.RoundToInt(visual.transform.position.y*10);var animator=visual.AddComponent<Animator>();animator.runtimeAnimatorController=Boss.GetComponent<Animator>().runtimeAnimatorController;animator.SetTrigger("Death");Destroy(visual,2);}
         GameFlow.Instance.ShowNotice("재의 왕을 쓰러뜨렸다. 마을의 현묵에게 돌아가자.");
     }

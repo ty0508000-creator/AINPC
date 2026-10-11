@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   monsterName: AshKing
   level: 5
-  maxHP: 14400
+  maxHP: 3600
   expReward: 120
   attackDamage: 22
   attackRange: 3.2

@@ -39,7 +39,7 @@ public class TitleScreenUI : MonoBehaviour
     public void BakeSceneUI()
     {
         if (canvasRoot != null) return;
-        if (firstScene == "Test") firstScene = "Main";
+        if (firstScene == "Test") firstScene = GameFlow.FirstStageScene;
         if (koreanFont == null) koreanFont = Resources.Load<TMP_FontAsset>("Fonts/NeoDunggeunmoPro SDF");
         Build();
     }

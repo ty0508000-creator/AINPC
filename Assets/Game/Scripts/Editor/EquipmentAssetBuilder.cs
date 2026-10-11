@@ -5,15 +5,14 @@ using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// 장비 14종(낡은 검은 기존 에셋에 수치만)·도트 아이콘, ItemDatabase, 2~4지역·보스 MonsterData 를 만들고
-/// Region2~4 씬의 공용 몬스터 데이터 참조를 지역 데이터로 바꾼다. 씬은 열지 않고 파일의 GUID 만 바꾼다.
+/// 장비 14종(낡은 검은 기존 에셋에 수치만)·도트 아이콘을 만들고 ItemDatabase 를 채운다. 1지역 몬스터의 드롭 단계도 정한다.
+/// 2~4지역·최종 몬스터는 <see cref="StageBuilder"/> 가 만든다.
 /// 수치의 원본은 docs/superpowers/specs/2026-10-11-equipment-design.md.
 /// </summary>
 public static class EquipmentAssetBuilder
 {
     const string ItemFolder = "Assets/Game/Items/Equipment";
     const string IconFolder = "Assets/Sprites/UI/Items";
-    const string MonsterFolder = "Assets/Data/Monsters";
     const string DatabasePath = "Assets/Resources/ItemDatabase.asset";
 
     struct ItemSpec
@@ -49,23 +48,6 @@ public static class EquipmentAssetBuilder
         Accessory("heaven_talisman", "천상의 부적", 5, "하늘의 문자로 쓴 부적. 손에 쥐면 따뜻하다."),
     };
 
-    // 사냥터 1~4 = 버섯·고블린·박쥐·해골. [지역 2~4][몬스터] = 레벨, 체력, 피해, 경험치
-    static readonly string[] Kinds = { "Mushroom", "Goblin", "Bat", "Skeleton" };
-    static readonly int[,,] Hunting =
-    {
-        { { 5, 85, 12, 56 }, { 6, 135, 19, 84 }, { 7, 240, 29, 127 }, { 8, 340, 38, 190 } },
-        { { 9, 155, 23, 285 }, { 10, 250, 37, 427 }, { 11, 445, 55, 641 }, { 12, 625, 73, 961 } },
-        { { 13, 255, 41, 1440 }, { 14, 410, 65, 2160 }, { 15, 730, 97, 3240 }, { 16, 1030, 130, 4870 } },
-    };
-    // 보스: 경로, 레벨, 체력, 피해, 경험치, 드롭 단계
-    static readonly (string path, int level, int hp, int damage, int exp, int drop)[] Bosses =
-    {
-        ("Bosses/Region2Boss.asset", 9, 10150, 53, 640, 3),
-        ("Bosses/Region3Boss.asset", 13, 18750, 101, 3240, 4),
-        ("Bosses/Region4Boss.asset", 17, 31000, 178, 16400, 5),
-        ("Bosses/FinalBoss.asset", 18, 48250, 295, 0, 0),
-    };
-
     [MenuItem("Tools/AINPC/Equipment/Build")]
     public static string Build()
     {
@@ -74,11 +56,10 @@ public static class EquipmentAssetBuilder
         foreach (var spec in Items) CreateItem(spec);
         UpdateCaveSword();
         RefreshDatabase();
-        CreateMonsters();
+        SetHubDropTiers();
         AssetDatabase.SaveAssets();
-        string scenes = RewireRegionScenes();
         AssetDatabase.Refresh();
-        return "EQUIPMENT_BUILD_OK " + scenes;
+        return "EQUIPMENT_BUILD_OK";
     }
 
     static void CreateItem(ItemSpec spec)
@@ -134,64 +115,14 @@ public static class EquipmentAssetBuilder
         return AssetDatabase.LoadAssetAtPath<Sprite>(path);
     }
 
-    static void CreateMonsters()
+    /// <summary>1지역 사냥터 몬스터와 재의 왕은 2단계 장비를 떨어뜨린다. 2~4지역 몬스터는 StageBuilder 가 만든다.</summary>
+    static void SetHubDropTiers()
     {
         foreach (string id in new[] { "Enemy1", "Enemy2", "Enemy3", "Enemy4", "AshKing" })
-            SetMonster(AssetDatabase.LoadAssetAtPath<MonsterData>($"Assets/Game/Data/HubStory/{id}.asset"), drop: 2);
-
-        for (int r = 0; r < 3; r++)
         {
-            int region = r + 2;
-            string folder = $"{MonsterFolder}/Region{region}";
-            Directory.CreateDirectory(folder);
-            for (int k = 0; k < Kinds.Length; k++)
-            {
-                string path = $"{folder}/Region{region}_{Kinds[k]}.asset";
-                if (AssetDatabase.LoadAssetAtPath<MonsterData>(path) == null)
-                    AssetDatabase.CopyAsset($"{MonsterFolder}/{Kinds[k]}Data.asset", path);
-                SetMonster(AssetDatabase.LoadAssetAtPath<MonsterData>(path), Hunting[r, k, 0], Hunting[r, k, 1], Hunting[r, k, 2], Hunting[r, k, 3], region + 1);
-            }
+            var so = new SerializedObject(AssetDatabase.LoadAssetAtPath<MonsterData>($"Assets/Game/Data/HubStory/{id}.asset"));
+            so.FindProperty("dropTier").intValue = 2;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
-        foreach (var boss in Bosses)
-            SetMonster(AssetDatabase.LoadAssetAtPath<MonsterData>($"{MonsterFolder}/{boss.path}"), boss.level, boss.hp, boss.damage, boss.exp, boss.drop);
-    }
-
-    /// <summary>레벨이 0 이면 수치는 그대로 두고 드롭 단계만 바꾼다.</summary>
-    static void SetMonster(MonsterData data, int level = 0, float hp = 0, int damage = 0, float exp = 0, int drop = 0)
-    {
-        var so = new SerializedObject(data);
-        if (level > 0)
-        {
-            so.FindProperty("level").intValue = level;
-            so.FindProperty("maxHP").floatValue = hp;
-            so.FindProperty("attackDamage").intValue = damage;
-            so.FindProperty("expReward").floatValue = exp;
-        }
-        so.FindProperty("dropTier").intValue = drop;
-        so.ApplyModifiedPropertiesWithoutUndo();
-    }
-
-    /// <summary>열려 있지 않은 Region2~4 씬 파일에서 공용 데이터 GUID 를 지역 데이터 GUID 로 바꾼다.</summary>
-    static string RewireRegionScenes()
-    {
-        string result = "";
-        for (int region = 2; region <= 4; region++)
-        {
-            string scenePath = $"Assets/Scenes/Region{region}.unity";
-            if (UnityEditor.SceneManagement.EditorSceneManager.GetSceneByPath(scenePath).isLoaded)
-                throw new InvalidOperationException(scenePath + " 이 열려 있습니다. 닫고 다시 실행하세요.");
-            string text = File.ReadAllText(scenePath);
-            int replaced = 0;
-            foreach (string kind in Kinds)
-            {
-                string from = AssetDatabase.AssetPathToGUID($"{MonsterFolder}/{kind}Data.asset");
-                string to = AssetDatabase.AssetPathToGUID($"{MonsterFolder}/Region{region}/Region{region}_{kind}.asset");
-                if (text.Contains(from)) { text = text.Replace(from, to); replaced++; }
-            }
-            File.WriteAllText(scenePath, text);
-            AssetDatabase.ImportAsset(scenePath);
-            result += $"Region{region}:{replaced} ";
-        }
-        return result.Trim();
     }
 }
