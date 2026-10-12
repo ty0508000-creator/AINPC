@@ -57,8 +57,14 @@ Unity는 작업 씬을 저장하고 종료하거나, 별도 프로젝트 복사�
 & 'C:/Program Files/Unity/Hub/Editor/6000.3.10f1/Editor/Unity.exe' -batchmode -projectPath C:/AINPC -executeMethod RecoverySaveVerification.Run -quit -logFile C:/AINPC/Temp/recovery-save.log
 ```
 
+열린 에디터에서 `RecoverySaveVerification.Run`을 바로 호출해도 된다. 실패하면 결과 파일과 콘솔에 남기고, 명령줄 일괄 실행일 때만 실패 코드로 종료한다.
+
 추가로 `RpgVerification.Run`과 `RpgPlayVerification.Run`을 실행한다. Play 검증은 스스로 종료하므로 `-quit`을 붙이지 않는다. PowerShell이 먼저 돌아와도 테스트 완료가 아니며 로그의 PASS와 `VerificationResults`의 결과 파일을 확인한다.
 
-검증 내용: 반복 피해 단일 사망 이벤트, 사망 중 성장/마나 제한, 사후 레벨업, 재실행 복구, 체크포인트, 성장 유지, 보호 시간, AI 조작 사망과 강제 공격 차단, UI 버튼, 통합 보상, 실패/거절 재지급 방지, 다중 레벨업, 커밋 전 오류, 커밋 후 재로드, 백업 없음/손상/복원, legacy migration, 다음 자동 퀘스트 복구, 미래 형식 보호.
+검증 내용: 반복 피해 단일 사망 이벤트, 사망 중 성장/마나 제한, 사후 레벨업, 재실행 복구, 체크포인트, 성장 유지, 보호 시간, AI 조작 사망과 강제 공격 차단, UI 버튼, 통합 보상, 실패/거절 재지급 방지, 다중 레벨업, 커밋 전 오류, 커밋 후 재로드, 백업 없음/손상/복원, legacy migration, 다음 자동 퀘스트 복구, 미래 형식 보호, StoryChoiceManager·NPC 가 없는 씬에서 저장해도 선택·NPC 호감도·감정 수치 유지, 보스 처치 감정 수치 감소, 검증 폴더로 기억 파일도 옮겨 가는지(2026-10-13 기준 62개).
+
+## 테스트 세이브로 플레이
+
+`Tools > AINPC > 테스트 세이브로 플레이`를 켜면 플레이할 때마다 실제 세이브 폴더의 파일과 `Memory` 폴더를 `persistentDataPath/EditorTestSave`로 복사하고 그 사본으로 플레이한다. 세이브·기억 zip·응답 시간 CSV·AI 행동 로그가 모두 `SaveSystem.DirectoryPath`를 따르므로 실제 파일은 바뀌지 않는다. 사본은 다음 플레이 때 다시 덮어쓰고, 설정은 그 PC의 EditorPrefs 에만 남는다. 실행 빌드에는 영향이 없다.
 
 중단 검사는 커밋 직전 예외를 주입하고 디스크를 다시 읽는 방식이다. 실제 전원 차단이나 모든 파일시스템의 내구성을 검증한 것은 아니다. RAG 기억 쓰기·LLM 응답·연출은 파일 트랜잭션 밖이며 exactly-once 보장 범위가 아니다. 실제 Main 완주/마우스 입력/배포 빌드/체크포인트 지형도 별도 확인이 필요하다.

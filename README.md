@@ -22,6 +22,7 @@
 - [사망 복구·통합 저장 사용법](docs/RECOVERY_AND_SAVE.md)
 - [자료구조·알고리즘 코드 설명](docs/RPG_CODE_EXPLAINED.md)
 - [기존 2학기 계획 — 과거 분석과 일정](docs/2학기_개선계획.md)
+- [연구 근거 — 측정값·연구 로그 형식·재현 방법](docs/RESEARCH_EVIDENCE.md)
 
 ## 현재 구현
 
@@ -37,6 +38,9 @@
 - NPC/내면 대화, 로컬 LLM 스트리밍, 기억 검색을 위한 연결 코드.
 - 첫 섬 퀘스트 데이터 9개와 진행·저장 시스템. 일부 완료 조건은 임시 트리거입니다.
 - Main 마을의 현묵·하연과 별도 사냥터 4개를 잇는 의뢰 6개. 대화 확인, 토벌, 기억 파편 조사, 주민 구조, 복귀 보고와 통합 저장.
+- 소윤 앞의 "구한다 / 두고 떠난다" 선택. 선택에 따라 대사·감정 수치·2~4지역 동행, 그리고 어둠이 몸을 잡았을 때의 전투 성향(구조 → 보호형, 외면 → 공격형)이 달라진다.
+- 2~4지역 마을에 현묵·하연·스미스(구했으면 소윤)가 따라오고, 지역마다 선택 의뢰 2개. 처리할 의뢰가 없을 때 E는 LLM 잡담이며 NPC 별 호감도가 저장된다. 호감도는 플레이어의 감정 수치와 별개다.
+- 보스를 쓰러뜨릴 때마다 감정 수치 감소(복수에 물듦). 최종보스 처치 시 게임 클리어 화면.
 - 야영지 보고 후 남쪽 보스맵의 재의 왕 전투. 이전 삿갓 검객 외형, 여덟 공격 패턴·반피 광폭화, 레벨 4 무공 빌드로 약 10분 전투 목표, 사망 재도전과 처치 후 현묵 최종 보고. 두 후속 의뢰를 포함한 실제 동선은 총 8개 의뢰다.
 
 ![먹색 무공 화면](docs/RpgScreenshots/Illustrated/skills.png)
@@ -52,10 +56,10 @@
 
 GGUF는 Git에서 제외됩니다. 저장소만 내려받아서는 LLM 준비가 완료되지 않습니다.
 
-- Main의 `LLM_Server`와 `InnerVoice_LLM_Server`는 현재 모두 `Models/darkness-Q4_K_M.gguf`를 참조합니다.
-- 프로젝트 내 위치: `Assets/StreamingAssets/Models/darkness-Q4_K_M.gguf`.
-- `Embedding_Server`는 `all-MiniLM-L12-v2.Q4_K_M.gguf`를 참조합니다. 실제 모델 해석 경로를 LLMUnity 설정에서 확인해야 합니다.
-- 이번 로컬 점검에서는 darkness 파일을 확인했지만 StreamingAssets 아래에서 임베딩 GGUF는 확인하지 못했습니다. 다른 캐시 경로의 존재나 기억 검색 성공까지 검증한 것은 아닙니다.
+- LLM 서버는 씬이 아니라 `Assets/Resources/LLMServices.prefab`에 있고, 게임 시작 때 한 번 떠서 씬이 바뀌어도 유지됩니다.
+- 대화·내면 서버(`InnerVoice_LLM_Server`): `Assets/StreamingAssets/Models/darkness-Q4_K_M.gguf`. NPC 대화와 내면 대화가 같은 에이전트를 씁니다.
+- 임베딩 서버(`Embedding_Server`): `Assets/StreamingAssets/Models/all-MiniLM-L12-v2.Q4_K_M.gguf`. 기억 저장·검색을 확인했습니다(2026-10-12).
+- 응답은 JSON grammar(`LLMServices`의 `useJsonGrammar`)로 형식을 강제합니다.
 
 `Training/`에 학습 코드와 노트북이 있습니다. 학습은 게임 실행과 별도 작업이며 GPU·패키지·모델 이용 조건 확인이 필요합니다.
 
@@ -86,9 +90,9 @@ UI 기본 글꼴은 `NeoDunggeunmoPro-Regular.ttf`입니다. TextMeshPro용 동�
 
 게임 코드는 `Assets/Game/Scripts/Runtime`에 역할별로 분리되어 있습니다. `Player/PlayerStats.cs`는 성장 데이터, `Presentation/RpgUI.cs`는 표시와 투자 API 호출, `Progression/RpgSkillCatalog.cs`는 정의, `Progression/RpgSkillController.cs`는 비용·쿨타임·효과를 담당합니다. 편집기 도구와 검증 코드는 `Assets/Game/Scripts/Editor`에 있습니다. 자세한 경계와 주의점은 [프로젝트 구조](docs/PROJECT_STRUCTURE.md)를 참고하세요.
 
-`MoodSystem`이 전환 조건을 판단하고 `ControlManager`가 중계합니다. `AIController`는 가까운 적을 추적·공격합니다. **기억에 따라 전투 성향을 바꾸는 기능은 아직 연결되어 있지 않습니다.**
+`MoodSystem`이 전환 조건을 판단하고 `ControlManager`가 중계합니다. `AIController`는 가까운 적을 추적·공격하며, 소윤 선택(기억)에 따라 기본/보호형/공격형으로 싸웁니다. 이 구성은 모든 씬의 `Player.prefab`에 있습니다.
 
-`DialogueManager`와 `InnerVoiceManager`가 대화를 처리하고 `LLMResponseParser`가 대사와 Mood 변화량을 읽습니다. 프롬프트만으로 JSON 준수를 완전히 보장하지는 않습니다.
+`DialogueManager`와 `InnerVoiceManager`가 대화를 처리하고 `LLMResponseParser`가 대사와 변화량을 읽습니다(NPC 대화는 그 NPC 의 호감도, 내면 대화는 감정 수치). 모든 턴과 강탈은 `ResearchLog`가 `research_log.csv`에 남깁니다.
 
 `QuestManager`는 게임 이벤트로 목표 진행도를 갱신합니다. `Resources/Quests`에 첫 섬 정의가 있습니다. LLM의 말이 아니라 게임 로직이 퀘스트 완료·보상을 판정하도록 유지해야 합니다.
 
@@ -98,7 +102,9 @@ UI 기본 글꼴은 `NeoDunggeunmoPro-Regular.ttf`입니다. TextMeshPro용 동�
 
 - `player_save.json`: 플레이어 성장·체크포인트·Mood·퀘스트 상태를 하나의 스냅샷으로 저장합니다. 임시 파일 검증/교체와 이전 백업을 사용합니다.
 - 기존 `quest_save.json`: 첫 통합 저장 시 가져오며 원본을 삭제하지 않습니다. 통합 이후에는 별도로 쓰지 않습니다.
+- `Memory/`: NPC·내면 기억(RAG zip). `research_log.csv`: 연구 로그. 둘 다 세이브와 같은 폴더를 따릅니다.
 - 검증: 실제 저장과 분리한 `VerificationResults` 아래 폴더.
+- 에디터에서 직접 시험할 때는 `Tools > AINPC > 테스트 세이브로 플레이`를 켜면 실제 세이브의 사본으로 플레이합니다.
 
 주 파일이 손상되거나 없어도 백업을 확인합니다. 복구 불가능한 저장이나 더 최신 형식은 기본값으로 덮어쓰지 않습니다. 저장 실패 시 현재 진행은 메모리에 남지만 종료하면 마지막 정상 저장으로 돌아갑니다. 테스트 목적으로 실제 저장을 삭제하지 마세요.
 
@@ -108,7 +114,9 @@ UI 기본 글꼴은 `NeoDunggeunmoPro-Regular.ttf`입니다. TextMeshPro용 동�
 
 - `RpgVerification.Run`: 성장·저장·먹색 테마·실제 버튼 콜백과 Unity 캡처.
 - `RpgPlayVerification.Run`: Play 모드 피해·회복·방어·마나·쿨타임·중복 피격·메뉴 입력 차단.
-- `RecoverySaveVerification.Run`: 사망/복귀, 저장 중단 주입, 보상 중복 방지, 백업, 분리 저장 마이그레이션.
+- `RecoverySaveVerification.Run`: 사망/복귀, 저장 중단 주입, 보상 중복 방지, 백업, 분리 저장 마이그레이션, 선택·호감도·감정 수치 보존. 열린 에디터에서 돌려도 됩니다.
+- `HubStoryVerification.Run`: 마을 의뢰 흐름과 소윤 선택.
+- `ResearchExperiments.RunJsonGrammarComparison` (플레이 모드): JSON grammar 끔/켬 비교. [연구 근거](docs/RESEARCH_EVIDENCE.md).
 - 산출물은 `VerificationResults/`에 보존하고 Git에서는 제외합니다. 선별한 화면은 `docs/RpgScreenshots/`에 있습니다.
 
 이 검사는 실제 LLM 품질, 첫 섬 완주, 실사용 마우스 조작, 배포 빌드, 보스 밸런스를 보장하지 않습니다.
@@ -116,7 +124,7 @@ UI 기본 글꼴은 `NeoDunggeunmoPro-Regular.ttf`입니다. TextMeshPro용 동�
 ## 먼저 해결할 제한
 
 1. 사망 복구 구현 완료: R/재도전 버튼으로 복귀합니다. 씬별 안전 체크포인트 배치와 Main 플레이 검증은 남아 있습니다.
-2. 내면 대화에 실제 타임아웃이 연결되어 있지 않습니다. NPC 타임아웃도 오래된 요청 취소와는 다릅니다.
+2. (해결 2026-10-13) 내면 대화는 응답이 20초 멈추면 요청을 취소하고 닫습니다. NPC 대화도 시간을 넘기면 요청을 취소합니다.
 3. 일부 선택 퀘스트는 구역에 들어가기만 하면 완료됩니다. 선택·보스 처치·조작권 조건으로 교체해야 합니다.
 4. 첫 섬 보스가 해금하는 `isle2_arrival` 데이터가 없어 다음 섬으로 이어지지 않습니다.
 5. 플레이어·퀘스트·Mood 통합 저장 구현 완료. RAG 기억 기록과 연출은 파일 트랜잭션 밖이며, 과거에 이미 어긋난 분리 저장을 자동 판별하지는 못합니다.
