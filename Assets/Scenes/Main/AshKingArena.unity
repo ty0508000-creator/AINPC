@@ -1630,6 +1630,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HubAreaEntry
   areaId: hub_boss_entrance
   mainVillage: 0
+  entrySpawn: default
 --- !u!114 &93009873
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31634,15 +31635,6 @@ PrefabInstance:
       addedObject: {fileID: 1433467824}
     - targetCorrespondingSourceObject: {fileID: 4495597192133615743, guid: 23f36dcdd078a3142a0fe24f898105e6, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1433467830}
-    - targetCorrespondingSourceObject: {fileID: 4495597192133615743, guid: 23f36dcdd078a3142a0fe24f898105e6, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1433467829}
-    - targetCorrespondingSourceObject: {fileID: 4495597192133615743, guid: 23f36dcdd078a3142a0fe24f898105e6, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1433467828}
-    - targetCorrespondingSourceObject: {fileID: 4495597192133615743, guid: 23f36dcdd078a3142a0fe24f898105e6, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 1433467826}
     - targetCorrespondingSourceObject: {fileID: 4495597192133615743, guid: 23f36dcdd078a3142a0fe24f898105e6, type: 3}
       insertIndex: -1
@@ -31804,72 +31796,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5aca0e2681400834e95a6344ebde63a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RpgSkillController
---- !u!114 &1433467828
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1433467822}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf8366a6349916c47bb4f7d11c0e2933, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AIController
-  aiMoveSpeed: 5
-  detectionRadius: 10
-  attackTriggerRange: 1.5
-  attackRangeTolerance: 0.15
-  actionInterval: 2
-  enemyLayer:
-    serializedVersion: 2
-    m_Bits: 64
-  strikeRange: 0
-  retreatRange: 0
-  approachSpeedScale: 1
-  retreatSpeedScale: 1.1
-  strikeHold: 0.2
-  waitMin: 0.15
-  waitMax: 0.5
-  waitForAttackCooldown: 1
-  strafeAmount: 0.35
-  acceleration: 40
-  phaseTimeout: 2.5
-  contactRange: 0.75
-  recklessDamage: 5
-  recklessInterval: 1
---- !u!114 &1433467829
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1433467822}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e24b46eed71049d4e9aab1233681ee0f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ControlManager
---- !u!114 &1433467830
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1433467822}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fb64e290a2d492045bf00410874ba7f0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MoodSystem
-  startMood: 50
-  aiTakeoverThreshold: 20
-  playerRestoreThreshold: 70
-  enemyLayer:
-    serializedVersion: 2
-    m_Bits: 64
-  combatRadius: 12
-  combatCheckInterval: 0.5
 --- !u!1 &1435629099
 GameObject:
   m_ObjectHideFlags: 0

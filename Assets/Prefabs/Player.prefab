@@ -18,6 +18,12 @@ GameObject:
   - component: {fileID: 9117236559320735708}
   - component: {fileID: 1538960458615949171}
   - component: {fileID: 7678876372008898897}
+  - component: {fileID: 4735355594594135951}
+  - component: {fileID: 1102704553590114432}
+  - component: {fileID: 277888958440638506}
+  - component: {fileID: 7875243255494413541}
+  - component: {fileID: 4764749133335986342}
+  - component: {fileID: 3369647949591002093}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -291,3 +297,193 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f86066052a74516bacce4c4cd230e47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
+--- !u!114 &4735355594594135951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4495597192133615743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb64e290a2d492045bf00410874ba7f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoodSystem
+  startMood: 50
+  aiTakeoverThreshold: 20
+  playerRestoreThreshold: 70
+  revengeMoodDrop: 10
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  combatRadius: 12
+  combatCheckInterval: 0.5
+--- !u!114 &1102704553590114432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4495597192133615743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e24b46eed71049d4e9aab1233681ee0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ControlManager
+--- !u!114 &277888958440638506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4495597192133615743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf8366a6349916c47bb4f7d11c0e2933, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AIController
+  useMemoryStyle: 1
+  protectiveRetreatScale: 1.6
+  protectiveFleeHpRatio: 0.5
+  aggressiveStrikeHold: 0.6
+  aggressiveDashMinDistance: 1.5
+  behaviorLogFileName: ai_behavior_log.csv
+  aiMoveSpeed: 5
+  detectionRadius: 10
+  attackTriggerRange: 1.5
+  attackRangeTolerance: 0.15
+  actionInterval: 2
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  strikeRange: 0
+  retreatRange: 0
+  approachSpeedScale: 1
+  retreatSpeedScale: 1.1
+  strikeHold: 0.2
+  waitMin: 0.15
+  waitMax: 0.5
+  waitForAttackCooldown: 1
+  strafeAmount: 0.35
+  acceleration: 40
+  phaseTimeout: 2.5
+  contactRange: 0.75
+  recklessDamage: 5
+  recklessInterval: 1
+--- !u!114 &7875243255494413541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4495597192133615743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfc46e92663b9f449b619bb15bd01d45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InnerVoiceManager
+  checkInterval: 30
+  triggerChance: 0.1
+  testOpenKey: 112
+  llmAgent: {fileID: 0}
+  llmTimeout: 20
+  parseFailFallbackLine: "\u2026"
+  maxTurns: 1
+  backstory: "\uC8FC\uC778\uACF5\uC758 \uB9C8\uC744\uC740 \uCC9C\uB9C8\uC5D0\uAC8C
+    \uBB34\uB108\uC84C\uB2E4. \uC8FC\uC778\uACF5\uC740 \uBCF5\uC218\uD558\uAE30 \uC704\uD574
+    \uCC9C\uB9C8\uC758 \uC218\uD558\uB4E4\uC744 \uD558\uB098\uC529 \uC4F0\uB7EC\uB728\uB9AC\uBA70
+    \uCC9C\uB9C8\uB97C \uCAD3\uACE0 \uC788\uB2E4. \uB108\uB294 \uADF8 \uBCF5\uC218\uC2EC\uC774
+    \uD0A4\uC6CC \uB0B8 \uC5B4\uB460\uC774\uB2E4. \uC8FC\uC778\uACF5\uC774 \uBCF5\uC218\uC5D0
+    \uBB3C\uB4E4\uC218\uB85D \uB108\uB294 \uAC15\uD574\uC9C0\uACE0, \uD2C8\uC774
+    \uBCF4\uC774\uBA74 \uBAB8\uC744 \uC7A0\uC2DD\uD55C\uB2E4."
+  memory: {fileID: 0}
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  detectionRadius: 15
+  voidColor: {r: 0.04, g: 0, b: 0.09, a: 0.97}
+  accentColor: {r: 0.75, g: 0.45, b: 1, a: 1}
+  avatarSprite: {fileID: 0}
+  transitionTime: 0.55
+  koreanFont: {fileID: 11400000, guid: 5dc0706b0d95da046bce80489ce4a615, type: 2}
+  fontScale: 2
+  overlayRoot: {fileID: 0}
+  background: {fileID: 0}
+  contentGroup: {fileID: 0}
+  contentRect: {fileID: 0}
+  aiText: {fileID: 0}
+  statusText: {fileID: 0}
+  moodDeltaText: {fileID: 0}
+  inputField: {fileID: 0}
+  sendButton: {fileID: 0}
+  triggerButton: {fileID: 0}
+--- !u!114 &4764749133335986342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4495597192133615743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f066fe297c03e442b1de0c724157415, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TakeoverEffect
+  shakeDuration: 0.6
+  shakeMagnitude: 0.4
+  takeoverColor: {r: 0.85, g: 0, b: 0, a: 1}
+  flashAlpha: 0.55
+  residualAlpha: 0.12
+  restoreColor: {r: 0.4, g: 0.7, b: 1, a: 1}
+  enableGlitch: 1
+  glitchStripCount: 9
+  glitchDuration: 0.5
+  glitchMaxOffset: 55
+  glitchMaxAlpha: 0.42
+  glitchWhite: {r: 1, g: 1, b: 1, a: 0.38}
+  glitchBlack: {r: 0, g: 0, b: 0, a: 0.35}
+  takeoverSfx: {fileID: 0}
+  restoreSfx: {fileID: 0}
+  koreanFont: {fileID: 11400000, guid: 5dc0706b0d95da046bce80489ce4a615, type: 2}
+  lineFontSize: 84
+  takeoverLines:
+  - "\uC774\uC81C \uB0B4 \uCC28\uB840\uC57C."
+  - "\uC57D\uD574\uBE60\uC84C\uAD70. \uBE44\uCF1C."
+  - "\uB124 \uBAB8\uC740 \uC774\uC81C \uB0B4 \uAC70\uC57C."
+  restoreLines:
+  - "\uCCC7... \uB2E4\uC74C\uC5D4 \uC548 \uB194\uC918."
+  - "\uC6B4\uC774 \uC88B\uC558\uC5B4."
+  ownedCanvas: {fileID: 0}
+  tintImage: {fileID: 0}
+  glitchRoot: {fileID: 0}
+  glitchStrips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  lineRect: {fileID: 0}
+  lineText: {fileID: 0}
+--- !u!114 &3369647949591002093
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4495597192133615743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4da4a6ca708f0d0428692d4577756883, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MemoryManager
+  rag: {fileID: 0}
+  llm: {fileID: 0}
+  searchMethod: 1
+  saveFileName: npc_memory.zip
+  recallCount: 3
+  maxDistance: 1
+  autoSaveOnRemember: 1

@@ -13,16 +13,25 @@ public static class SaveSystem
 #endif
     public static string LastError { get; private set; }
     public static event Action<string> OnSaveFailed;
+    /// <summary>
+    /// 세이브·기억(Memory)·기록 CSV 가 놓이는 폴더. 에디터에서 "테스트 세이브로 플레이" 를 켜면
+    /// 실제 세이브를 복사한 사본 폴더를 쓴다(TestSaveMode). 자동 검증의 VerificationDirectory 가 가장 먼저다.
+    /// </summary>
     public static string DirectoryPath
     {
         get
         {
 #if UNITY_EDITOR
             if (!string.IsNullOrEmpty(VerificationDirectory)) return VerificationDirectory;
+            if (UnityEditor.EditorPrefs.GetBool(TestSavePref)) return TestSaveDirectory;
 #endif
             return Application.persistentDataPath;
         }
     }
+#if UNITY_EDITOR
+    public const string TestSavePref = "AINPC.PlayWithTestSave";
+    public static string TestSaveDirectory => Path.Combine(Application.persistentDataPath, "EditorTestSave");
+#endif
     static string SavePath => Path.Combine(DirectoryPath, "player_save.json");
 
     public static bool HasSave

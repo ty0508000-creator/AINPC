@@ -11,8 +11,20 @@ public class NPCInteraction : MonoBehaviour
     [Tooltip("저장이 없을 때의 시작 호감도 (0~100)")]
     [SerializeField, Range(0f, 100f)] private float startAffinity = 50f;
 
+    [Tooltip("가까이 가면 바로 대화창을 연다. 의뢰 NPC(HubStoryActor)는 끄고, E 로 의뢰가 없을 때 잡담을 연다.")]
+    public bool openOnApproach = true;
+
     /// <summary>이 NPC 가 플레이어를 얼마나 좋게 보는지 (0~100). 대화의 LLM 판정으로 오르내린다.</summary>
     public float Affinity { get; private set; }
+
+    /// <summary>이번 실행 동안의 최근 대화. 공용 LLMAgent 히스토리를 쓰지 않으므로 NPC 마다 따로 들고 있는다.</summary>
+    public readonly List<string> RecentTurns = new List<string>();
+
+    public void RememberTurn(string playerText, string reply)
+    {
+        RecentTurns.Add($"플레이어: \"{playerText}\" / {npcName}: \"{reply}\"");
+        while (RecentTurns.Count > 4) RecentTurns.RemoveAt(0);
+    }
 
     private DialogueManager dialogueManager;
     private bool isDialogueOpen = false;
@@ -67,6 +79,7 @@ public class NPCInteraction : MonoBehaviour
             dialogueManager = managerObject.AddComponent<DialogueManager>();
         }
 
+        if (!openOnApproach) return;
         Collider2D collider = GetComponent<Collider2D>();
         if (collider == null)
         {
@@ -80,7 +93,7 @@ public class NPCInteraction : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (IsPlayer(other))
+        if (openOnApproach && IsPlayer(other))
         {
             if (dialogueManager != null)
             {
@@ -96,7 +109,7 @@ public class NPCInteraction : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (IsPlayer(other) && isDialogueOpen)
+        if (openOnApproach && IsPlayer(other) && isDialogueOpen)
         {
             if (dialogueManager != null)
             {

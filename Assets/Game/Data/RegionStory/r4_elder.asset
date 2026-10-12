@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3db1c08f823ba104da20d85a88ac6e67, type: 3}
+  m_Name: r4_elder
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: r4_elder
+  title: "\uB9C8\uC9C0\uB9C9 \uAE38\uBAA9"
+  summary: "\xB7 \uC0AC\uB0E5\uD130\uC758 \uC694\uBB3C \uCC98\uCE58\n\xB7 \uD604\uBB35\uC5D0\uAC8C
+    \uBCF4\uACE0\uD558\uAE30"
+  isleIndex: 4
+  isMainQuest: 0
+  isInnerVoiceDemand: 0
+  prerequisiteQuestIds: []
+  autoStart: 0
+  objectives:
+  - description: "\uC0AC\uB0E5\uD130\uC758 \uC694\uBB3C \uCC98\uCE58"
+    type: 0
+    targetId: stage4_skeleton
+    requiredCount: 5
+    hidden: 0
+  - description: "\uD604\uBB35\uC5D0\uAC8C \uBCF4\uACE0\uD558\uAE30"
+    type: 1
+    targetId: hub_elder
+    requiredCount: 1
+    hidden: 0
+  onComplete:
+    moodDelta: 0
+    expReward: 23000
+    memoryLine: "\uAE38\uC774 \uC5F4\uB838\uB2E4. \uC774\uC81C \uCC9C\uB9C8\uC5D0\uAC8C
+      \uB2FF\uB294 \uAE38\uB9CC \uB0A8\uC558\uAD6C\uB098."
+    triggerInnerVoice: 0
+    innerVoiceContext: 
+    unlockQuestIds: []
+  canFail: 0
+  timeLimit: 0
+  onFail:
+    moodDelta: 0
+    expReward: 0
+    memoryLine: 
+    triggerInnerVoice: 0
+    innerVoiceContext: 
+    unlockQuestIds: []
+  startLine: "\uB0A8\uC11C\uCABD \uD3D0\uD5C8\uC758 \uD574\uACE8 \uBCD1\uC0AC\uB4E4\uC774
+    \uAE38\uC744 \uB9C9\uACE0 \uC788\uB2E4. \uB2E4\uC12F\uC744 \uC4F0\uB7EC\uB728\uB824
+    \uB2E4\uC624. \uB124\uAC00 \uBA3C\uC800 \uAC00\uACA0\uB2E4\uBA74 \uB9C9\uC9C0
+    \uC54A\uC73C\uB9C8."
+  completeLine: "\uAE38\uC774 \uC5F4\uB838\uB2E4. \uC774\uC81C \uCC9C\uB9C8\uC5D0\uAC8C
+    \uB2FF\uB294 \uAE38\uB9CC \uB0A8\uC558\uAD6C\uB098."
+  failLine: 

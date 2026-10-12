@@ -8,11 +8,22 @@ public sealed class HubStoryActor : MonoBehaviour
     [TextArea(2, 6)] public string greeting;
     public string[] offers = new string[0];
     public string rescueQuest, rescueChoice, collectQuest, collectId;
+    [Tooltip("1지역 진행(야영지·결말)에 따라 바뀌는 촌장·하연의 대기 대사를 쓴다. 2~4지역 NPC 는 끈다.")]
+    public bool hubIdleLines = true;
+    [Tooltip("이 선택을 하지 않았으면 나타나지 않는다. 예: 소윤은 구했을 때만 따라온다.")]
+    public string hideUnlessChoice;
     PlayerStats player;
-    void Start() { player = FindFirstObjectByType<PlayerStats>(); YSortRenderer.Attach(gameObject); }
+    void Start()
+    {
+        player = FindFirstObjectByType<PlayerStats>(); YSortRenderer.Attach(gameObject);
+        // 2~4지역에는 StoryChoiceManager 가 없어 저장 파일에서 선택을 읽는다
+        if (!string.IsNullOrEmpty(hideUnlessChoice) && !StoryChoiceManager.Remembers(hideUnlessChoice)) gameObject.SetActive(false);
+    }
     void Update()
     {
         if (!string.IsNullOrEmpty(collectId) && Collected()) { gameObject.SetActive(false); return; }
+        // 잡담 입력창에 'e' 를 쳐도 다시 열리지 않게. 내면 세계가 열려 있을 때도 바깥 NPC 는 반응하지 않는다.
+        if (DialogueManager.IsChatOpen || InnerVoiceManager.IsOpen) return;
         if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame && player != null &&
             Vector2.Distance(player.transform.position, transform.position) <= 1.8f) Interact();
     }
@@ -81,19 +92,36 @@ public sealed class HubStoryActor : MonoBehaviour
         }
         bool leftChild = LeftChild;
         string idle = greeting;
-        if (actorId == HubStoryIds.Elder && qm.IsCompleted(HubStoryIds.Ending)) idle = leftChild
+        if (hubIdleLines && actorId == HubStoryIds.Elder && qm.IsCompleted(HubStoryIds.Ending)) idle = leftChild
             ? "재의 왕은 천마의 명을 따랐을 뿐이다. 피난처에 두고 온 아이를 잊지 마라. 복수만으로는 마을을 되찾을 수 없다."
             : "재의 왕은 천마의 명을 따랐을 뿐이다. 소윤을 구한 네 선택을 잊지 마라. 북쪽 문 너머에서 천마의 흔적을 쫓아라.";
-        else if (actorId == HubStoryIds.Elder && qm.IsCompleted(HubStoryIds.Hunt(4))) idle = leftChild
+        else if (hubIdleLines && actorId == HubStoryIds.Elder && qm.IsCompleted(HubStoryIds.Hunt(4))) idle = leftChild
             ? "내가 진실을 외면했구나. 너도 아이 하나를 외면했지. 남쪽 재의 왕의 문이 열렸다. 그 불을 끝내 다오."
             : "내가 진실을 외면했구나. 남쪽 재의 왕의 문이 열렸다. 정비하고 그 불을 끝내 다오.";
-        else if (actorId == HubStoryIds.Hayeon && qm.IsCompleted(HubStoryIds.Hunt(3))) idle = leftChild
+        else if (hubIdleLines && actorId == HubStoryIds.Hayeon && qm.IsCompleted(HubStoryIds.Hunt(3))) idle = leftChild
             ? "소윤이는 아직 그 피난처에 있어요. 당신에겐 복수가 더 중요했던 거죠."
             : "소윤이 무사해서 다행이에요. 이제 그 불을 보낸 자를 찾아야 해요.";
+
+        // 처리할 의뢰가 없으면 잡담은 LLM 으로. 대기 대사가 첫 마디가 된다. LLM 이 없으면 예전처럼 대사만 보여 준다.
+        var chat = GetComponent<NPCInteraction>();
+        var dialogue = chat != null ? FindFirstObjectByType<DialogueManager>() : null;
+        if (dialogue != null && dialogue.HasLLM)
+        {
+            dialogue.OpenDialogue(displayName, chat.personality + ChoiceContext(), chat, idle);
+            return true;
+        }
         return ui.Open(displayName, idle, "알겠다", null);
     }
 
     static bool LeftChild => StoryChoiceManager.Remembers(HubStoryIds.RescueLeft);
+
+    /// <summary>LLM 이 플레이어의 지난 선택을 알고 말하도록 인물 설정 뒤에 붙인다.</summary>
+    static string ChoiceContext()
+    {
+        if (LeftChild) return "\n[플레이어에 대해 아는 것] 플레이어는 복수를 서두르느라 피난처의 아이 소윤을 두고 떠났다.";
+        if (StoryChoiceManager.Remembers(HubStoryIds.Rescue)) return "\n[플레이어에 대해 아는 것] 플레이어는 피난처에서 아이 소윤을 구해 냈다.";
+        return "";
+    }
 
     /// <summary>소윤을 두고 떠났으면 그 사실을 아는 사람의 보고 대사로 바꾼다.</summary>
     static string CompleteLine(QuestData quest)

@@ -17,6 +17,17 @@ public static class LLMResponseParser
     /// <summary>프롬프트에 명시된 mood_delta 허용 범위.</summary>
     public const int MoodDeltaLimit = 20;
 
+    /// <summary>
+    /// 응답을 이 파서가 읽는 형식 {"dialogue":"…","mood_delta":정수} 로만 생성하게 강제하는 GBNF 문법.
+    /// 디코딩 단계에서 형식을 막으므로 JSON 이 깨지거나 뒤에 군말이 붙지 않는다. 값의 범위(±20)는 여전히 클램프한다.
+    /// LLMServices 가 공용 LLMAgent 에 건다.
+    /// </summary>
+    public const string JsonGrammar =
+@"root ::= ""{"" ws ""\""dialogue\"""" ws "":"" ws text ws "","" ws ""\""mood_delta\"""" ws "":"" ws number ws ""}""
+text ::= ""\"""" ( [^""\\\n] | ""\\"" [""\\/bfnrt] )* ""\""""
+number ::= ""-""? [0-9] [0-9]?
+ws ::= "" ""?";
+
     [System.Serializable]
     private class ResponseData
     {

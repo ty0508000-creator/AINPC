@@ -1,9 +1,5 @@
-using System;
 using System.Collections;
-using System.Globalization;
-using System.IO;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 /// <summary>기억(소윤 선택)에 따라 바뀌는 내면의 전투 성향.</summary>
 public enum CombatStyle { Default, Protective, Aggressive }
@@ -27,7 +23,6 @@ public class AIController : MonoBehaviour
     [Tooltip("공격형: 이 거리보다 멀면 대시로 파고든다")]
     [SerializeField] private float aggressiveDashMinDistance = 1.5f;
 
-    [SerializeField] private string behaviorLogFileName = "ai_behavior_log.csv";
 
     public CombatStyle Style { get; private set; }
 
@@ -161,20 +156,8 @@ public class AIController : MonoBehaviour
         sessionActive = false;
         float duration = Time.time - sessionStart;
         float hpEnd = playerStats != null ? playerStats.HP : 0f;
-        string path = Path.Combine(Application.persistentDataPath, behaviorLogFileName);
-        string line = string.Join(",",
-            DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), gameObject.scene.name, Style,
-            duration.ToString("F2", CultureInfo.InvariantCulture), sessionDistance.ToString("F2", CultureInfo.InvariantCulture),
-            sessionAttacks, sessionDashes, sessionRetreats,
-            sessionHpStart.ToString("F0", CultureInfo.InvariantCulture), hpEnd.ToString("F0", CultureInfo.InvariantCulture));
         Debug.Log($"[AI] 강탈 종료 style={Style} {duration:F1}s 이동={sessionDistance:F1} 공격={sessionAttacks} 대시={sessionDashes} 후퇴={sessionRetreats} HP {sessionHpStart:F0}→{hpEnd:F0}");
-        try
-        {
-            if (!File.Exists(path))
-                File.AppendAllText(path, "timestamp,scene,style,duration_s,distance,attacks,dashes,retreats,hp_start,hp_end\n");
-            File.AppendAllText(path, line + "\n");
-        }
-        catch (Exception e) { Debug.LogWarning("[AI] 행동 로그 저장 실패: " + e.Message); }
+        ResearchLog.AiSession(Style, duration, sessionDistance, sessionAttacks, sessionDashes, sessionRetreats, sessionHpStart, hpEnd);
     }
 
     void Attack(Vector2 dir)

@@ -14,6 +14,12 @@ public class DialogueManager : MonoBehaviour
 {
     static bool llmDialogueOpen;
     public static bool IsDialogueOpen { get => llmDialogueOpen || StoryConversationUI.IsOpen; private set => llmDialogueOpen = value; }
+    /// <summary>LLM 대화창만 열려 있는가 (의뢰 대화창 제외).</summary>
+    public static bool IsChatOpen => llmDialogueOpen;
+
+    static int requestsInFlight;
+    /// <summary>NPC 응답을 기다리는 중인가. 창을 닫아도 요청은 끝날 때까지 LLMAgent 를 쓴다.</summary>
+    public static bool IsRequestInFlight => requestsInFlight > 0;
 
     [Header("UI References")]
     public GameObject dialoguePanel;
@@ -29,14 +35,9 @@ public class DialogueManager : MonoBehaviour
     [Tooltip("이 시간(초) 안에 응답이 없으면 대화를 마무리 (멈춤 방지)")]
     [SerializeField] private float llmTimeout = 20f;
 
-    [Header("LLM Metrics")]
-    [SerializeField] private bool recordLLMMetrics = true;
-    [SerializeField] private string llmMetricsFileName = "llm_response_metrics.csv";
-
     [Header("Fallback")]
     [Tooltip("(A-3) LLM 응답 파싱 실패 시 화면에 대신 띄울 대사. 원문은 절대 노출하지 않는다.")]
     [SerializeField] private string parseFailFallbackLine = "흠...";
-    [SerializeField, Min(0)] private int llmMetricsWarmupSamplesToSkip = 1;
 
     [Header("Legacy Memory (사용 안 함 — 기존 연결 보존용)")]
     [SerializeField] private MemoryManager memory;
@@ -53,6 +54,7 @@ public class DialogueManager : MonoBehaviour
     };
 
     private string currentNPCName;
+    private string currentPersonality;
     private string baseSystemPrompt;
     private NPCInteraction currentNPC;
     private MrSmithLongTermMemory currentMrSmithMemory;
@@ -63,7 +65,6 @@ public class DialogueManager : MonoBehaviour
     private ControlManager controlManager;
     private string lastMrSmithInput = "";
     private int repeatedMrSmithInputCount = 0;
-    private int llmMetricsSampleIndex = 0;
 
 
     void Start()
@@ -96,15 +97,21 @@ public class DialogueManager : MonoBehaviour
             CloseDialogue();
     }
 
-    public void OpenDialogue(string name, string personality, NPCInteraction npc = null)
+    /// <summary>LLM 대화에 쓸 LLMAgent 가 있는가 (LLMServices 가 떠 있는가).</summary>
+    public bool HasLLM { get { ResolveReferences(); return llmAgent != null; } }
+
+    /// <param name="opener">NPC 의 첫 대사. 비우면 기본 인사.</param>
+    public void OpenDialogue(string name, string personality, NPCInteraction npc = null, string opener = null)
     {
-        if (StoryConversationUI.IsOpen) return;
+        // 내면 세계가 열려 있으면 LLMAgent 의 시스템 프롬프트를 내면이 쓰고 있다
+        if (StoryConversationUI.IsOpen || InnerVoiceManager.IsOpen) return;
         var player = FindFirstObjectByType<PlayerStats>();
         if (player != null && !player.IsAlive) return;
         EnsureUI();
         ResolveReferences();
 
         currentNPCName = name;
+        currentPersonality = personality;
         currentNPC = npc;
         isMrSmith = IsMrSmith(npc, name);
         if (isMrSmith)
@@ -148,32 +155,46 @@ public class DialogueManager : MonoBehaviour
             : BuildDefaultPrompt(name, personality) + "\n" + AffinityLine();
         llmAgent.systemPrompt = baseSystemPrompt;
 
-        npcText.text = $"{name}: {(isMrSmith ? "무슨 일입니까." : "안녕.")}";
+        npcText.text = $"{name}: {(!string.IsNullOrWhiteSpace(opener) ? opener : isMrSmith ? "무슨 일이야." : "안녕.")}";
+        playerInputField.text = "";
         playerInputField.ActivateInputField();
+        // E 키로 연 경우 같은 프레임의 'e' 가 입력창에 들어가므로 한 프레임 뒤에 비운다
+        StartCoroutine(ClearInputNextFrame());
 
         _ = PreloadLLMAgent();
+    }
+
+    private System.Collections.IEnumerator ClearInputNextFrame()
+    {
+        yield return null;
+        if (playerInputField != null && playerInputField.text.Length <= 1) playerInputField.text = "";
     }
 
     private async Task PreloadLLMAgent()
     {
         int maxRetries = 60;
-        for (int i = 0; i < maxRetries; i++)
+        requestsInFlight++;
+        try
         {
-            try
+            for (int i = 0; i < maxRetries; i++)
             {
-                await llmAgent.Chat("", addToHistory: false);
-                return;
-            }
-            catch (System.Exception ex) when (ex.Message.Contains("LLM caller not initialized"))
-            {
-                await Task.Delay(500);
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogError($"LLM 초기화 중 예외: {ex.Message}");
-                break;
+                try
+                {
+                    await llmAgent.Chat("", addToHistory: false);
+                    return;
+                }
+                catch (System.Exception ex) when (ex.Message.Contains("LLM caller not initialized"))
+                {
+                    await Task.Delay(500);
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"LLM 초기화 중 예외: {ex.Message}");
+                    break;
+                }
             }
         }
+        finally { requestsInFlight--; }
     }
 
     void OnSendButtonClick()
@@ -189,6 +210,7 @@ public class DialogueManager : MonoBehaviour
     private async Task AskNPC(string question)
     {
         isProcessing = true;
+        requestsInFlight++;   // 기억 검색(await)부터 세어야 그 사이 내면이 프롬프트를 덮지 않는다
         npcText.text = "생각 중...";
         sendButton.interactable = false;
 
@@ -224,21 +246,39 @@ public class DialogueManager : MonoBehaviour
                     AffinityLine());
                 addToHistory = false;
             }
+            else
+            {
+                // LLMAgent 는 내면·다른 NPC 와 공용이라 히스토리 대신 이 NPC 의 최근 대화를 프롬프트에 넣는다
+                string recent = currentNPC != null && currentNPC.RecentTurns.Count > 0
+                    ? "\n[최근 대화]\n" + string.Join("\n", currentNPC.RecentTurns)
+                    : "";
+                llmAgent.systemPrompt = BuildDefaultPrompt(currentNPCName, currentPersonality) + "\n" + AffinityLine() + recent;
+                addToHistory = false;
+            }
 
             string raw;
+            int promptChars = llmAgent.systemPrompt != null ? llmAgent.systemPrompt.Length : 0;
             var llmStopwatch = System.Diagnostics.Stopwatch.StartNew();
             try
             {
                 raw = await ChatStreaming(question, addToHistory);
                 llmStopwatch.Stop();
-                RecordLLMMetric(question, raw, llmStopwatch.Elapsed.TotalSeconds, raw == null, false, "");
             }
             catch (System.Exception ex)
             {
                 llmStopwatch.Stop();
-                RecordLLMMetric(question, "", llmStopwatch.Elapsed.TotalSeconds, false, true, ex.Message);
+                ResearchLog.Turn("npc_turn", currentNPCName, llmStopwatch.Elapsed.TotalSeconds, "", default, promptChars, error: ex.Message);
                 throw;
             }
+
+            // (A-3) 파싱에 실패해도 원문을 화면에 흘리지 않는다. 화면에는 페르소나 폴백 대사, 실패 사실은 로그에만 남긴다.
+            var parsed = LLMResponseParser.Parse(raw, parseFailFallbackLine);
+            if (raw != null)
+                // (A-2) mood_delta는 이미 -20~+20으로 클램프된 값이다.
+                //       NPC 대화의 mood_delta 는 그 NPC 의 호감도다. 플레이어의 감정 수치(MoodSystem)는 건드리지 않는다.
+                currentNPC?.ChangeAffinity(parsed.MoodDelta);
+            ResearchLog.Turn("npc_turn", currentNPCName, llmStopwatch.Elapsed.TotalSeconds, raw, parsed, promptChars,
+                currentNPC != null ? currentNPC.Affinity : float.NaN);
 
             if (raw == null)
             {
@@ -246,14 +286,7 @@ public class DialogueManager : MonoBehaviour
             }
             else if (!string.IsNullOrEmpty(raw))
             {
-                // (A-3) 파싱에 실패해도 원문을 화면에 흘리지 않는다.
-                //       화면에는 페르소나 폴백 대사, 실패 사실은 로그에만 남긴다.
-                var parsed = LLMResponseParser.Parse(raw, parseFailFallbackLine);
                 npcText.text = $"{currentNPCName}: {parsed.Dialogue}";
-
-                // (A-2) mood_delta는 이미 -20~+20으로 클램프된 값이다.
-                //       NPC 대화의 mood_delta 는 그 NPC 의 호감도다. 플레이어의 감정 수치(MoodSystem)는 건드리지 않는다.
-                currentNPC?.ChangeAffinity(parsed.MoodDelta);
 
                 if (!parsed.ParseOk)
                 {
@@ -269,6 +302,8 @@ public class DialogueManager : MonoBehaviour
                 // 파싱에 실패한 턴은 기억에 남기지 않는다. 폴백 대사를 사실처럼 기억하면 다음 턴이 오염된다.
                 if (parsed.ParseOk && isMrSmith && currentMrSmithMemory != null)
                     _ = currentMrSmithMemory.RememberExchange(question, parsed.Dialogue);
+                else if (parsed.ParseOk && !isMrSmith)
+                    currentNPC?.RememberTurn(question, parsed.Dialogue);
             }
             else
             {
@@ -283,6 +318,7 @@ public class DialogueManager : MonoBehaviour
         finally
         {
             isProcessing = false;
+            requestsInFlight--;
             sendButton.interactable = true;
         }
     }
@@ -350,7 +386,11 @@ public class DialogueManager : MonoBehaviour
             chatTask, Task.Delay(TimeSpan.FromSeconds(llmTimeout)));
 
         acceptStream = false;            // 늦게 도착하는 토큰 무시
-        if (finished != chatTask) return null;   // 타임아웃
+        if (finished != chatTask)        // 타임아웃: 붙잡힌 요청이 내면 대화의 슬롯을 막지 않게 끊는다
+        {
+            llmAgent.CancelRequests();
+            return null;
+        }
         return await chatTask;
     }
 
@@ -362,57 +402,6 @@ public class DialogueManager : MonoBehaviour
         string d = ExtractStreamingDialogue(partial);
         if (!string.IsNullOrEmpty(d))
             npcText.text = $"{currentNPCName}: {d}";
-    }
-
-    private void RecordLLMMetric(string question, string response, double seconds, bool timedOut, bool failed, string errorMessage)
-    {
-        if (!recordLLMMetrics)
-            return;
-
-        llmMetricsSampleIndex++;
-        bool skippedWarmup = llmMetricsSampleIndex <= llmMetricsWarmupSamplesToSkip;
-
-        string metricsPath = Path.Combine(Application.persistentDataPath, llmMetricsFileName);
-        bool writeHeader = !File.Exists(metricsPath);
-        string prompt = llmAgent != null ? llmAgent.systemPrompt : "";
-
-        if (writeHeader)
-        {
-            File.AppendAllText(metricsPath,
-                "timestamp,npc,sample_index,skipped_warmup,response_time_seconds,timed_out,failed,question_chars,prompt_chars,response_chars,error\n",
-                Encoding.UTF8);
-        }
-
-        string line =
-            $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}," +
-            $"{EscapeCsv(currentNPCName)}," +
-            $"{llmMetricsSampleIndex}," +
-            $"{skippedWarmup}," +
-            $"{seconds.ToString("F3", CultureInfo.InvariantCulture)}," +
-            $"{timedOut}," +
-            $"{failed}," +
-            $"{(question != null ? question.Length : 0)}," +
-            $"{(prompt != null ? prompt.Length : 0)}," +
-            $"{(response != null ? response.Length : 0)}," +
-            $"{EscapeCsv(errorMessage)}\n";
-
-        File.AppendAllText(metricsPath, line, Encoding.UTF8);
-
-        Debug.Log(
-            $"[LLM Metrics] sample={llmMetricsSampleIndex}, skippedWarmup={skippedWarmup}, " +
-            $"npc={currentNPCName}, responseTime={seconds:F3}s, timeout={timedOut}, failed={failed}, csv={metricsPath}");
-    }
-
-    private static string EscapeCsv(string value)
-    {
-        if (string.IsNullOrEmpty(value))
-            return "";
-
-        bool mustQuote = value.Contains(",") || value.Contains("\"") || value.Contains("\n") || value.Contains("\r");
-        if (!mustQuote)
-            return value;
-
-        return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 
     // 아직 닫히지 않은 부분 JSON에서 dialogue 문자열만 뽑아냄
@@ -502,7 +491,7 @@ public class DialogueManager : MonoBehaviour
             mrSmithMemory = FindFirstObjectByType<MrSmithLongTermMemory>();
     }
 
-    private static string BuildDefaultPrompt(string name, string personality)
+    public static string BuildDefaultPrompt(string name, string personality)
     {
         return
             $"당신은 {name}입니다. {personality}\n\n" +

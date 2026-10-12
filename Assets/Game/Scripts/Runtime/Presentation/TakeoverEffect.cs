@@ -74,7 +74,12 @@ public class TakeoverEffect : MonoBehaviour
         if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
         audioSource.playOnAwake = false;
 
-        if (ownedCanvas == null) { enabled = false; return; }
+        // 공통 프리팹으로 붙은 씬(2~4지역 등)에는 구운 UI 가 없으므로 실행 중에 만든다
+        if (ownedCanvas == null)
+        {
+            if (koreanFont == null) koreanFont = Resources.Load<TMP_FontAsset>("Fonts/NeoDunggeunmoPro SDF");
+            BuildUI();
+        }
         lineBasePosition = lineRect.anchoredPosition;
         SetLineAlpha(0f); HideGlitch();
 

@@ -19,8 +19,11 @@ public static class MemoryPaths
 {
     private const string SubFolder = "Memory";
 
-    /// <summary>기억 파일들이 실제로 저장되는 폴더(쓰기 가능 보장).</summary>
-    public static string Root => Path.Combine(Application.persistentDataPath, SubFolder);
+    /// <summary>
+    /// 기억 파일들이 실제로 저장되는 폴더(쓰기 가능 보장).
+    /// 세이브와 같은 폴더를 따른다 → 테스트 세이브·자동 검증 때 실제 기억 파일을 건드리지 않는다.
+    /// </summary>
+    public static string Root => Path.Combine(SaveSystem.DirectoryPath, SubFolder);
 
     /// <summary>
     /// 파일명을 쓰기 가능한 절대경로로 바꾼다. 필요하면 StreamingAssets의 시드 파일을 복사해 온다.

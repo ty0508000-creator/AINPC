@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3db1c08f823ba104da20d85a88ac6e67, type: 3}
+  m_Name: r2_hayeon
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: r2_hayeon
+  title: "\uC9C0\uC6CC\uC9C4 \uC774\uB984"
+  summary: "\xB7 \uCCAB\uC9F8 \uD30C\uD3B8 \uC870\uC0AC\n\xB7 \uB458\uC9F8 \uD30C\uD3B8
+    \uC870\uC0AC\n\xB7 \uC14B\uC9F8 \uD30C\uD3B8 \uC870\uC0AC\n\xB7 \uD558\uC5F0\uC5D0\uAC8C
+    \uBCF4\uACE0\uD558\uAE30"
+  isleIndex: 2
+  isMainQuest: 0
+  isInnerVoiceDemand: 0
+  prerequisiteQuestIds: []
+  autoStart: 0
+  objectives:
+  - description: "\uCCAB\uC9F8 \uD30C\uD3B8 \uC870\uC0AC"
+    type: 2
+    targetId: r2_fragment_a
+    requiredCount: 1
+    hidden: 0
+  - description: "\uB458\uC9F8 \uD30C\uD3B8 \uC870\uC0AC"
+    type: 2
+    targetId: r2_fragment_b
+    requiredCount: 1
+    hidden: 0
+  - description: "\uC14B\uC9F8 \uD30C\uD3B8 \uC870\uC0AC"
+    type: 2
+    targetId: r2_fragment_c
+    requiredCount: 1
+    hidden: 0
+  - description: "\uD558\uC5F0\uC5D0\uAC8C \uBCF4\uACE0\uD558\uAE30"
+    type: 1
+    targetId: hub_hayeon
+    requiredCount: 1
+    hidden: 0
+  onComplete:
+    moodDelta: 0
+    expReward: 400
+    memoryLine: "\uD30C\uD3B8 \uC18D\uC5D0\uB3C4 \uAC19\uC740 \uBD88\uC774 \uBCF4\uC5EC\uC694.
+      \uCC9C\uB9C8\uB294 \uB9C8\uC744\uB9CC\uC774 \uC544\uB2C8\uB77C \uAE30\uC5B5\uAE4C\uC9C0
+      \uD0DC\uC6B0\uACE0 \uC788\uC5B4\uC694."
+    triggerInnerVoice: 0
+    innerVoiceContext: 
+    unlockQuestIds: []
+  canFail: 0
+  timeLimit: 0
+  onFail:
+    moodDelta: 0
+    expReward: 0
+    memoryLine: 
+    triggerInnerVoice: 0
+    innerVoiceContext: 
+    unlockQuestIds: []
+  startLine: "\uBD81\uB3D9\uCABD \uC0AC\uB0E5\uD130\uC5D0 \uD0C0\uB2E4 \uB0A8\uC740
+    \uD30C\uD3B8 \uC138 \uAC1C\uAC00 \uC788\uC5B4\uC694. \uCC9C\uB9C8\uC758 \uC218\uD558\uAC00
+    \uBB34\uC5C7\uC744 \uC9C0\uC6E0\uB294\uC9C0 \uC54C\uACE0 \uC2F6\uC5B4\uC694.
+    \uC5EC\uC720\uAC00 \uC788\uC744 \uB54C \uBD80\uD0C1\uB4DC\uB824\uC694."
+  completeLine: "\uD30C\uD3B8 \uC18D\uC5D0\uB3C4 \uAC19\uC740 \uBD88\uC774 \uBCF4\uC5EC\uC694.
+    \uCC9C\uB9C8\uB294 \uB9C8\uC744\uB9CC\uC774 \uC544\uB2C8\uB77C \uAE30\uC5B5\uAE4C\uC9C0
+    \uD0DC\uC6B0\uACE0 \uC788\uC5B4\uC694."
+  failLine: 

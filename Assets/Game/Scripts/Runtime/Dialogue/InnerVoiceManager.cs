@@ -19,7 +19,7 @@ public class InnerVoiceManager : MonoBehaviour
 
     [Header("LLM (내면 전용 LLMAgent 별도 연결)")]
     [SerializeField] private LLMAgent llmAgent;
-    [Tooltip("이 시간(초) 안에 응답이 없으면 침묵 속에 종료 (소프트락 방지)")]
+    [Tooltip("응답 글자가 이 시간(초) 동안 하나도 오지 않으면 끊고 침묵 속에 종료 (소프트락 방지). 느려도 글자가 나오는 동안은 기다린다.")]
     [SerializeField] private float llmTimeout = 20f;
     [Tooltip("(A-3) 응답 파싱 실패 시 화면에 대신 띄울 어둠의 대사. 원문은 절대 노출하지 않는다.")]
     [SerializeField] private string parseFailFallbackLine = "…";
@@ -63,6 +63,11 @@ public class InnerVoiceManager : MonoBehaviour
     private bool acceptStream = false;
     private bool streamStarted = false;
     private float prevTimeScale = 1f;
+    private float lastStreamProgress;
+
+    static InnerVoiceManager current;
+    /// <summary>내면 세계가 열려 있거나 열리고 닫히는 중인가. NPC 대화는 이때 열리지 않는다(LLMAgent 공용).</summary>
+    public static bool IsOpen => current != null && (current.isActive || current.isTransitioning);
 
     // UI
     [SerializeField] private GameObject overlayRoot;
@@ -78,6 +83,7 @@ public class InnerVoiceManager : MonoBehaviour
 
     void Start()
     {
+        current = this;
         moodSystem     = GetComponent<MoodSystem>();
         playerStats    = GetComponent<PlayerStats>();
         controlManager = GetComponent<ControlManager>();
@@ -87,19 +93,39 @@ public class InnerVoiceManager : MonoBehaviour
         if (memory == null)
             memory = FindFirstObjectByType<MemoryManager>();
 
-        if (overlayRoot == null) { enabled = false; return; }
+        // 공통 프리팹으로 붙은 씬(2~4지역 등)에는 구운 UI 가 없으므로 실행 중에 만든다
+        if (overlayRoot == null)
+        {
+            if (koreanFont == null) koreanFont = Resources.Load<TMP_FontAsset>("Fonts/NeoDunggeunmoPro SDF");
+            EnsureEventSystem();
+            BuildUI();
+            BuildTriggerButton();
+        }
         overlayRoot.SetActive(false);
         inputField.onSubmit.AddListener(OnInputSubmit);
         sendButton.onClick.AddListener(OnSend);
-        triggerButton.onClick.AddListener(() => { if (!isActive && !isTransitioning) _ = OpenDialogue(); });
+        triggerButton.onClick.AddListener(() => { if (CanOpen()) _ = OpenDialogue(); });
         StartCoroutine(TriggerLoop());
     }
 
     void Update()
     {
-        if (testOpenKey != KeyCode.None && Input.GetKeyDown(testOpenKey) && !DialogueManager.IsDialogueOpen && !isActive && !isProcessing && !isTransitioning)
+        if (testOpenKey != KeyCode.None && Input.GetKeyDown(testOpenKey) && CanOpen())
             _ = OpenDialogue();
     }
+
+    /// <summary>
+    /// 지금 내면 세계를 열어도 되는가. NPC 대화창·의뢰 대화·선택지가 열려 있거나 NPC 응답을 기다리는 중이면 안 된다.
+    /// LLMAgent 를 NPC 대화와 같이 쓰므로, 끼어들면 시스템 프롬프트가 덮여 NPC 가 엉뚱한 답을 한다.
+    /// </summary>
+    bool CanOpen() =>
+        !isActive && !isTransitioning && !isProcessing &&
+        !DialogueManager.IsDialogueOpen && !DialogueManager.IsRequestInFlight &&
+        !(StoryChoiceManager.Instance != null && StoryChoiceManager.Instance.IsChoosing);
+
+    bool OtherDialogueBusy() =>
+        DialogueManager.IsDialogueOpen || DialogueManager.IsRequestInFlight ||
+        (StoryChoiceManager.Instance != null && StoryChoiceManager.Instance.IsChoosing);
 
     // ── 트리거 루프 ──────────────────────────────────────────────
 
@@ -113,8 +139,8 @@ public class InnerVoiceManager : MonoBehaviour
         if (isActive || isTransitioning) return;
         pendingStoryContext = storyContext ?? "";
 
-        // UI 생성(Start) 전에 퀘스트가 먼저 부를 수 있다 → 준비될 때까지 미룬다
-        if (overlayRoot == null || llmAgent == null)
+        // UI 생성(Start) 전에 퀘스트가 먼저 부르거나, 다른 대화가 진행 중이면 → 준비될 때까지 미룬다
+        if (overlayRoot == null || llmAgent == null || OtherDialogueBusy())
         {
             StartCoroutine(OpenWhenReady());
             return;
@@ -136,6 +162,10 @@ public class InnerVoiceManager : MonoBehaviour
             yield break;
         }
 
+        // 스토리 사건은 버리지 않고, 하던 대화가 끝나면 연다
+        while (OtherDialogueBusy())
+            yield return null;
+
         if (!isActive && !isTransitioning) _ = OpenDialogue();
     }
 
@@ -145,7 +175,7 @@ public class InnerVoiceManager : MonoBehaviour
         {
             yield return new WaitForSeconds(checkInterval);
 
-            if (!isActive && UnityEngine.Random.value <= triggerChance)
+            if (CanOpen() && UnityEngine.Random.value <= triggerChance)
                 _ = OpenDialogue();
         }
     }
@@ -196,21 +226,14 @@ public class InnerVoiceManager : MonoBehaviour
             storyBlock = "\n[방금 바깥에서 벌어진 일]\n" + pendingStoryContext + "\n";
         pendingStoryContext = "";   // 1회용
 
-        llmAgent.systemPrompt =
-            (string.IsNullOrWhiteSpace(backstory) ? "" : "[배경]\n" + backstory + "\n\n") +
-            "너는 이 캐릭터의 또 다른 인격이야. " +
-            "지금 둘은 현실에서 벗어난 내면의 공간에서 마주보고 있어. " +
-            "몸의 제어권을 두고 플레이어와 협상하거나, 위협하거나, 회유해. " +
-            "짧고 강렬하게 한국어로 말해. 반드시 아래 JSON 형식으로만 응답해:\n" +
-            "{\"dialogue\":\"대사\",\"mood_delta\":0}\n" +
-            "mood_delta: 플레이어가 설득하거나 달래면 양수(+), 반항하거나 무시하면 음수(-).\n" +
-            memBlock +
-            storyBlock +
-            $"현재 상황: {context}";
+        llmAgent.systemPrompt = BuildPrompt(backstory, memBlock, storyBlock, context);
 
         // AI 인격이 먼저 말 걸기 (스트리밍 + 타임아웃)
         statusText.text = "...";
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         string raw = await ChatStreaming("대화를 시작해.");
+        var opening = LLMResponseParser.Parse(raw, parseFailFallbackLine);
+        ResearchLog.Turn("inner_turn", "어둠(첫 마디)", watch.Elapsed.TotalSeconds, raw, opening, llmAgent.systemPrompt.Length);
 
         // 전환 도중 사용자가 나갔을 수 있음
         if (!isActive) return;
@@ -221,7 +244,6 @@ public class InnerVoiceManager : MonoBehaviour
             return;
         }
 
-        var opening = LLMResponseParser.Parse(raw, parseFailFallbackLine);
         if (!opening.ParseOk)
             Debug.LogWarning($"[InnerVoice] 첫 대사 파싱 실패({opening.FailureReason}) raw={Truncate(raw, 300)}");
         aiText.text = $"\"{opening.Dialogue}\"";
@@ -230,6 +252,21 @@ public class InnerVoiceManager : MonoBehaviour
         SetInputInteractable(true);
         inputField.ActivateInputField();
     }
+
+    /// <summary>내면 대화의 시스템 프롬프트. 연구용 비교 실험도 게임과 같은 프롬프트를 쓰도록 따로 뺐다.</summary>
+    public static string BuildPrompt(string backstory, string memBlock, string storyBlock, string context) =>
+        (string.IsNullOrWhiteSpace(backstory) ? "" : "[배경]\n" + backstory + "\n\n") +
+        "너는 이 캐릭터의 또 다른 인격이야. " +
+        "지금 둘은 현실에서 벗어난 내면의 공간에서 마주보고 있어. " +
+        "몸의 제어권을 두고 플레이어와 협상하거나, 위협하거나, 회유해. " +
+        "짧고 강렬하게 한국어로 말해. 반드시 아래 JSON 형식으로만 응답해:\n" +
+        "{\"dialogue\":\"대사\",\"mood_delta\":0}\n" +
+        "mood_delta: 플레이어가 설득하거나 달래면 양수(+), 반항하거나 무시하면 음수(-).\n" +
+        memBlock +
+        storyBlock +
+        $"현재 상황: {context}";
+
+    public string Backstory => backstory;
 
     // ── 플레이어 입력 (텍스트) ───────────────────────────────────
 
@@ -255,12 +292,15 @@ public class InnerVoiceManager : MonoBehaviour
         SetInputInteractable(false);
         statusText.text = "생각 중...";
 
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         string raw = await ChatStreaming(playerSpeech);
+        double seconds = watch.Elapsed.TotalSeconds;
 
         if (!isActive) { isProcessing = false; return; }
 
         if (raw == null)   // 타임아웃 → 침묵 속에 종료
         {
+            ResearchLog.Turn("inner_turn", "어둠", seconds, null, default, llmAgent.systemPrompt.Length);
             isProcessing = false;
             EndWithSilence();
             return;
@@ -276,6 +316,7 @@ public class InnerVoiceManager : MonoBehaviour
 
         aiText.text = $"\"{dialogue}\"";
         moodSystem.ChangeMood(moodDelta);
+        ResearchLog.Turn("inner_turn", "어둠", seconds, raw, parsed, llmAgent.systemPrompt.Length);   // 감정 수치는 반영 후 값으로 남는다
 
         if (!parsed.ParseOk)
             Debug.LogWarning($"[InnerVoice] JSON 파싱 실패({parsed.FailureReason}) raw={Truncate(raw, 300)}");
@@ -314,24 +355,40 @@ public class InnerVoiceManager : MonoBehaviour
 
     // ── 스트리밍 + 타임아웃 ──────────────────────────────────────
 
-    // 응답을 스트리밍으로 받되, llmTimeout 안에 끝나지 않으면 null 반환
+    // 응답을 스트리밍으로 받되, llmTimeout 초 동안 한 글자도 오지 않으면 끊고 null 반환 (호출부가 침묵 속에 종료)
     async Task<string> ChatStreaming(string query)
     {
         acceptStream = true;
         streamStarted = false;
+        lastStreamProgress = Time.realtimeSinceStartup;
 
         // 내면 협상은 매번 새 상황이고, 장기 기억은 RAG(MemoryManager)가 담당하므로
         // 대화 히스토리에 누적하지 않는다 (프롬프트가 길어져 점점 느려지는 것 방지 + 대장장이와의 맥락 오염 차단)
-        // 타임아웃 없이 응답을 끝까지 기다린다 (CPU 추론이 느려도 도중에 잘리지 않도록)
-        string result = await llmAgent.Chat(query, OnStreamPartial, addToHistory: false);
+        Task<string> chatTask = llmAgent.Chat(query, OnStreamPartial, addToHistory: false);
+
+        // 전체 시간이 아니라 '진행 없음' 기준이다. CPU 추론이 느려도 글자가 나오는 동안은 기다리고,
+        // 모델이 멈췄을 때만 끊는다. 바깥 시간이 멈춰 있으므로(timeScale 0) 실제 시간으로 잰다.
+        while (!chatTask.IsCompleted)
+        {
+            if (this == null) return null;
+            if (Time.realtimeSinceStartup - lastStreamProgress > llmTimeout)
+            {
+                acceptStream = false;
+                llmAgent.CancelRequests();   // 붙잡힌 요청이 다음 대화의 슬롯을 막지 않게
+                Debug.LogWarning($"[InnerVoice] {llmTimeout:0}초 동안 응답이 없어 끊었습니다.");
+                return null;
+            }
+            await Task.Delay(200);
+        }
 
         acceptStream = false;
-        return result;
+        return await chatTask;
     }
 
     // 누적 부분 응답 콜백 (메인 스레드) — JSON 중 dialogue 값만 타자기처럼 표시
     void OnStreamPartial(string partial)
     {
+        lastStreamProgress = Time.realtimeSinceStartup;
         if (!acceptStream || !isActive || string.IsNullOrEmpty(partial)) return;
 
         if (!streamStarted)
@@ -709,5 +766,6 @@ public class InnerVoiceManager : MonoBehaviour
     {
         // 대화 중 파괴되면 시간 복구 보장
         if (isActive) Time.timeScale = prevTimeScale;
+        if (current == this) current = null;
     }
 }

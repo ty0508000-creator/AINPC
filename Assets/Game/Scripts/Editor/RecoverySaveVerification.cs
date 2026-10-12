@@ -185,6 +185,44 @@ public static class RecoverySaveVerification
             merged.entries.Single(e => e.questId == "other_island").progress[0] = 2;
             Check(otherIsland.entries[0].progress[0] == 1, "merged snapshot owns independent progress arrays");
             Check(File.ReadAllText(Path.Combine(legacySlot, "player_save.json")) == "{}", "damaged source retained for manual recovery");
+
+            // 2~4지역처럼 StoryChoiceManager·NPC 가 없는 씬에서 저장해도 선택·호감도·감정 수치가 남아야 한다.
+            string regionSlot = Path.Combine(output, Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(regionSlot);
+            SaveSystem.VerificationDirectory = regionSlot;
+            Check(SaveSystem.DirectoryPath == regionSlot && MemoryPaths.Root == Path.Combine(regionSlot, "Memory"),
+                "verification slot also redirects memory files");
+            var choices = new GameObject("Choice verification").AddComponent<StoryChoiceManager>();
+            Invoke(choices, "Awake");
+            Check(choices.Choose(new StoryChoiceOption { choiceId = HubStoryIds.RescueLeft, objectiveId = HubStoryIds.Rescue, memoryLine = "검증: 두고 떠났다" }),
+                "story choice commits");
+            var npc = new GameObject("Affinity verification").AddComponent<NPCInteraction>();
+            npc.npcName = "검증 NPC";
+            Invoke(npc, "Awake");
+            Check(npc.Affinity == 50, "affinity starts at default without save entry");
+            npc.ChangeAffinity(-15); npc.ChangeAffinity(float.NaN);
+            Check(npc.Affinity == 35, "affinity ignores invalid delta");
+            Check(SaveSystem.SaveGame(stats, null), "snapshot with choice manager and NPC commits");
+            UnityEngine.Object.DestroyImmediate(choices.gameObject);
+            UnityEngine.Object.DestroyImmediate(npc.gameObject);
+            Check(SaveSystem.SaveGame(stats, null), "snapshot in a scene without choice manager or NPC commits");
+            var region = SaveSystem.LoadPlayer();
+            Check(region.storyChoices != null && region.storyChoices.entries.Any(e => e.choiceId == HubStoryIds.RescueLeft),
+                "story choice survives a save without StoryChoiceManager");
+            Check(StoryChoiceManager.Remembers(HubStoryIds.RescueLeft) && !StoryChoiceManager.Remembers(HubStoryIds.Rescue),
+                "choice is readable from the file when no manager exists");
+            Check(region.npcAffinity != null && region.npcAffinity.Single(e => e.npcName == "검증 NPC").value == 35,
+                "affinity survives a save without the NPC");
+            var npcAgain = new GameObject("Affinity reload").AddComponent<NPCInteraction>();
+            npcAgain.npcName = "검증 NPC";
+            Invoke(npcAgain, "Awake");
+            Check(npcAgain.Affinity == 35, "affinity reloads by NPC name in another scene");
+            UnityEngine.Object.DestroyImmediate(npcAgain.gameObject);
+            Check(region.hasMood && region.mood == mood.Mood, "mood is part of every snapshot");
+            float beforeRevenge = mood.Mood;
+            mood.ApplyRevenge();
+            Check(mood.Mood == Mathf.Max(0f, beforeRevenge - 10f), "boss revenge lowers mood by the default 10");
+
             File.WriteAllText(Path.Combine(output, "result.txt"), $"PASS: {count} recovery/save assertions\n");
             Debug.Log($"RECOVERY_SAVE_VERIFY_PASS: {count}");
         }
@@ -192,7 +230,8 @@ public static class RecoverySaveVerification
         {
             Debug.LogException(e);
             File.WriteAllText(Path.Combine(output, "result.txt"), "FAIL: " + e);
-            EditorApplication.Exit(1);
+            // 명령줄 일괄 실행일 때만 실패 코드로 종료한다. 열려 있는 에디터에서 돌리면 에디터를 끄지 않는다.
+            if (Application.isBatchMode) EditorApplication.Exit(1);
         }
         finally { SaveSystem.VerificationBeforeCommit = null; SaveSystem.VerificationDirectory = null; }
     }
