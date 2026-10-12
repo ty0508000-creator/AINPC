@@ -24,6 +24,14 @@ public class InnerVoiceManager : MonoBehaviour
     [Tooltip("(A-3) 응답 파싱 실패 시 화면에 대신 띄울 어둠의 대사. 원문은 절대 노출하지 않는다.")]
     [SerializeField] private string parseFailFallbackLine = "…";
 
+    [Header("인격 설정")]
+    [Tooltip("내면 대화 한 번에 주고받는 턴 수. 다 쓰면 현실로 돌아간다.")]
+    [SerializeField, Min(1)] private int maxTurns = 1;
+    [Tooltip("주인공과 어둠의 배경. 시스템 프롬프트 맨 앞에 들어간다.")]
+    [SerializeField, TextArea(3, 6)] private string backstory =
+        "주인공의 마을은 천마에게 무너졌다. 주인공은 복수하기 위해 천마의 수하들을 하나씩 쓰러뜨리며 천마를 쫓고 있다. " +
+        "너는 그 복수심이 키워 낸 어둠이다. 주인공이 복수에 물들수록 너는 강해지고, 틈이 보이면 몸을 잠식한다.";
+
     [Header("Memory (선택 — 비우면 자동 탐색)")]
     [SerializeField] private MemoryManager memory;
 
@@ -49,6 +57,7 @@ public class InnerVoiceManager : MonoBehaviour
     private string pendingStoryContext = "";
 
     private bool isActive = false;
+    private int turnsTaken = 0;
     private bool isProcessing = false;
     private bool isTransitioning = false;
     private bool acceptStream = false;
@@ -147,6 +156,7 @@ public class InnerVoiceManager : MonoBehaviour
     {
         if (GetComponent<PlayerStats>() is PlayerStats stats && !stats.IsAlive) return;
         isActive = true;
+        turnsTaken = 0;
 
         // 게임 완전 정지 (내면 세계로 "넘어간" 동안 바깥은 멈춤)
         prevTimeScale = Time.timeScale;
@@ -167,7 +177,7 @@ public class InnerVoiceManager : MonoBehaviour
 
         string context =
             $"HP {playerStats.HP:0}/{playerStats.MaxHP:0}, " +
-            $"기분 게이지 {moodSystem.Mood:0}/100, " +
+            $"감정 수치(정신의 균형) {moodSystem.Mood:0}/100, " +
             $"주변 적 {enemyCount}명, " +
             $"현재 {(controlManager.IsPlayerControlled ? "플레이어" : "AI")}가 몸을 제어 중.";
 
@@ -187,6 +197,7 @@ public class InnerVoiceManager : MonoBehaviour
         pendingStoryContext = "";   // 1회용
 
         llmAgent.systemPrompt =
+            (string.IsNullOrWhiteSpace(backstory) ? "" : "[배경]\n" + backstory + "\n\n") +
             "너는 이 캐릭터의 또 다른 인격이야. " +
             "지금 둘은 현실에서 벗어난 내면의 공간에서 마주보고 있어. " +
             "몸의 제어권을 두고 플레이어와 협상하거나, 위협하거나, 회유해. " +
@@ -276,9 +287,9 @@ public class InnerVoiceManager : MonoBehaviour
         // 이번 협상을 기억으로 남김. 파싱 실패한 턴은 폴백 대사가 사실로 굳으므로 기록하지 않는다.
         if (memory != null && parsed.ParseOk)
             _ = memory.Remember(
-                $"플레이어: \"{playerSpeech}\" → 나(어둠): \"{dialogue}\" (기분 {sign}{moodDelta})",
+                $"플레이어: \"{playerSpeech}\" → 나(어둠): \"{dialogue}\" (감정 {sign}{moodDelta})",
                 "inner");
-        moodDeltaText.text = $"기분 {sign}{moodDelta}";
+        moodDeltaText.text = $"감정 {sign}{moodDelta}";
         moodDeltaText.color = moodDelta >= 0
             ? new Color(0.4f, 1f, 0.4f)
             : new Color(1f, 0.4f, 0.4f);
@@ -286,7 +297,17 @@ public class InnerVoiceManager : MonoBehaviour
         statusText.text = "";
         isProcessing = false;
 
-        // 1턴 후 자동 종료: 잠깐 보여준 뒤 현실로 복귀
+        // 정한 턴 수를 다 쓰기 전에는 다음 말을 받는다
+        if (++turnsTaken < maxTurns)
+        {
+            // 히스토리에 쌓지 않으므로(ChatStreaming 참고) 이번 대화의 앞 턴은 프롬프트에 직접 붙인다
+            llmAgent.systemPrompt += $"\n[이번 대화 {turnsTaken}턴] 플레이어: \"{playerSpeech}\" → 너: \"{dialogue}\"";
+            SetInputInteractable(true);
+            inputField.ActivateInputField();
+            return;
+        }
+
+        // 마지막 턴: 잠깐 보여준 뒤 현실로 복귀
         await Task.Delay(3500);
         if (isActive) EndDialogue();
     }

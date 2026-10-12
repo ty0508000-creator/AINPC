@@ -31,6 +31,9 @@ public class GameFlow : MonoBehaviour
     /// <summary>재의 왕을 쓰러뜨리면 세운다. Stage1 마을의 다음 지역 문이 열린다.</summary>
     public const string Stage1ClearedFlag = "region1.boss_cleared";
 
+    /// <summary>최종보스를 쓰러뜨리면 세운다. 게임 클리어 화면을 띄운다.</summary>
+    public const string FinalClearedFlag = "final.boss_cleared";
+
     /// <summary>
     /// 세이브에 적힌 씬을 지금 이름으로 옮긴다. 경로로 저장된 것은 이름만 쓴다.
     /// 사냥터가 따로 씬이던 시절의 위치는 Stage1 좌표가 아니므로 그 사냥터 입구로 보낸다(spawn 이 null 이 아님).

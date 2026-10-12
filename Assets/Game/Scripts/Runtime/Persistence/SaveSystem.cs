@@ -59,6 +59,9 @@ public static class SaveSystem
             var data = stats != null ? Capture(stats) : previous;
             if (data == null) throw new InvalidOperationException("플레이어 준비 전에는 통합 저장할 수 없습니다.");
             if (data.flags == null) data.flags = previous?.flags;
+            // 2~4지역처럼 StoryChoiceManager 가 없는 씬에서 저장해도 이전 선택을 지우지 않는다.
+            if (data.storyChoices == null) data.storyChoices = previous?.storyChoices;
+            data.npcAffinity = NPCInteraction.CaptureAffinity(previous?.npcAffinity);
             data.quests = manager != null && manager.IsSaveReady
                 ? QuestSaveSystem.Capture(manager, previous?.quests ?? QuestSaveSystem.ReadLegacy())
                 : previous?.quests ?? QuestSaveSystem.ReadLegacy();

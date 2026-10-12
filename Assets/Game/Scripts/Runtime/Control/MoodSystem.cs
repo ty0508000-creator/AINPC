@@ -9,6 +9,10 @@ public class MoodSystem : MonoBehaviour
     [SerializeField] private float aiTakeoverThreshold = 20f;
     [SerializeField] private float playerRestoreThreshold = 70f;
 
+    [Header("복수")]
+    [Tooltip("보스를 쓰러뜨려 복수가 한 걸음 진행될 때마다 감정 수치가 이만큼 떨어진다 (복수에 물들어 간다)")]
+    [SerializeField, Min(0f)] private float revengeMoodDrop = 10f;
+
     [Header("전투 감지 (전투 중에만 강탈)")]
     [SerializeField] private LayerMask enemyLayer;
     [SerializeField] private float combatRadius = 12f;
@@ -77,6 +81,9 @@ public class MoodSystem : MonoBehaviour
         ApplyQuestDelta(delta);
         NotifyQuestDelta();
     }
+
+    /// <summary>보스 처치처럼 복수에 성공했을 때. 저장 전에 불러야 같은 스냅샷에 남는다.</summary>
+    public void ApplyRevenge() => ChangeMood(-revengeMoodDrop);
 
     internal void ApplyQuestDelta(float delta)
     {

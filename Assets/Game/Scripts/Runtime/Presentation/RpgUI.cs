@@ -333,7 +333,7 @@ public partial class RpgUI : MonoBehaviour
         SetBar(hpFill, stats.HP / stats.MaxHP); SetBar(manaFill, stats.Mana / stats.MaxMana); SetBar(expFill, stats.EXP / stats.MaxEXP);
         float moodValue = mood != null ? mood.Mood : 100f;
         SetBar(moodFill, moodValue / 100f);
-        moodLabel.text = $"{(control != null && !control.IsPlayerControlled ? "어둠이 지배 중" : "정신의 균형")}  {moodValue:0}    EXP {stats.EXP:0}/{stats.MaxEXP:0}";
+        moodLabel.text = $"{(control != null && !control.IsPlayerControlled ? "어둠이 지배 중" : "감정 수치")}  {moodValue:0}    EXP {stats.EXP:0}/{stats.MaxEXP:0}";
         guardLabel.text = skills != null && skills.GuardRemaining > 0 ? $"금강호신 / {skills.GuardRemaining:0.0}s" : "";
         RefreshUltimateUI();
         for (int i = 0; i < 3; i++)

@@ -11,6 +11,14 @@ public class InventorySaveEntry
     public ItemOption[] options;
 }
 
+/// <summary>NPC 한 명의 플레이어에 대한 호감도. 플레이어의 감정 수치(Mood)와 별개다.</summary>
+[System.Serializable]
+public class NpcAffinityEntry
+{
+    public string npcName;
+    public float value;
+}
+
 [System.Serializable]
 public class PlayerSaveData
 {
@@ -46,4 +54,6 @@ public class PlayerSaveData
     public InventorySaveEntry[] inventory;
     // 장착 칸(무기·갑옷·장신구). null 이면 장비 기능 이전 저장이라 시작 장비를 채운다. 빈 칸은 itemId 가 비어 있다.
     public InventorySaveEntry[] equipped;
+    // NPC 호감도. null 이면 이 필드 이전 저장이라 모든 NPC 가 시작값에서 출발한다.
+    public System.Collections.Generic.List<NpcAffinityEntry> npcAffinity;
 }

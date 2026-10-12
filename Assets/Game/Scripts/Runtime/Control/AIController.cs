@@ -1,8 +1,36 @@
+using System;
 using System.Collections;
+using System.Globalization;
+using System.IO;
 using UnityEngine;
+using Random = UnityEngine.Random;
+
+/// <summary>기억(소윤 선택)에 따라 바뀌는 내면의 전투 성향.</summary>
+public enum CombatStyle { Default, Protective, Aggressive }
 
 public class AIController : MonoBehaviour
 {
+    [Header("기억에 따른 전투 성향")]
+    [Tooltip("소윤을 구했으면 보호형, 두고 떠났으면 공격형, 선택 전이면 기본(치고 빠지기)")]
+    [SerializeField] private bool useMemoryStyle = true;
+
+    [Tooltip("보호형: 빠지는 거리 배율")]
+    [SerializeField] private float protectiveRetreatScale = 1.6f;
+
+    [Tooltip("보호형: 체력이 이 비율 이하면 싸우지 않고 물러난다")]
+    [Range(0f, 1f)]
+    [SerializeField] private float protectiveFleeHpRatio = 0.5f;
+
+    [Tooltip("공격형: 붙어서 버티는 시간 (빠지지 않는다)")]
+    [SerializeField] private float aggressiveStrikeHold = 0.6f;
+
+    [Tooltip("공격형: 이 거리보다 멀면 대시로 파고든다")]
+    [SerializeField] private float aggressiveDashMinDistance = 1.5f;
+
+    [SerializeField] private string behaviorLogFileName = "ai_behavior_log.csv";
+
+    public CombatStyle Style { get; private set; }
+
     [Header("AI Settings")]
     [SerializeField] private float aiMoveSpeed = 5f;
     [SerializeField] private float detectionRadius = 10f;
@@ -63,6 +91,12 @@ public class AIController : MonoBehaviour
     private Coroutine recklessCoroutine;
     private Color baseColor = Color.white;
 
+    // 이번 강탈 한 번의 행동 기록 (비교 실험용)
+    private bool sessionActive;
+    private float sessionStart, sessionHpStart, sessionDistance;
+    private int sessionAttacks, sessionDashes, sessionRetreats;
+    private Vector2 lastPosition;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -94,8 +128,59 @@ public class AIController : MonoBehaviour
         if (!isActiveAndEnabled || rb == null || playerAttack == null) return;
         if (playerStats != null && !playerStats.IsAlive) return;
         StopAI();
+        Style = ResolveStyle();
+        sessionActive = true;
+        sessionStart = Time.time;
+        sessionHpStart = playerStats != null ? playerStats.HP : 0f;
+        sessionDistance = 0f;
+        sessionAttacks = sessionDashes = sessionRetreats = 0;
+        lastPosition = rb.position;
         behaviorCoroutine = StartCoroutine(BehaviorLoop());
         recklessCoroutine = StartCoroutine(RecklessLoop());
+    }
+
+    CombatStyle ResolveStyle()
+    {
+        if (!useMemoryStyle) return CombatStyle.Default;
+        if (StoryChoiceManager.Remembers(HubStoryIds.RescueLeft)) return CombatStyle.Aggressive;
+        if (StoryChoiceManager.Remembers(HubStoryIds.Rescue)) return CombatStyle.Protective;
+        return CombatStyle.Default;
+    }
+
+    void FixedUpdate()
+    {
+        if (!sessionActive || rb == null) return;
+        sessionDistance += Vector2.Distance(lastPosition, rb.position);
+        lastPosition = rb.position;
+    }
+
+    /// <summary>강탈 한 번이 끝날 때 성향별 행동 지표를 CSV 한 줄로 남긴다.</summary>
+    void WriteSessionLog()
+    {
+        if (!sessionActive) return;
+        sessionActive = false;
+        float duration = Time.time - sessionStart;
+        float hpEnd = playerStats != null ? playerStats.HP : 0f;
+        string path = Path.Combine(Application.persistentDataPath, behaviorLogFileName);
+        string line = string.Join(",",
+            DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), gameObject.scene.name, Style,
+            duration.ToString("F2", CultureInfo.InvariantCulture), sessionDistance.ToString("F2", CultureInfo.InvariantCulture),
+            sessionAttacks, sessionDashes, sessionRetreats,
+            sessionHpStart.ToString("F0", CultureInfo.InvariantCulture), hpEnd.ToString("F0", CultureInfo.InvariantCulture));
+        Debug.Log($"[AI] 강탈 종료 style={Style} {duration:F1}s 이동={sessionDistance:F1} 공격={sessionAttacks} 대시={sessionDashes} 후퇴={sessionRetreats} HP {sessionHpStart:F0}→{hpEnd:F0}");
+        try
+        {
+            if (!File.Exists(path))
+                File.AppendAllText(path, "timestamp,scene,style,duration_s,distance,attacks,dashes,retreats,hp_start,hp_end\n");
+            File.AppendAllText(path, line + "\n");
+        }
+        catch (Exception e) { Debug.LogWarning("[AI] 행동 로그 저장 실패: " + e.Message); }
+    }
+
+    void Attack(Vector2 dir)
+    {
+        if (playerAttack.AttackReady) sessionAttacks++;
+        playerAttack.ForceAttack(dir);
     }
 
     /// <summary>플레이어가 죽으면 AI 도 손을 뗀다 (제어권은 그대로 AI 에 있어도 몸은 멈춘다).</summary>
@@ -106,6 +191,7 @@ public class AIController : MonoBehaviour
 
     void StopAI()
     {
+        WriteSessionLog();
         if (behaviorCoroutine != null)
         {
             StopCoroutine(behaviorCoroutine);
@@ -164,7 +250,11 @@ public class AIController : MonoBehaviour
 
             Collider2D target = FindNearest();
 
-            if (target != null)
+            if (target != null && ShouldFlee())
+            {
+                yield return Flee(target);
+            }
+            else if (target != null)
             {
                 yield return KeepRangeAndAttack(target);
             }
@@ -197,18 +287,47 @@ public class AIController : MonoBehaviour
     /// </summary>
     IEnumerator KeepRangeAndAttack(Collider2D target)
     {
-        while (IsEngageable(target))
+        while (IsEngageable(target) && !ShouldFlee())
         {
+            // 대시 무적 중에는 각 단계가 바로 끝나므로, 한 프레임 쉬지 않으면 무한 반복에 빠진다
+            if (playerAttack.IsInvincible) { yield return new WaitForFixedUpdate(); continue; }
+
             // 빠질 때 도는 쪽은 한 바퀴마다 새로 정한다 (한쪽으로만 돌면 티가 난다)
             float strafeSign = Random.value < 0.5f ? -1f : 1f;
 
             yield return Approach(target);
             yield return Strike(target);
+            // 공격형은 빠지지 않고 붙은 채로 계속 친다
+            if (Style == CombatStyle.Aggressive) continue;
             yield return Retreat(target, strafeSign);
             yield return Breather(target);
         }
 
         rb.linearVelocity = Vector2.zero;
+    }
+
+    /// <summary>보호형은 체력이 낮으면 싸움을 멈추고 몸을 지킨다.</summary>
+    bool ShouldFlee() =>
+        Style == CombatStyle.Protective && playerStats != null && playerStats.MaxHP > 0f &&
+        playerStats.HP / playerStats.MaxHP <= protectiveFleeHpRatio;
+
+    /// <summary>감지 범위 끝까지 적에게서 멀어진다.</summary>
+    IEnumerator Flee(Collider2D target)
+    {
+        float timer = 0f;
+        while (timer < phaseTimeout && target != null && !playerAttack.IsInvincible)
+        {
+            Vector2 away = rb.position - (Vector2)target.transform.position;
+            if (away.magnitude >= detectionRadius * 0.9f) break;
+            // 이미 충분히 떨어져 있으면 세지 않는다 (가만히 거리만 지키는 프레임까지 후퇴로 세지 않게)
+            if (timer == 0f) sessionRetreats++;
+            Vector2 dir = away.sqrMagnitude > 0.0001f ? away.normalized : Random.insideUnitCircle.normalized;
+            FaceTo(-dir);
+            Drive(dir * GetAIMoveSpeed() * retreatSpeedScale);
+            timer += Time.fixedDeltaTime;
+            yield return new WaitForFixedUpdate();
+        }
+        Drive(Vector2.zero);
     }
 
     /// <summary>사거리 안쪽까지 파고든다.</summary>
@@ -227,11 +346,19 @@ public class AIController : MonoBehaviour
             if (dist <= goal + attackRangeTolerance)
                 break;
 
+            // 공격형은 멀면 대시로 단숨에 파고든다
+            if (Style == CombatStyle.Aggressive && dist > aggressiveDashMinDistance && playerAttack.DashReady)
+            {
+                sessionDashes++;
+                playerAttack.ForceDash(dir, Mathf.Min(dist - goal, playerAttack.MaxDashRange));
+                break;
+            }
+
             Drive(dir * GetAIMoveSpeed() * approachSpeedScale);
 
             // 들어가는 도중에 닿으면 바로 친다
             if (dist <= attackTriggerRange)
-                playerAttack.ForceAttack(dir);
+                Attack(dir);
 
             timer += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
@@ -242,8 +369,9 @@ public class AIController : MonoBehaviour
     IEnumerator Strike(Collider2D target)
     {
         float timer = 0f;
+        float hold = Style == CombatStyle.Aggressive ? aggressiveStrikeHold : strikeHold;
 
-        while (timer < strikeHold && IsEngageable(target) && !playerAttack.IsInvincible)
+        while (timer < hold && IsEngageable(target) && !playerAttack.IsInvincible)
         {
             Vector2 offset = (Vector2)target.transform.position - rb.position;
             Vector2 dir = GetDirectionToTarget(offset);
@@ -252,7 +380,7 @@ public class AIController : MonoBehaviour
             Drive(Vector2.zero);
 
             if (offset.magnitude <= attackTriggerRange)
-                playerAttack.ForceAttack(dir);
+                Attack(dir);
 
             timer += Time.fixedDeltaTime;
             yield return new WaitForFixedUpdate();
@@ -263,7 +391,8 @@ public class AIController : MonoBehaviour
     IEnumerator Retreat(Collider2D target, float strafeSign)
     {
         float timer = 0f;
-        float goal = RetreatDistance();
+        float goal = RetreatDistance() * (Style == CombatStyle.Protective ? protectiveRetreatScale : 1f);
+        sessionRetreats++;
 
         while (timer < phaseTimeout && IsEngageable(target) && !playerAttack.IsInvincible)
         {

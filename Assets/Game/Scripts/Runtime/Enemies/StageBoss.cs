@@ -39,7 +39,10 @@ public class StageBoss : MonoBehaviour
         if (string.IsNullOrEmpty(clearFlag))
             return;
 
+        FindFirstObjectByType<MoodSystem>()?.ApplyRevenge();   // SetFlag 의 저장에 함께 실리도록 먼저
         GameFlow.Instance.SetFlag(clearFlag);
         GameFlow.Instance.ShowNotice(clearMessage, 3f);
+        if (clearFlag == GameFlow.FinalClearedFlag)
+            GameClearScreen.Show();
     }
 }

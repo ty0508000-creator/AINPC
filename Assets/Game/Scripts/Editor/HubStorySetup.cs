@@ -82,8 +82,8 @@ public static class HubStorySetup
                 "저는 분명 그 불을 봤어요. 북동쪽 강가에 남은 파편을 가져오면 누가 거짓말을 하는지 알 수 있을 거예요.", "파편 속에는 불타는 마을과 도망치는 아이의 그림자가 있었다. 하연은 그 아이가 아직 살아 있다고 말했다.",
                 Goal(ObjectiveType.Reach, HubStoryIds.Area(2), "북동쪽 흔적의 강가에 도착하기"), Goal(ObjectiveType.Collect, "hub_fragment_a", "서쪽 기억 파편 조사"), Goal(ObjectiveType.Collect, "hub_fragment_b", "동쪽 기억 파편 조사"), Goal(ObjectiveType.Collect, "hub_fragment_c", "북쪽 기억 파편 조사"), Goal(ObjectiveType.Talk, HubStoryIds.Hayeon, "하연에게 파편의 기억 전하기")),
             Quest(HubStoryIds.Hunt(3), "이번에는 놓지 않는다", HubStoryIds.Hunt(2), false, 140,
-                "남서쪽 피난처에 소윤이가 숨어 있어요. 요물들을 물리치고 꼭 아이를 구해 주세요.", "소윤은 무사하다. 아이가 본 불은 자연의 불이 아니었다. 누군가 마을의 기억까지 태우고 있었다.",
-                Goal(ObjectiveType.Reach, HubStoryIds.Area(3), "남서쪽 무너진 피난처에 도착하기"), Goal(ObjectiveType.Kill, HubStoryIds.Monster(3), "피난처의 요물 처치", 3), Goal(ObjectiveType.Choice, HubStoryIds.Rescue, "소윤과 대화하고 구하기"), Goal(ObjectiveType.Talk, HubStoryIds.Hayeon, "하연에게 소윤의 무사함 알리기")),
+                "남서쪽 피난처에 소윤이가 숨어 있어요. 요물들을 물리치고 꼭 아이를 구해 주세요.", "아이가 본 불은 자연의 불이 아니었다. 누군가 마을의 기억까지 태우고 있었다.",
+                Goal(ObjectiveType.Reach, HubStoryIds.Area(3), "남서쪽 무너진 피난처에 도착하기"), Goal(ObjectiveType.Kill, HubStoryIds.Monster(3), "피난처의 요물 처치", 3), Goal(ObjectiveType.Choice, HubStoryIds.Rescue, "소윤과 대화하기"), Goal(ObjectiveType.Talk, HubStoryIds.Hayeon, "하연에게 돌아가 알리기")),
             Quest(HubStoryIds.Hunt(4), "재 속에 남은 이름", HubStoryIds.Hunt(3), false, 180,
                 "더는 감출 수 없겠구나. 남동쪽 야영지에서 마을을 태운 자들의 흔적을 찾아 다오.", "야영지의 흔적은 재의 왕을 가리킨다. 현묵은 진실을 인정했다. 남쪽 길이 열렸다. 제단에서 정비하고 그 불을 끝내자.",
                 Goal(ObjectiveType.Reach, HubStoryIds.Area(4), "남동쪽 불씨의 야영지에 도착하기"), Goal(ObjectiveType.Kill, HubStoryIds.Monster(4), "야영지의 적 처치", 5), Goal(ObjectiveType.Reach, "hub_enemy_camp", "야영지 북쪽 흔적 확인"), Goal(ObjectiveType.Talk, HubStoryIds.Elder, "촌장에게 진실 묻기"))

@@ -26,6 +26,8 @@ public class StoryChoiceOption
     [TextArea(2, 4)] public string description;
     public float moodDelta;
     [TextArea(1, 3)] public string memoryLine;
+    [Tooltip("비우면 choiceId 로 Choice 목표를 채운다. 서로 다른 선택이 같은 목표를 끝낼 때 쓴다.")]
+    public string objectiveId;
 }
 
 /// <summary>
@@ -61,6 +63,14 @@ public class StoryChoiceManager : MonoBehaviour
     public bool HasChoice(string choiceId) => !string.IsNullOrWhiteSpace(choiceId) && choices.ContainsKey(choiceId);
     public bool TryGetChoice(string choiceId, out StoryChoiceEntry entry) => choices.TryGetValue(choiceId ?? "", out entry);
 
+    /// <summary>이 씬에 StoryChoiceManager 가 없어도(2~4지역·보스 씬) 저장된 선택을 확인한다.</summary>
+    public static bool Remembers(string choiceId)
+    {
+        if (Instance != null) return Instance.HasChoice(choiceId);
+        return SaveSystem.TryLoadPlayer(out var saved) && saved?.storyChoices?.entries != null &&
+               saved.storyChoices.entries.Exists(e => e != null && e.choiceId == choiceId);
+    }
+
     public bool Choose(StoryChoiceOption option)
     {
         if (option == null || string.IsNullOrWhiteSpace(option.choiceId) || HasChoice(option.choiceId)) return false;
@@ -72,7 +82,10 @@ public class StoryChoiceManager : MonoBehaviour
             moodSystem.NotifyQuestDelta();
         }
         // A Choice objective decides which active quest uses this id; unknown IDs are still valid story memories.
-        questManager?.ReportChoice(entry.choiceId);
+        questManager?.ReportChoice(string.IsNullOrWhiteSpace(option.objectiveId) ? entry.choiceId : option.objectiveId);
+        // 내면이 다음 대화에서 이 선택을 끄집어낼 수 있도록 기억에도 남긴다.
+        if (!string.IsNullOrWhiteSpace(entry.memoryLine))
+            _ = FindFirstObjectByType<MemoryManager>()?.Remember(entry.memoryLine, "inner");
         SaveSystem.SaveGame(questManager != null ? questManager.Player : FindFirstObjectByType<PlayerStats>(), questManager);
         return true;
     }

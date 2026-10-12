@@ -9,5 +9,7 @@ public static class HubStoryIds
     public static string Zone(int number) => "Zone_Hunt" + number;
     public static string ReturnSpawn(int number) => "from_hunt_" + number;
     public const string Elder = "hub_elder", Hayeon = "hub_hayeon", Rescue = "hub_child_rescued";
+    /// <summary>소윤을 두고 떠난 선택. Choice 목표는 Rescue 로 함께 채운다.</summary>
+    public const string RescueLeft = "hub_child_left";
     public const string Boss = "hub_ash_king", Ending = "hub_isle1_report", BossScene = "AshKingArena", BossReturn = "from_ash_king";
 }

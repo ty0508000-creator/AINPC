@@ -60,7 +60,6 @@ public class DialogueManager : MonoBehaviour
     private bool isProcessing = false;
     private bool acceptStream = false;
     private bool blocked = false;
-    private MoodSystem moodSystem;
     private ControlManager controlManager;
     private string lastMrSmithInput = "";
     private int repeatedMrSmithInputCount = 0;
@@ -84,10 +83,6 @@ public class DialogueManager : MonoBehaviour
 
         if (llmAgent == null)
             llmAgent = FindFirstObjectByType<LLMAgent>();
-
-        moodSystem = FindFirstObjectByType<MoodSystem>();
-        if (moodSystem == null)
-            Debug.LogWarning("DialogueManager: MoodSystem을 찾을 수 없습니다.");
 
         controlManager = FindFirstObjectByType<ControlManager>();
 
@@ -149,8 +144,8 @@ public class DialogueManager : MonoBehaviour
 
         blocked = false;
         baseSystemPrompt = isMrSmith
-            ? BuildMrSmithPrompt(personality, "", "", "")
-            : BuildDefaultPrompt(name, personality);
+            ? BuildMrSmithPrompt(personality, "", "", "", AffinityLine())
+            : BuildDefaultPrompt(name, personality) + "\n" + AffinityLine();
         llmAgent.systemPrompt = baseSystemPrompt;
 
         npcText.text = $"{name}: {(isMrSmith ? "무슨 일입니까." : "안녕.")}";
@@ -206,7 +201,7 @@ public class DialogueManager : MonoBehaviour
                 {
                     string dialogue = "흠...";
                     npcText.text = $"{currentNPCName}: {dialogue}";
-                    moodSystem?.ChangeMood(-1);
+                    currentNPC?.ChangeAffinity(-1);
 
                     if (currentMrSmithMemory != null)
                         _ = currentMrSmithMemory.RememberExchange(question, dialogue);
@@ -225,7 +220,8 @@ public class DialogueManager : MonoBehaviour
                     currentNPC != null ? currentNPC.personality : "",
                     recent,
                     related,
-                    question);
+                    question,
+                    AffinityLine());
                 addToHistory = false;
             }
 
@@ -256,7 +252,8 @@ public class DialogueManager : MonoBehaviour
                 npcText.text = $"{currentNPCName}: {parsed.Dialogue}";
 
                 // (A-2) mood_delta는 이미 -20~+20으로 클램프된 값이다.
-                moodSystem?.ChangeMood(parsed.MoodDelta);
+                //       NPC 대화의 mood_delta 는 그 NPC 의 호감도다. 플레이어의 감정 수치(MoodSystem)는 건드리지 않는다.
+                currentNPC?.ChangeAffinity(parsed.MoodDelta);
 
                 if (!parsed.ParseOk)
                 {
@@ -498,9 +495,6 @@ public class DialogueManager : MonoBehaviour
         if (llmAgent == null)
             llmAgent = FindFirstObjectByType<LLMAgent>();
 
-        if (moodSystem == null)
-            moodSystem = FindFirstObjectByType<MoodSystem>();
-
         if (controlManager == null)
             controlManager = FindFirstObjectByType<ControlManager>();
 
@@ -521,7 +515,14 @@ public class DialogueManager : MonoBehaviour
             "- 호감가는 말이나 칭찬 → +10 ~ +20";
     }
 
-    private static string BuildMrSmithPrompt(string personality, string recentConversation, string relatedMemories, string currentUserInput)
+    /// <summary>지금 대화 중인 NPC 의 호감도를 프롬프트에 알린다. 말투가 호감도에 따라 달라지게 한다.</summary>
+    private string AffinityLine()
+    {
+        if (currentNPC == null) return "";
+        return $"[플레이어에 대한 호감도] {currentNPC.Affinity:0}/100 (낮을수록 차갑고 경계하며, 높을수록 조금 누그러진다)";
+    }
+
+    private static string BuildMrSmithPrompt(string personality, string recentConversation, string relatedMemories, string currentUserInput, string affinityLine)
     {
         string character = string.IsNullOrWhiteSpace(personality)
             ? "Mr.Smith는 무뚝뚝하고 말수가 적은 마을 대장장이다. 플레이어에게는 반말을 쓰며, 속을 쉽게 드러내지 않는다. 쓸데없는 말이나 반복되는 말을 들으면 대답 대신 \"흠...\"이라고 짧게 넘긴다."
@@ -537,7 +538,9 @@ public class DialogueManager : MonoBehaviour
             "친절하게 설명하려 들지 말고, 필요한 말만 한다.\n" +
             "플레이어가 같은 말을 지나치게 반복하거나 의미 없는 말을 하면 dialogue를 정확히 \"흠...\"으로만 응답한다.\n" +
             "관련 과거 기억이 있으면 자연스럽게 반영하되, 기억 목록을 그대로 읽지 않는다.\n" +
-            "반드시 다음 JSON 형식으로만 응답한다: {\"dialogue\":\"대사 내용\",\"mood_delta\":0}\n\n" +
+            "반드시 다음 JSON 형식으로만 응답한다: {\"dialogue\":\"대사 내용\",\"mood_delta\":0}\n" +
+            "mood_delta 는 이번 말로 플레이어에 대한 너의 호감이 얼마나 변했는지다 (-20 ~ +20).\n\n" +
+            (string.IsNullOrEmpty(affinityLine) ? "" : affinityLine + "\n\n") +
             "[최근 대화]\n" +
             (string.IsNullOrWhiteSpace(recentConversation) ? "없음" : recentConversation) + "\n\n" +
             "[관련 과거 기억]\n" +

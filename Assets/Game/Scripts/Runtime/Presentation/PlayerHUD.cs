@@ -73,7 +73,7 @@ public class PlayerHUD : MonoBehaviour
 
         controlText = MakeText(moodPanel, Scale(new Vector2(12f, -8f)), "제어권: 플레이어", Scale(14f), FontStyles.Bold);
 
-        MakeText(moodPanel, Scale(new Vector2(12f, -30f)), "NPC 기분", Scale(13f));
+        MakeText(moodPanel, Scale(new Vector2(12f, -30f)), "감정 수치", Scale(13f));
         moodText = MakeText(moodPanel, Scale(new Vector2(160f, -30f)), "50", Scale(13f));
         moodText.GetComponent<RectTransform>().anchorMin = new Vector2(0f, 1f);
         moodText.GetComponent<RectTransform>().anchorMax = new Vector2(0f, 1f);
