@@ -20,6 +20,7 @@
 - [첫 보스 재의 왕·패턴·재도전·검증](docs/ASH_KING_BOSS.md)
 - [동굴·후속 지역 틀과 현재 병합 범위](docs/STAGE_STRUCTURE.md)
 - [MapGen_Village 마을 적용·동선·검증](docs/VILLAGE_MAP.md)
+- [주민의 외지인 경계·주인공 반감과 AI 대화](docs/NPC_SOCIAL_PERSONA.md)
 - [사망 복구·통합 저장 사용법](docs/RECOVERY_AND_SAVE.md)
 - [자료구조·알고리즘 코드 설명](docs/RPG_CODE_EXPLAINED.md)
 - [기존 2학기 계획 — 과거 분석과 일정](docs/2학기_개선계획.md)

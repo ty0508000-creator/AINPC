@@ -32,6 +32,7 @@ public sealed class VillageResident : MonoBehaviour
             if (other != this && Vector2.Distance(player.transform.position, other.transform.position) <
                 Vector2.Distance(player.transform.position, transform.position)) return false;
         var ui = FindFirstObjectByType<StoryConversationUI>();
-        return ui != null && ui.Open(residentName, line, "알겠다 · E", null);
+        return ui != null && ui.Open(residentName, VillageSocialDialogue.ResidentLine(residentName, line,
+            VillageSocialDialogue.HelpedChild), "알겠다 · E", null);
     }
 }

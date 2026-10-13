@@ -111,6 +111,7 @@ public class DialogueManager : MonoBehaviour
         ResolveReferences();
 
         currentNPCName = name;
+        personality += VillageSocialDialogue.AiContext(npc);
         currentPersonality = personality;
         currentNPC = npc;
         isMrSmith = IsMrSmith(npc, name);
@@ -239,7 +240,7 @@ public class DialogueManager : MonoBehaviour
                     : "";
 
                 llmAgent.systemPrompt = BuildMrSmithPrompt(
-                    currentNPC != null ? currentNPC.personality : "",
+                    currentPersonality,
                     recent,
                     related,
                     question,
