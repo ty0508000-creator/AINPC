@@ -1,0 +1,477 @@
+fileFormatVersion: 2
+guid: 9b23859e650137446b805ba0acf970d1
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -5210979734333357810
+    second: char_a_p1_4har_bob1_v08_0
+  - first:
+      213: -6352653001243694942
+    second: char_a_p1_4har_bob1_v08_1
+  - first:
+      213: 2437764264766363851
+    second: char_a_p1_4har_bob1_v08_2
+  - first:
+      213: -2396572962561737390
+    second: char_a_p1_4har_bob1_v08_3
+  - first:
+      213: -7307631908285403728
+    second: char_a_p1_4har_bob1_v08_4
+  - first:
+      213: 8363284170450214735
+    second: char_a_p1_4har_bob1_v08_5
+  - first:
+      213: 2789883073710058405
+    second: char_a_p1_4har_bob1_v08_6
+  - first:
+      213: -8637234398859809937
+    second: char_a_p1_4har_bob1_v08_7
+  - first:
+      213: -3092414122665289500
+    second: char_a_p1_4har_bob1_v08_8
+  - first:
+      213: -5714069279501353837
+    second: char_a_p1_4har_bob1_v08_9
+  - first:
+      213: 3081335111691212114
+    second: char_a_p1_4har_bob1_v08_10
+  - first:
+      213: 1067780690808638684
+    second: char_a_p1_4har_bob1_v08_11
+  - first:
+      213: 6996200564633899770
+    second: char_a_p1_4har_bob1_v08_12
+  - first:
+      213: 5001884743432118750
+    second: char_a_p1_4har_bob1_v08_13
+  - first:
+      213: -8914967290735482317
+    second: char_a_p1_4har_bob1_v08_14
+  - first:
+      213: -2873902232456281854
+    second: char_a_p1_4har_bob1_v08_15
+  - first:
+      213: -2537804364105318212
+    second: char_a_p1_4har_bob1_v08_16
+  - first:
+      213: -4337486309774491371
+    second: char_a_p1_4har_bob1_v08_17
+  - first:
+      213: -3233936082046400334
+    second: char_a_p1_4har_bob1_v08_18
+  - first:
+      213: -149128834680310564
+    second: char_a_p1_4har_bob1_v08_19
+  - first:
+      213: 7493969173929014053
+    second: char_a_p1_4har_bob1_v08_20
+  - first:
+      213: -1097545792923034221
+    second: char_a_p1_4har_bob1_v08_21
+  - first:
+      213: -8477574483549379285
+    second: char_a_p1_4har_bob1_v08_22
+  - first:
+      213: 6941606396869180854
+    second: char_a_p1_4har_bob1_v08_23
+  - first:
+      213: 7539580292406047041
+    second: char_a_p1_4har_bob1_v08_24
+  - first:
+      213: -6847075975639518799
+    second: char_a_p1_4har_bob1_v08_25
+  - first:
+      213: -2983971961815104496
+    second: char_a_p1_4har_bob1_v08_26
+  - first:
+      213: 3189578067876908
+    second: char_a_p1_4har_bob1_v08_27
+  - first:
+      213: -9171070457976803495
+    second: char_a_p1_4har_bob1_v08_28
+  - first:
+      213: 4617056623092067832
+    second: char_a_p1_4har_bob1_v08_29
+  - first:
+      213: 3069795587099352273
+    second: char_a_p1_4har_bob1_v08_30
+  - first:
+      213: 4958861248506331190
+    second: char_a_p1_4har_bob1_v08_31
+  - first:
+      213: 9157708109617481400
+    second: char_a_p1_4har_bob1_v08_32
+  - first:
+      213: 7681812221259823985
+    second: char_a_p1_4har_bob1_v08_33
+  - first:
+      213: -6246571604731717818
+    second: char_a_p1_4har_bob1_v08_34
+  - first:
+      213: -7626233109990076867
+    second: char_a_p1_4har_bob1_v08_35
+  - first:
+      213: -3210761256341347444
+    second: char_a_p1_4har_bob1_v08_36
+  - first:
+      213: 2584163944300733861
+    second: char_a_p1_4har_bob1_v08_37
+  - first:
+      213: -6569370528359650657
+    second: char_a_p1_4har_bob1_v08_38
+  - first:
+      213: 243756402158679843
+    second: char_a_p1_4har_bob1_v08_39
+  - first:
+      213: 1412187252248823768
+    second: char_a_p1_4har_bob1_v08_40
+  - first:
+      213: -1463670460442591914
+    second: char_a_p1_4har_bob1_v08_41
+  - first:
+      213: -843383530106538864
+    second: char_a_p1_4har_bob1_v08_42
+  - first:
+      213: -856215031430028197
+    second: char_a_p1_4har_bob1_v08_43
+  - first:
+      213: 4662951626429044049
+    second: char_a_p1_4har_bob1_v08_44
+  - first:
+      213: -1630637287961793295
+    second: char_a_p1_4har_bob1_v08_45
+  - first:
+      213: -631033602872227233
+    second: char_a_p1_4har_bob1_v08_46
+  - first:
+      213: 2694877966396354942
+    second: char_a_p1_4har_bob1_v08_47
+  - first:
+      213: -710464176032972510
+    second: char_a_p1_4har_bob1_v08_48
+  - first:
+      213: 7474117138104022789
+    second: char_a_p1_4har_bob1_v08_49
+  - first:
+      213: 1204976230928083331
+    second: char_a_p1_4har_bob1_v08_50
+  - first:
+      213: -1633151113793618450
+    second: char_a_p1_4har_bob1_v08_51
+  - first:
+      213: 3380554162887949758
+    second: char_a_p1_4har_bob1_v08_52
+  - first:
+      213: -797424304072503001
+    second: char_a_p1_4har_bob1_v08_53
+  - first:
+      213: -7257183755318364356
+    second: char_a_p1_4har_bob1_v08_54
+  - first:
+      213: 4383875563628337459
+    second: char_a_p1_4har_bob1_v08_55
+  - first:
+      213: -285441525222334902
+    second: char_a_p1_4har_bob1_v08_56
+  - first:
+      213: -72442042618553528
+    second: char_a_p1_4har_bob1_v08_57
+  - first:
+      213: 5558601697657538135
+    second: char_a_p1_4har_bob1_v08_58
+  - first:
+      213: -5148940781651163518
+    second: char_a_p1_4har_bob1_v08_59
+  - first:
+      213: 4768192478291719944
+    second: char_a_p1_4har_bob1_v08_60
+  - first:
+      213: -2405188550966151640
+    second: char_a_p1_4har_bob1_v08_61
+  - first:
+      213: -119588147128700339
+    second: char_a_p1_4har_bob1_v08_62
+  - first:
+      213: 5764012255375334789
+    second: char_a_p1_4har_bob1_v08_63
+  - first:
+      213: 2147685559727469259
+    second: Stand_0
+  - first:
+      213: 1531825654891787424
+    second: Stand_1
+  - first:
+      213: -6642458161248216228
+    second: Stand_2
+  - first:
+      213: 3305897227715394346
+    second: Stand_3
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 24
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Stand_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 448
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.3125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc2bacc33ac1ecd10800000000000000
+      internalID: 2147685559727469259
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Stand_1
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 384
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.3125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a4b7a13153224510800000000000000
+      internalID: 1531825654891787424
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Stand_2
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 320
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.3125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c5bd76fde7f31d3a0800000000000000
+      internalID: -6642458161248216228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Stand_3
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 256
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.3125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a2bbce16308e0ed20800000000000000
+      internalID: 3305897227715394346
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Stand_0: 2147685559727469259
+      Stand_1: 1531825654891787424
+      Stand_2: -6642458161248216228
+      Stand_3: 3305897227715394346
+      char_a_p1_4har_bob1_v08_0: -5210979734333357810
+      char_a_p1_4har_bob1_v08_1: -6352653001243694942
+      char_a_p1_4har_bob1_v08_10: 3081335111691212114
+      char_a_p1_4har_bob1_v08_11: 1067780690808638684
+      char_a_p1_4har_bob1_v08_12: 6996200564633899770
+      char_a_p1_4har_bob1_v08_13: 5001884743432118750
+      char_a_p1_4har_bob1_v08_14: -8914967290735482317
+      char_a_p1_4har_bob1_v08_15: -2873902232456281854
+      char_a_p1_4har_bob1_v08_16: -2537804364105318212
+      char_a_p1_4har_bob1_v08_17: -4337486309774491371
+      char_a_p1_4har_bob1_v08_18: -3233936082046400334
+      char_a_p1_4har_bob1_v08_19: -149128834680310564
+      char_a_p1_4har_bob1_v08_2: 2437764264766363851
+      char_a_p1_4har_bob1_v08_20: 7493969173929014053
+      char_a_p1_4har_bob1_v08_21: -1097545792923034221
+      char_a_p1_4har_bob1_v08_22: -8477574483549379285
+      char_a_p1_4har_bob1_v08_23: 6941606396869180854
+      char_a_p1_4har_bob1_v08_24: 7539580292406047041
+      char_a_p1_4har_bob1_v08_25: -6847075975639518799
+      char_a_p1_4har_bob1_v08_26: -2983971961815104496
+      char_a_p1_4har_bob1_v08_27: 3189578067876908
+      char_a_p1_4har_bob1_v08_28: -9171070457976803495
+      char_a_p1_4har_bob1_v08_29: 4617056623092067832
+      char_a_p1_4har_bob1_v08_3: -2396572962561737390
+      char_a_p1_4har_bob1_v08_30: 3069795587099352273
+      char_a_p1_4har_bob1_v08_31: 4958861248506331190
+      char_a_p1_4har_bob1_v08_32: 9157708109617481400
+      char_a_p1_4har_bob1_v08_33: 7681812221259823985
+      char_a_p1_4har_bob1_v08_34: -6246571604731717818
+      char_a_p1_4har_bob1_v08_35: -7626233109990076867
+      char_a_p1_4har_bob1_v08_36: -3210761256341347444
+      char_a_p1_4har_bob1_v08_37: 2584163944300733861
+      char_a_p1_4har_bob1_v08_38: -6569370528359650657
+      char_a_p1_4har_bob1_v08_39: 243756402158679843
+      char_a_p1_4har_bob1_v08_4: -7307631908285403728
+      char_a_p1_4har_bob1_v08_40: 1412187252248823768
+      char_a_p1_4har_bob1_v08_41: -1463670460442591914
+      char_a_p1_4har_bob1_v08_42: -843383530106538864
+      char_a_p1_4har_bob1_v08_43: -856215031430028197
+      char_a_p1_4har_bob1_v08_44: 4662951626429044049
+      char_a_p1_4har_bob1_v08_45: -1630637287961793295
+      char_a_p1_4har_bob1_v08_46: -631033602872227233
+      char_a_p1_4har_bob1_v08_47: 2694877966396354942
+      char_a_p1_4har_bob1_v08_48: -710464176032972510
+      char_a_p1_4har_bob1_v08_49: 7474117138104022789
+      char_a_p1_4har_bob1_v08_5: 8363284170450214735
+      char_a_p1_4har_bob1_v08_50: 1204976230928083331
+      char_a_p1_4har_bob1_v08_51: -1633151113793618450
+      char_a_p1_4har_bob1_v08_52: 3380554162887949758
+      char_a_p1_4har_bob1_v08_53: -797424304072503001
+      char_a_p1_4har_bob1_v08_54: -7257183755318364356
+      char_a_p1_4har_bob1_v08_55: 4383875563628337459
+      char_a_p1_4har_bob1_v08_56: -285441525222334902
+      char_a_p1_4har_bob1_v08_57: -72442042618553528
+      char_a_p1_4har_bob1_v08_58: 5558601697657538135
+      char_a_p1_4har_bob1_v08_59: -5148940781651163518
+      char_a_p1_4har_bob1_v08_6: 2789883073710058405
+      char_a_p1_4har_bob1_v08_60: 4768192478291719944
+      char_a_p1_4har_bob1_v08_61: -2405188550966151640
+      char_a_p1_4har_bob1_v08_62: -119588147128700339
+      char_a_p1_4har_bob1_v08_63: 5764012255375334789
+      char_a_p1_4har_bob1_v08_7: -8637234398859809937
+      char_a_p1_4har_bob1_v08_8: -3092414122665289500
+      char_a_p1_4har_bob1_v08_9: -5714069279501353837
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

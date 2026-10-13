@@ -19,12 +19,16 @@
 - [사냥터 난이도·성장 보상·전투 측정](docs/HUNTING_BALANCE.md)
 - [첫 보스 재의 왕·패턴·재도전·검증](docs/ASH_KING_BOSS.md)
 - [동굴·후속 지역 틀과 현재 병합 범위](docs/STAGE_STRUCTURE.md)
+- [MapGen_Village 마을 적용·동선·검증](docs/VILLAGE_MAP.md)
 - [사망 복구·통합 저장 사용법](docs/RECOVERY_AND_SAVE.md)
 - [자료구조·알고리즘 코드 설명](docs/RPG_CODE_EXPLAINED.md)
 - [기존 2학기 계획 — 과거 분석과 일정](docs/2학기_개선계획.md)
 - [연구 근거 — 측정값·연구 로그 형식·재현 방법](docs/RESEARCH_EVIDENCE.md)
 
 ## 현재 구현
+
+- Stage1 마을은 MapGen_Village의 61채 건물·지형·소품을 사용하고, 기존 NPC·사냥터·보스·다음 지역 입구를 새 길 위에 연결한다.
+- Summer Village 노인 12명·상인 4명으로 일반 주민 16명을 배치하고 대기 모션을 연결했다. 가까이서 E로 마을 상황에 관한 짧은 대화를 할 수 있다. NPC art: **schwarnhild**, [Summer Village](https://schwarnhild.itch.io/summer-village).
 
 - 이동, 일반 공격, 충전 대시, 몬스터 전투.
 - 체력·공격력·방어력·내력 투자, 레벨업, 성장 저장과 이전 저장 마이그레이션.
@@ -142,3 +146,5 @@ UI 기본 글꼴은 `NeoDunggeunmoPro-Regular.ttf`입니다. TextMeshPro용 동�
 외부 아트는 프로젝트 자체 저작물이 아닙니다. 독립 재배포와 공개 저장소 포함 여부는 배포 전에 확인해야 합니다.
 
 - 사냥터별 지형·공격 패턴: [HUNTING_REGIONS](docs/HUNTING_REGIONS.md)
+
+
