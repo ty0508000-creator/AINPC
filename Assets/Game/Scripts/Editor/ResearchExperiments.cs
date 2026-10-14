@@ -37,7 +37,18 @@ public static partial class ResearchExperiments
         "...",
     };
 
-    public static bool Running { get; private set; }
+    static bool running;
+    public static bool Running
+    {
+        get => running;
+        private set
+        {
+            running = value;
+            // 실험은 보통 MCP 로 에디터가 포커스를 잃은 채 돈다. 그러면 게임 루프가 멈춰 새로 붙인 컴포넌트(RAG·LLMAgent)의
+            // Start 가 돌지 않아 연결이 안 된다(2026-10-15 확인). 이 플레이 세션에만 적용되고 PlayerSettings 는 그대로다.
+            if (value) Application.runInBackground = true;
+        }
+    }
     public static string LastSummaryPath { get; private set; }
 
     public static async Task RunJsonGrammarComparison(int repeats = 2, float timeoutSeconds = 30f)
