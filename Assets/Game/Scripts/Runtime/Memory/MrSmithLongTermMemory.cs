@@ -176,7 +176,7 @@ public class MrSmithLongTermMemory : MonoBehaviour
     {
         if (string.IsNullOrWhiteSpace(playerText) && string.IsNullOrWhiteSpace(smithText)) return;
 
-        string turn = $"플레이어: \"{playerText}\" / Mr.Smith: \"{smithText}\"";
+        string turn = NPCInteraction.TurnLine("Mr.Smith", playerText, smithText);
         recentTurns.Add(turn);
         while (recentTurns.Count > Mathf.Max(1, recentTurnsToKeep))
             recentTurns.RemoveAt(0);

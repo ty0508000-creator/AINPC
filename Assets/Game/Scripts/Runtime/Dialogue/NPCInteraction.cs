@@ -22,9 +22,13 @@ public class NPCInteraction : MonoBehaviour
 
     public void RememberTurn(string playerText, string reply)
     {
-        RecentTurns.Add($"플레이어: \"{playerText}\" / {npcName}: \"{reply}\"");
+        RecentTurns.Add(TurnLine(npcName, playerText, reply));
         while (RecentTurns.Count > 4) RecentTurns.RemoveAt(0);
     }
+
+    /// <summary>최근 대화 한 줄의 원문. 학습 데이터 생성기도 같은 꼴을 쓴다.</summary>
+    public static string TurnLine(string npcName, string playerText, string reply) =>
+        $"플레이어: \"{playerText}\" / {npcName}: \"{reply}\"";
 
     private DialogueManager dialogueManager;
     private bool isDialogueOpen = false;

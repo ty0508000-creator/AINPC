@@ -29,7 +29,7 @@ DATA_PATH       = "data/train_data.jsonl"
 OUTPUT_LORA     = "output/darkness-lora"
 OUTPUT_GGUF     = "output/darkness-gguf"
 
-MAX_SEQ_LENGTH  = 2048
+MAX_SEQ_LENGTH  = 4096   # 게임 프롬프트(배경·마을 태도·기억)가 길다. 넘는 샘플은 아래에서 멈춘다
 LORA_RANK       = 16
 EPOCHS          = 4
 BATCH_SIZE      = 2
@@ -87,6 +87,10 @@ print("데이터 로드 중...")
 raw = load_jsonl(DATA_PATH)
 dataset = Dataset.from_list(raw).map(format_sample)
 print(f"학습 데이터: {len(dataset)}개")
+# 길이 제한을 넘으면 뒤쪽(정답 JSON)이 잘려 형식을 망가뜨리므로 조용히 자르지 않고 멈춘다
+longest = max(len(tokenizer(t)["input_ids"]) for t in dataset["text"])
+print(f"가장 긴 샘플: {longest} 토큰 (제한 {MAX_SEQ_LENGTH})")
+assert longest <= MAX_SEQ_LENGTH, "MAX_SEQ_LENGTH 를 늘리거나 프롬프트를 줄이세요"
 
 # ── 학습 ─────────────────────────────────────────────────────────
 

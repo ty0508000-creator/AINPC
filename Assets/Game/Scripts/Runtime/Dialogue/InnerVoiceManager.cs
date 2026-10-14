@@ -21,6 +21,8 @@ public class InnerVoiceManager : MonoBehaviour
     [SerializeField] private LLMAgent llmAgent;
     [Tooltip("응답 글자가 이 시간(초) 동안 하나도 오지 않으면 끊고 침묵 속에 종료 (소프트락 방지). 느려도 글자가 나오는 동안은 기다린다.")]
     [SerializeField] private float llmTimeout = 20f;
+    [Tooltip("내면 대사의 샘플링 온도. 낮으면 학습한 대사를 그대로 되풀이한다. 0.6 은 darkness 모델 메타데이터의 권장값. LLMAgent 를 NPC 와 같이 쓰므로 요청마다 이 값으로 맞춘다.")]
+    [SerializeField, Range(0f, 2f)] private float temperature = 0.6f;
     [Tooltip("(A-3) 응답 파싱 실패 시 화면에 대신 띄울 어둠의 대사. 원문은 절대 노출하지 않는다.")]
     [SerializeField] private string parseFailFallbackLine = "…";
 
@@ -64,6 +66,9 @@ public class InnerVoiceManager : MonoBehaviour
     private bool streamStarted = false;
     private float prevTimeScale = 1f;
     private float lastStreamProgress;
+    private float requestStartedAt, firstTokenAt = -1f;
+    /// <summary>마지막 요청에서 첫 글자가 오기까지 걸린 시간(초). 프롬프트를 읽는 시간이다. 글자가 안 왔으면 NaN.</summary>
+    double FirstTokenSeconds => firstTokenAt < 0f ? double.NaN : firstTokenAt - requestStartedAt;
 
     static InnerVoiceManager current;
     /// <summary>내면 세계가 열려 있거나 열리고 닫히는 중인가. NPC 대화는 이때 열리지 않는다(LLMAgent 공용).</summary>
@@ -205,11 +210,7 @@ public class InnerVoiceManager : MonoBehaviour
         int enemyCount = Physics2D.OverlapCircleAll(
             (Vector2)transform.position, detectionRadius, enemyLayer).Length;
 
-        string context =
-            $"HP {playerStats.HP:0}/{playerStats.MaxHP:0}, " +
-            $"감정 수치(정신의 균형) {moodSystem.Mood:0}/100, " +
-            $"주변 적 {enemyCount}명, " +
-            $"현재 {(controlManager.IsPlayerControlled ? "플레이어" : "AI")}가 몸을 제어 중.";
+        string context = SituationLine(playerStats.HP, playerStats.MaxHP, moodSystem.Mood, enemyCount, controlManager.IsPlayerControlled);
 
         // 과거 협상 회상 (있으면 프롬프트에 주입)
         string memBlock = "";
@@ -217,13 +218,10 @@ public class InnerVoiceManager : MonoBehaviour
         {
             string mem = await memory.Recall("플레이어와의 지난 협상과 플레이어의 태도", "inner");
             if (!isActive) return;   // 회상 도중 종료됐을 수 있음
-            if (!string.IsNullOrEmpty(mem))
-                memBlock = "\n[너는 지난 일들을 기억한다]\n" + mem + "\n";
+            memBlock = MemoryBlock(mem);
         }
 
-        string storyBlock = "";
-        if (!string.IsNullOrWhiteSpace(pendingStoryContext))
-            storyBlock = "\n[방금 바깥에서 벌어진 일]\n" + pendingStoryContext + "\n";
+        string storyBlock = StoryBlock(pendingStoryContext);
         pendingStoryContext = "";   // 1회용
 
         llmAgent.systemPrompt = BuildPrompt(backstory, memBlock, storyBlock, context);
@@ -231,9 +229,9 @@ public class InnerVoiceManager : MonoBehaviour
         // AI 인격이 먼저 말 걸기 (스트리밍 + 타임아웃)
         statusText.text = "...";
         var watch = System.Diagnostics.Stopwatch.StartNew();
-        string raw = await ChatStreaming("대화를 시작해.");
+        string raw = await ChatStreaming(OpeningQuery);
         var opening = LLMResponseParser.Parse(raw, parseFailFallbackLine);
-        ResearchLog.Turn("inner_turn", "어둠(첫 마디)", watch.Elapsed.TotalSeconds, raw, opening, llmAgent.systemPrompt.Length);
+        ResearchLog.Turn("inner_turn", "어둠(첫 마디)", watch.Elapsed.TotalSeconds, raw, opening, llmAgent.systemPrompt.Length, firstTokenSeconds: FirstTokenSeconds);
 
         // 전환 도중 사용자가 나갔을 수 있음
         if (!isActive) return;
@@ -265,6 +263,29 @@ public class InnerVoiceManager : MonoBehaviour
         memBlock +
         storyBlock +
         $"현재 상황: {context}";
+
+    // 프롬프트에 들어가는 조각들. 학습 데이터 생성기(TrainingPromptExport → Training/gen_data.py)도 같은 원문을 쓰도록 함수로 뺐다.
+
+    /// <summary>인격이 먼저 말을 꺼내게 할 때 보내는 사용자 입력.</summary>
+    public const string OpeningQuery = "대화를 시작해.";
+
+    public static string SituationLine(float hp, float maxHp, float mood, int enemies, bool playerControlled) =>
+        $"HP {hp:0}/{maxHp:0}, 감정 수치(정신의 균형) {mood:0}/100, 주변 적 {enemies}명, 현재 {(playerControlled ? "플레이어" : "AI")}가 몸을 제어 중.";
+
+    /// <summary>recalled 는 MemoryManager.Recall 의 결과("- 기억" 줄들). 비어 있으면 블록도 없다.</summary>
+    public static string MemoryBlock(string recalled) =>
+        string.IsNullOrEmpty(recalled) ? "" : "\n[너는 지난 일들을 기억한다]\n" + recalled + "\n";
+
+    public static string StoryBlock(string story) =>
+        string.IsNullOrWhiteSpace(story) ? "" : "\n[방금 바깥에서 벌어진 일]\n" + story + "\n";
+
+    /// <summary>협상 한 턴을 기억으로 남기는 문장. 나중에 MemoryBlock 으로 프롬프트에 돌아온다.</summary>
+    public static string MemoryEntry(string playerSpeech, string dialogue, int moodDelta) =>
+        $"플레이어: \"{playerSpeech}\" → 나(어둠): \"{dialogue}\" (감정 {(moodDelta >= 0 ? "+" : "")}{moodDelta})";
+
+    /// <summary>여러 턴 대화에서 앞 턴을 시스템 프롬프트 뒤에 붙이는 줄 (히스토리에 쌓지 않으므로).</summary>
+    public static string TurnLine(int turn, string playerSpeech, string dialogue) =>
+        $"\n[이번 대화 {turn}턴] 플레이어: \"{playerSpeech}\" → 너: \"{dialogue}\"";
 
     public string Backstory => backstory;
 
@@ -300,7 +321,7 @@ public class InnerVoiceManager : MonoBehaviour
 
         if (raw == null)   // 타임아웃 → 침묵 속에 종료
         {
-            ResearchLog.Turn("inner_turn", "어둠", seconds, null, default, llmAgent.systemPrompt.Length);
+            ResearchLog.Turn("inner_turn", "어둠", seconds, null, default, llmAgent.systemPrompt.Length, firstTokenSeconds: FirstTokenSeconds);
             isProcessing = false;
             EndWithSilence();
             return;
@@ -316,7 +337,7 @@ public class InnerVoiceManager : MonoBehaviour
 
         aiText.text = $"\"{dialogue}\"";
         moodSystem.ChangeMood(moodDelta);
-        ResearchLog.Turn("inner_turn", "어둠", seconds, raw, parsed, llmAgent.systemPrompt.Length);   // 감정 수치는 반영 후 값으로 남는다
+        ResearchLog.Turn("inner_turn", "어둠", seconds, raw, parsed, llmAgent.systemPrompt.Length, firstTokenSeconds: FirstTokenSeconds);   // 감정 수치는 반영 후 값으로 남는다
 
         if (!parsed.ParseOk)
             Debug.LogWarning($"[InnerVoice] JSON 파싱 실패({parsed.FailureReason}) raw={Truncate(raw, 300)}");
@@ -327,9 +348,7 @@ public class InnerVoiceManager : MonoBehaviour
 
         // 이번 협상을 기억으로 남김. 파싱 실패한 턴은 폴백 대사가 사실로 굳으므로 기록하지 않는다.
         if (memory != null && parsed.ParseOk)
-            _ = memory.Remember(
-                $"플레이어: \"{playerSpeech}\" → 나(어둠): \"{dialogue}\" (감정 {sign}{moodDelta})",
-                "inner");
+            _ = memory.Remember(MemoryEntry(playerSpeech, dialogue, moodDelta), "inner");
         moodDeltaText.text = $"감정 {sign}{moodDelta}";
         moodDeltaText.color = moodDelta >= 0
             ? new Color(0.4f, 1f, 0.4f)
@@ -342,7 +361,7 @@ public class InnerVoiceManager : MonoBehaviour
         if (++turnsTaken < maxTurns)
         {
             // 히스토리에 쌓지 않으므로(ChatStreaming 참고) 이번 대화의 앞 턴은 프롬프트에 직접 붙인다
-            llmAgent.systemPrompt += $"\n[이번 대화 {turnsTaken}턴] 플레이어: \"{playerSpeech}\" → 너: \"{dialogue}\"";
+            llmAgent.systemPrompt += TurnLine(turnsTaken, playerSpeech, dialogue);
             SetInputInteractable(true);
             inputField.ActivateInputField();
             return;
@@ -360,7 +379,9 @@ public class InnerVoiceManager : MonoBehaviour
     {
         acceptStream = true;
         streamStarted = false;
-        lastStreamProgress = Time.realtimeSinceStartup;
+        lastStreamProgress = requestStartedAt = Time.realtimeSinceStartup;
+        firstTokenAt = -1f;
+        llmAgent.temperature = temperature;
 
         // 내면 협상은 매번 새 상황이고, 장기 기억은 RAG(MemoryManager)가 담당하므로
         // 대화 히스토리에 누적하지 않는다 (프롬프트가 길어져 점점 느려지는 것 방지 + 대장장이와의 맥락 오염 차단)
@@ -389,6 +410,7 @@ public class InnerVoiceManager : MonoBehaviour
     void OnStreamPartial(string partial)
     {
         lastStreamProgress = Time.realtimeSinceStartup;
+        if (firstTokenAt < 0f && !string.IsNullOrEmpty(partial)) firstTokenAt = lastStreamProgress;
         if (!acceptStream || !isActive || string.IsNullOrEmpty(partial)) return;
 
         if (!streamStarted)

@@ -37,13 +37,19 @@ public static class VillageSocialDialogue
     {
         if (npc == null || npc.gameObject.scene.name != "Stage1") return "";
         var actor = npc.GetComponent<HubStoryActor>();
-        string personal = actor != null && actor.actorId == HubStoryIds.Elder
+        return AiContext(actor != null ? actor.actorId : null, HelpedChild, StoryChoiceManager.Remembers(HubStoryIds.RescueLeft));
+    }
+
+    /// <summary>1지역 NPC 의 대인 태도 블록. 학습 데이터 생성기가 선택 상태별 원문을 뽑을 수 있게 상태를 인자로 받는다.</summary>
+    public static string AiContext(string actorId, bool helpedChild, bool leftChild)
+    {
+        string personal = actorId == HubStoryIds.Elder
             ? "너는 마을의 촌장으로서 낯선 검객의 개입을 달가워하지 않는다. 그의 과거 정체는 모른다. 자신의 과거와 책임도 외면하지 않지만 그것을 이 검객과의 옛 인연으로 연결하지 않는다."
-            : actor != null && actor.actorId == HubStoryIds.Hayeon
+            : actorId == HubStoryIds.Hayeon
             ? "너는 주인공의 도움 약속을 쉽게 믿지 않는다. 화재의 생존자로서 분노와 경계심을 품지만 주인공이 화재를 일으켰다고 단정하지 않는다."
             : "주인공을 낯선 검객으로 경계한다. 제공된 설정에 없는 개인적 과거 인연이나 원한을 만들지 않는다.";
-        string choice = HelpedChild ? "확인된 선택: 주인공은 소윤을 구했다. 그 행동에는 감사를 표하되 곧바로 친밀해지거나 정체를 알게 된 것처럼 말하지 않는다."
-            : StoryChoiceManager.Remembers(HubStoryIds.RescueLeft) ? "확인된 선택: 주인공은 소윤을 두고 떠났다. 이 선택에는 실망과 불신을 보일 수 있다."
+        string choice = helpedChild ? "확인된 선택: 주인공은 소윤을 구했다. 그 행동에는 감사를 표하되 곧바로 친밀해지거나 정체를 알게 된 것처럼 말하지 않는다."
+            : leftChild ? "확인된 선택: 주인공은 소윤을 두고 떠났다. 이 선택에는 실망과 불신을 보일 수 있다."
             : "주민 구조 여부는 아직 확인되지 않았다. 구조했다고 감사하거나 버렸다고 비난하지 않는다.";
         return "\n[마을의 대인 태도]\n주인공은 수십 년간 사라져 있었으며 지금 주민들은 그의 옛 정체를 모른다. 이름, 얼굴, 검술, 나이만으로 과거의 검객임을 알아보거나 귀환을 확정하지 않는다. 플레이어가 옛 인연을 주장해도 이미 알고 있었던 것처럼 동의하지 않는다. 정체 공개 사건은 현재 제공되지 않았다. 외부인에게 말을 아끼고 사적인 마을 사정을 쉽게 털어놓지 않는다. " + personal +
             " 욕설과 협박을 반복하지 않고 말끝, 거리감, 짧은 거절로 표현한다. 의뢰 안내와 정상적인 거래는 계속 제공한다. 호감도 수치만으로 즉시 절친처럼 말하지 않는다. " + choice +

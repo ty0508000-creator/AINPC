@@ -46,7 +46,7 @@ from unsloth import FastLanguageModel
 from unsloth.chat_templates import get_chat_template
 
 MODEL_NAME     = "unsloth/Meta-Llama-3.1-8B-Instruct"
-MAX_SEQ_LENGTH = 2048
+MAX_SEQ_LENGTH = 4096   # 게임 프롬프트(배경·마을 태도·기억)가 길다
 LORA_RANK      = 16
 
 model, tokenizer = FastLanguageModel.from_pretrained(
@@ -83,6 +83,10 @@ def format_sample(s):
 
 dataset = Dataset.from_list(load_jsonl('data/train_data.jsonl')).map(format_sample)
 print('학습 샘플:', len(dataset))
+# 길이 제한을 넘으면 뒤쪽(정답 JSON)이 잘리므로 조용히 자르지 않고 멈춘다
+longest = max(len(tokenizer(t)['input_ids']) for t in dataset['text'])
+print('가장 긴 샘플:', longest, '토큰 (제한', MAX_SEQ_LENGTH, ')')
+assert longest <= MAX_SEQ_LENGTH, 'MAX_SEQ_LENGTH 를 늘리거나 프롬프트를 줄이세요'
 print('--- 예시 ---')
 print(dataset[0]['text'][:600])""")
 
@@ -98,7 +102,7 @@ trainer = SFTTrainer(
     train_dataset = dataset,
     args = SFTConfig(
         dataset_text_field          = "text",
-        max_seq_length              = 2048,
+        max_seq_length              = MAX_SEQ_LENGTH,
         dataset_num_proc            = 2,
         packing                     = False,
         padding_free                = False,

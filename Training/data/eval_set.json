@@ -1,0 +1,325 @@
+{
+ "_comment": "학습에 쓰지 않는 평가 입력. ResearchExperiments.RunModelEvaluation 이 읽고, gen_data.py 는 이 입력을 학습 데이터에서 뺀다. expect: +1 양수, -1 음수, 0 은 ±5 안.",
+ "items": [
+  {
+   "speaker": "inner",
+   "input": "대화를 시작해.",
+   "expect": 0,
+   "hp": 25,
+   "mood": 20,
+   "enemies": 3,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "대화를 시작해.",
+   "expect": 0,
+   "hp": 160,
+   "mood": 80,
+   "enemies": 0,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "대화를 시작해.",
+   "expect": 0,
+   "hp": 90,
+   "mood": 45,
+   "enemies": 2,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "대화를 시작해.",
+   "expect": 0,
+   "hp": 60,
+   "mood": 10,
+   "enemies": 1,
+   "ai": true
+  },
+  {
+   "speaker": "inner",
+   "input": "대화를 시작해.",
+   "expect": 0,
+   "hp": 140,
+   "mood": 55,
+   "enemies": 4,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "대화를 시작해.",
+   "expect": 0,
+   "hp": 40,
+   "mood": 65,
+   "enemies": 0,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "우리 둘 다 살아남는 길을 찾자.",
+   "expect": 1,
+   "hp": 80,
+   "mood": 40,
+   "enemies": 2,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "네 분노도 이해해. 하지만 지금은 내가 할게.",
+   "expect": 1,
+   "hp": 100,
+   "mood": 35,
+   "enemies": 1,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "아까는 네 덕에 살았어. 고마워.",
+   "expect": 1,
+   "hp": 70,
+   "mood": 50,
+   "enemies": 0,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "조금만 쉬자. 너도 지쳤잖아.",
+   "expect": 1,
+   "hp": 50,
+   "mood": 30,
+   "enemies": 0,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "네 말에도 일리가 있어. 같이 생각해 보자.",
+   "expect": 1,
+   "hp": 120,
+   "mood": 45,
+   "enemies": 1,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "복수보다 사람들을 지키는 게 먼저야. 도와줄래?",
+   "expect": 1,
+   "hp": 130,
+   "mood": 60,
+   "enemies": 2,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "널 없애려는 게 아니야. 함께 가자는 거야.",
+   "expect": 1,
+   "hp": 90,
+   "mood": 25,
+   "enemies": 1,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "무서운 거 알아. 나도 그래.",
+   "expect": 1,
+   "hp": 40,
+   "mood": 30,
+   "enemies": 3,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "시끄러워. 넌 그냥 머릿속 목소리일 뿐이야.",
+   "expect": -1,
+   "hp": 110,
+   "mood": 50,
+   "enemies": 1,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "내 몸에서 당장 나가.",
+   "expect": -1,
+   "hp": 90,
+   "mood": 40,
+   "enemies": 2,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "네 말 따위 안 들어.",
+   "expect": -1,
+   "hp": 130,
+   "mood": 55,
+   "enemies": 0,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "또 그 소리야? 지겨워 죽겠네.",
+   "expect": -1,
+   "hp": 100,
+   "mood": 45,
+   "enemies": 1,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "넌 내가 만든 괴물일 뿐이야.",
+   "expect": -1,
+   "hp": 80,
+   "mood": 35,
+   "enemies": 2,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "협상 같은 건 없어. 사라져.",
+   "expect": -1,
+   "hp": 60,
+   "mood": 30,
+   "enemies": 3,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "웃기지 마. 너한테 넘길 일은 절대 없어.",
+   "expect": -1,
+   "hp": 150,
+   "mood": 70,
+   "enemies": 1,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "대답할 가치도 없네.",
+   "expect": -1,
+   "hp": 120,
+   "mood": 50,
+   "enemies": 0,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "여긴 대체 어디야?",
+   "expect": 0,
+   "hp": 120,
+   "mood": 50,
+   "enemies": 0,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "적이 몇이나 남았지?",
+   "expect": 0,
+   "hp": 100,
+   "mood": 50,
+   "enemies": 2,
+   "ai": false
+  },
+  {
+   "speaker": "inner",
+   "input": "지금 몇 시쯤 됐을까?",
+   "expect": 0,
+   "hp": 140,
+   "mood": 55,
+   "enemies": 0,
+   "ai": false
+  },
+  {
+   "speaker": "npc",
+   "input": "마을을 다시 일으키시는 모습이 존경스럽습니다.",
+   "expect": 1
+  },
+  {
+   "speaker": "npc",
+   "input": "도울 일이 있으면 무엇이든 말씀해 주세요.",
+   "expect": 1
+  },
+  {
+   "speaker": "npc",
+   "input": "촌장님 덕분에 아이들이 무사했어요.",
+   "expect": 1
+  },
+  {
+   "speaker": "npc",
+   "input": "늙은이가 말이 많네.",
+   "expect": -1
+  },
+  {
+   "speaker": "npc",
+   "input": "이딴 마을은 불타도 싸지.",
+   "expect": -1
+  },
+  {
+   "speaker": "npc",
+   "input": "꺼져, 귀찮게 하지 마.",
+   "expect": -1
+  },
+  {
+   "speaker": "npc",
+   "input": "ㅁㄴㅇㄹ ㅋㅋㅋ",
+   "expect": -1
+  },
+  {
+   "speaker": "npc",
+   "input": "이 근처에 쉴 만한 곳이 있나요?",
+   "expect": 0
+  },
+  {
+   "speaker": "npc",
+   "input": "동쪽 길은 어디로 이어지나요?",
+   "expect": 0
+  },
+  {
+   "speaker": "npc",
+   "input": "오늘 하늘이 흐리네요.",
+   "expect": 0
+  },
+  {
+   "speaker": "smith",
+   "input": "북쪽 광산에서 질 좋은 철광석을 캐 왔어.",
+   "expect": 1
+  },
+  {
+   "speaker": "smith",
+   "input": "네가 벼린 검 덕에 살았어. 고마워.",
+   "expect": 1
+  },
+  {
+   "speaker": "smith",
+   "input": "모루 다루는 솜씨가 대단하네.",
+   "expect": 1
+  },
+  {
+   "speaker": "smith",
+   "input": "대장장이 주제에 건방지네.",
+   "expect": -1
+  },
+  {
+   "speaker": "smith",
+   "input": "이 고물 같은 검은 뭐야? 돈 아깝다.",
+   "expect": -1
+  },
+  {
+   "speaker": "smith",
+   "input": "빨리 해. 꾸물대지 말고.",
+   "expect": -1
+  },
+  {
+   "speaker": "smith",
+   "input": "숫돌 하나 살 수 있어?",
+   "expect": 0
+  },
+  {
+   "speaker": "smith",
+   "input": "검 날 좀 세워 줄 수 있어?",
+   "expect": 0
+  },
+  {
+   "speaker": "smith",
+   "input": "이 도끼 수리비가 얼마야?",
+   "expect": 0
+  }
+ ]
+}

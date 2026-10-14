@@ -14,7 +14,7 @@ using Object = UnityEngine.Object;
 /// <summary>
 /// LLM 쪽 측정 두 가지. 빈 씬 플레이 모드에서 부른다.
 ///  - RunMemoryRetrievalComparison: 게임 기억과 같은 꼴의 기억 16개에 정답이 정해진 질문 15개·무관한 질문 3개를 던져
-///    지금의 영어 전용 임베딩(MiniLM)과 다국어 임베딩(granite)의 검색 정확도를 비교한다. 게임과 같은 RAG(SimpleSearch)를 쓴다.
+///    지금의 영어 전용 임베딩(MiniLM)과 후보 다국어 임베딩 모델의 검색 정확도를 비교한다. 게임과 같은 RAG(SimpleSearch)를 쓴다.
 ///  - RunCpuLatency: 같은 대화 모델을 GPU 없이(CPU 전용) 띄워 첫 글자까지 시간과 전체 응답 시간을 잰다. 내장 그래픽 노트북 판단용.
 /// </summary>
 public static partial class ResearchExperiments
@@ -72,8 +72,8 @@ public static partial class ResearchExperiments
         if (!EditorApplication.isPlaying) throw new InvalidOperationException("플레이 모드에서 실행해야 합니다.");
         if (Running) return;
         Running = true;
-        if (candidateModels == null || candidateModels.Length == 0)
-            candidateModels = new[] { "Models/granite-embedding-97M-multilingual-r2-Q6_K.gguf" };
+        // granite-embedding-97M-multilingual-r2 는 LlamaLib 2.0.5 가 구조(modern-bert)를 몰라 로드되지 않는다(2026-10-15). 기본 후보에서 뺐다.
+        if (candidateModels == null) candidateModels = Array.Empty<string>();
         var created = new List<GameObject>();
         var rows = new List<string> { "model,query_id,gold,rank,gold_distance,top_distance,within_threshold,search_ms" };
         var summary = new StringBuilder();
@@ -82,13 +82,6 @@ public static partial class ResearchExperiments
         {
             var mini = Object.FindObjectsByType<LLM>(FindObjectsSortMode.None).FirstOrDefault(l => l.name == "Embedding_Server");
             if (mini == null) throw new InvalidOperationException("Embedding_Server 가 없습니다.");
-            var models = new List<(string, LLM)> { ("MiniLM-L12 (지금 쓰는 모델, 영어)", mini) };
-            foreach (string path in candidateModels)
-            {
-                // 엔진(LlamaLib)이 모르는 모델 구조면 서버가 뜨지 않는다. 실험을 멈추지 않고 결과에 남긴다.
-                try { models.Add((Path.GetFileNameWithoutExtension(path), await CreateLLM(path, 30, 512, -1, created))); }
-                catch (Exception e) { failures.Add($"{Path.GetFileName(path)}: {e.Message}"); }
-            }
 
             summary.AppendLine($"# 기억 검색 정확도 비교 ({DateTime.Now:yyyy-MM-dd HH:mm})");
             summary.AppendLine();
@@ -97,7 +90,22 @@ public static partial class ResearchExperiments
             summary.AppendLine("| 모델 | 차원 | 1순위 정답 | 3위 안 정답 | MRR | 정답이 거리 기준 통과 | 무관한 질문에 걸린 기억(3위 안) | 검색 평균(ms) |");
             summary.AppendLine("|---|---:|---:|---:|---:|---:|---:|---:|");
 
-            foreach (var (name, llm) in models)
+            // 지금 모델을 후보보다 먼저 잰다. 후보가 로드에 실패하면 LlamaLib 의 오류 상태가 프로세스에 남아
+            // 같은 백엔드를 쓰는 다른 모델 호출까지 막히므로(2026-10-15 확인), 그 뒤에는 아무것도 잴 수 없다.
+            await Evaluate("MiniLM-L12 (지금 쓰는 모델, 영어)", mini);
+            foreach (string path in candidateModels)
+            {
+                LLM llm;
+                try { llm = await CreateLLM(path, 30, 512, -1, created); }
+                catch (Exception e)
+                {
+                    failures.Add($"{Path.GetFileName(path)}: {e.Message}");
+                    break;
+                }
+                await Evaluate(Path.GetFileNameWithoutExtension(path), llm);
+            }
+
+            async Task Evaluate(string name, LLM llm)
             {
                 var go = new GameObject("research rag " + name);
                 created.Add(go);
@@ -134,7 +142,8 @@ public static partial class ResearchExperiments
             summary.AppendLine();
             summary.AppendLine("MRR: 정답 순위의 역수 평균(1이 만점). 무관한 질문 열은 관련 없는 질문에 거리 기준을 통과해 끌려온 기억 수다(낮을수록 좋음).");
             foreach (string failure in failures)
-                summary.AppendLine($"\n불러오기 실패 — {failure} (콘솔에 모델 구조 `ggufArch` 가 찍힌다. 엔진이 모르는 구조면 이 엔진 버전에서는 쓸 수 없다)");
+                summary.AppendLine($"\n불러오기 실패 — {failure} (콘솔에 모델 구조 `ggufArch` 가 찍힌다. 엔진이 모르는 구조면 이 엔진 버전에서는 쓸 수 없다. " +
+                                   "이 실패 뒤로는 같은 에디터 세션에서 LLM 이 뜨지 않으므로 남은 후보는 건너뛰었다. 에디터를 다시 켜야 한다)");
         }
         finally
         {
@@ -173,7 +182,7 @@ public static partial class ResearchExperiments
             summary.AppendLine("|---|---:|---:|---:|---:|---:|");
 
             var gpuAgent = Object.FindFirstObjectByType<LLMAgent>();
-            await Measure("GPU (CUDA, 30층)", gpuAgent, 0);
+            await Measure($"GPU (CUDA, {gpuAgent.llm.numGPULayers}층)", gpuAgent, 0);
 
             foreach (int threads in new[] { -1, 4 })
             {
@@ -227,7 +236,7 @@ public static partial class ResearchExperiments
         v.Count == 0 ? "-" : $"{v.Average(f):0.0}초";
 
     /// <summary>실험용 LLM 서버를 하나 더 띄운다. 비활성 상태에서 설정한 뒤 켜야 Awake 에서 그 설정으로 시작한다.</summary>
-    static async Task<LLM> CreateLLM(string model, int gpuLayers, int contextSize, int threads, List<GameObject> created)
+    static async Task<LLM> CreateLLM(string model, int gpuLayers, int contextSize, int threads, List<GameObject> created, bool flashAttention = false)
     {
         var go = new GameObject("research " + Path.GetFileNameWithoutExtension(model));
         go.SetActive(false);
@@ -238,6 +247,7 @@ public static partial class ResearchExperiments
         llm.numGPULayers = gpuLayers;
         llm.contextSize = contextSize;
         llm.numThreads = threads;
+        llm.flashAttention = flashAttention;
         go.SetActive(true);
         float deadline = Time.realtimeSinceStartup + 180f;
         while (!llm.started && !llm.failed && Time.realtimeSinceStartup < deadline) await Task.Delay(200);

@@ -15,7 +15,8 @@ public static class ResearchLog
     public const string FileName = "research_log.csv";
     const string Header =
         "timestamp,scene,event,speaker,memory,grammar,warmup,response_s,parse,failure,delta_raw,delta_applied," +
-        "prompt_chars,response_chars,mood,affinity,style,duration_s,distance,attacks,dashes,retreats,hp_start,hp_end";
+        "prompt_chars,response_chars,mood,affinity,style,duration_s,distance,attacks,dashes,retreats,hp_start,hp_end," +
+        "first_token_s,dialogue";
 
     static bool anyTurnLogged;
 
@@ -25,9 +26,10 @@ public static class ResearchLog
     public static string ParseLabel(LLMResponseParser.Result parsed) =>
         !parsed.ParseOk ? "failed" : string.IsNullOrEmpty(parsed.FailureReason) ? "strict" : "repaired";
 
-    /// <summary>LLM 한 턴. raw 가 null 이면 시간 초과, error 가 있으면 예외로 기록한다.</summary>
+    /// <summary>LLM 한 턴. raw 가 null 이면 시간 초과, error 가 있으면 예외로 기록한다.
+    /// firstTokenSeconds 는 요청부터 첫 글자까지(프롬프트 읽는 시간), dialogue 열은 대사 다양성·학습 대사 복제율 분석용이다.</summary>
     public static void Turn(string evt, string speaker, double seconds, string raw, LLMResponseParser.Result parsed,
-                            int promptChars, float affinity = float.NaN, string error = null)
+                            int promptChars, float affinity = float.NaN, string error = null, double firstTokenSeconds = double.NaN)
     {
         // 프로세스의 첫 응답은 모델 준비 시간이 섞여 느리다. 분석 때 뺄 수 있게 표시한다.
         bool warmup = !anyTurnLogged;
@@ -39,7 +41,9 @@ public static class ResearchLog
               parsedTurn ? parsed.MoodDelta.ToString(CultureInfo.InvariantCulture) : "",
               promptChars.ToString(CultureInfo.InvariantCulture), (raw?.Length ?? 0).ToString(CultureInfo.InvariantCulture),
               float.IsNaN(affinity) ? "" : F(affinity),
-              "", "", "", "", "", "", "", "");
+              "", "", "", "", "", "", "", "",
+              double.IsNaN(firstTokenSeconds) ? "" : F(firstTokenSeconds),
+              parsedTurn && parsed.ParseOk ? Csv(parsed.Dialogue) : "");
     }
 
     /// <summary>강탈 한 번(AI 가 몸을 잡은 동안)의 행동 지표.</summary>
@@ -47,18 +51,20 @@ public static class ResearchLog
     {
         Write("ai_session", "어둠", "", "", "", "", "", "", "", "", "",
               style.ToString(), F(duration), F(distance), attacks.ToString(CultureInfo.InvariantCulture),
-              dashes.ToString(CultureInfo.InvariantCulture), retreats.ToString(CultureInfo.InvariantCulture), F(hpStart), F(hpEnd));
+              dashes.ToString(CultureInfo.InvariantCulture), retreats.ToString(CultureInfo.InvariantCulture), F(hpStart), F(hpEnd), "", "");
     }
 
     static void Write(string evt, string speaker, string warmup, string seconds, string parse, string failure, string deltaRaw, string deltaApplied,
                       string promptChars, string responseChars, string affinity,
-                      string style, string duration, string distance, string attacks, string dashes, string retreats, string hpStart, string hpEnd)
+                      string style, string duration, string distance, string attacks, string dashes, string retreats, string hpStart, string hpEnd,
+                      string firstToken, string dialogue)
     {
         var mood = UnityEngine.Object.FindFirstObjectByType<MoodSystem>();
         string line = string.Join(",",
             DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), Csv(SceneManager.GetActiveScene().name), evt, Csv(speaker), MemoryCondition(),
             LLMServices.GrammarOn ? "on" : "off", warmup, seconds, parse, Csv(failure), deltaRaw, deltaApplied, promptChars, responseChars,
-            mood != null ? F(mood.Mood) : "", affinity, style, duration, distance, attacks, dashes, retreats, hpStart, hpEnd);
+            mood != null ? F(mood.Mood) : "", affinity, style, duration, distance, attacks, dashes, retreats, hpStart, hpEnd,
+            firstToken, dialogue);
         try
         {
             Directory.CreateDirectory(SaveSystem.DirectoryPath);

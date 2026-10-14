@@ -32,8 +32,10 @@ public class DialogueManager : MonoBehaviour
 
     [Header("LLM References")]
     [SerializeField] private LLMAgent llmAgent;
-    [Tooltip("이 시간(초) 안에 응답이 없으면 대화를 마무리 (멈춤 방지)")]
+    [Tooltip("응답 글자가 이 시간(초) 동안 하나도 오지 않으면 끊고 대화를 마무리 (멈춤 방지). 느려도 글자가 나오는 동안은 기다린다.")]
     [SerializeField] private float llmTimeout = 20f;
+    [Tooltip("NPC 대사의 샘플링 온도. LLMAgent 를 내면 대화와 같이 쓰므로 요청마다 이 값으로 맞춘다.")]
+    [SerializeField, Range(0f, 2f)] private float temperature = 0.2f;
 
     [Header("Fallback")]
     [Tooltip("(A-3) LLM 응답 파싱 실패 시 화면에 대신 띄울 대사. 원문은 절대 노출하지 않는다.")]
@@ -62,6 +64,11 @@ public class DialogueManager : MonoBehaviour
     private bool isProcessing = false;
     private bool acceptStream = false;
     private bool blocked = false;
+    private Task preloadTask;
+    private float lastStreamProgress;
+    private float requestStartedAt, firstTokenAt = -1f;
+    /// <summary>마지막 요청에서 첫 글자가 오기까지 걸린 시간(초). 프롬프트를 읽는 시간이다. 글자가 안 왔으면 NaN.</summary>
+    private double FirstTokenSeconds => firstTokenAt < 0f ? double.NaN : firstTokenAt - requestStartedAt;
     private ControlManager controlManager;
     private string lastMrSmithInput = "";
     private int repeatedMrSmithInputCount = 0;
@@ -162,7 +169,7 @@ public class DialogueManager : MonoBehaviour
         // E 키로 연 경우 같은 프레임의 'e' 가 입력창에 들어가므로 한 프레임 뒤에 비운다
         StartCoroutine(ClearInputNextFrame());
 
-        _ = PreloadLLMAgent();
+        preloadTask = PreloadLLMAgent();
     }
 
     private System.Collections.IEnumerator ClearInputNextFrame()
@@ -181,7 +188,8 @@ public class DialogueManager : MonoBehaviour
             {
                 try
                 {
-                    await llmAgent.Chat("", addToHistory: false);
+                    // 대사를 만들지 않고(numPredict 0) 시스템 프롬프트만 캐시에 올린다. Chat("") 은 버릴 응답을 통째로 생성했다.
+                    await llmAgent.Warmup("");
                     return;
                 }
                 catch (System.Exception ex) when (ex.Message.Contains("LLM caller not initialized"))
@@ -217,6 +225,9 @@ public class DialogueManager : MonoBehaviour
 
         try
         {
+            // 예열 중에는 Warmup 이 공용 에이전트의 numPredict 를 0 으로 바꿔 두므로, 끝나기 전에 보내면 빈 응답이 온다
+            if (preloadTask != null) await preloadTask;
+
             bool addToHistory = true;
             if (isMrSmith)
             {
@@ -250,10 +261,8 @@ public class DialogueManager : MonoBehaviour
             else
             {
                 // LLMAgent 는 내면·다른 NPC 와 공용이라 히스토리 대신 이 NPC 의 최근 대화를 프롬프트에 넣는다
-                string recent = currentNPC != null && currentNPC.RecentTurns.Count > 0
-                    ? "\n[최근 대화]\n" + string.Join("\n", currentNPC.RecentTurns)
-                    : "";
-                llmAgent.systemPrompt = BuildDefaultPrompt(currentNPCName, currentPersonality) + "\n" + AffinityLine() + recent;
+                llmAgent.systemPrompt = BuildNpcPrompt(currentNPCName, currentPersonality, AffinityLine(),
+                    currentNPC != null ? currentNPC.RecentTurns : null);
                 addToHistory = false;
             }
 
@@ -268,7 +277,7 @@ public class DialogueManager : MonoBehaviour
             catch (System.Exception ex)
             {
                 llmStopwatch.Stop();
-                ResearchLog.Turn("npc_turn", currentNPCName, llmStopwatch.Elapsed.TotalSeconds, "", default, promptChars, error: ex.Message);
+                ResearchLog.Turn("npc_turn", currentNPCName, llmStopwatch.Elapsed.TotalSeconds, "", default, promptChars, error: ex.Message, firstTokenSeconds: FirstTokenSeconds);
                 throw;
             }
 
@@ -279,7 +288,7 @@ public class DialogueManager : MonoBehaviour
                 //       NPC 대화의 mood_delta 는 그 NPC 의 호감도다. 플레이어의 감정 수치(MoodSystem)는 건드리지 않는다.
                 currentNPC?.ChangeAffinity(parsed.MoodDelta);
             ResearchLog.Turn("npc_turn", currentNPCName, llmStopwatch.Elapsed.TotalSeconds, raw, parsed, promptChars,
-                currentNPC != null ? currentNPC.Affinity : float.NaN);
+                currentNPC != null ? currentNPC.Affinity : float.NaN, firstTokenSeconds: FirstTokenSeconds);
 
             if (raw == null)
             {
@@ -377,27 +386,38 @@ public class DialogueManager : MonoBehaviour
         return Regex.Replace(input.ToLowerInvariant(), @"[\s\p{P}\p{S}]+", "");
     }
 
-    // 응답을 스트리밍으로 받되, llmTimeout 안에 끝나지 않으면 null 반환
+    // 응답을 스트리밍으로 받되, llmTimeout 초 동안 한 글자도 오지 않으면 끊고 null 반환.
+    // 전체 시간이 아니라 '진행 없음' 기준이라, 느린 PC 에서도 글자가 나오는 동안은 기다린다 (InnerVoiceManager 와 같은 규칙).
     private async Task<string> ChatStreaming(string question, bool addToHistory = true)
     {
         acceptStream = true;
+        lastStreamProgress = requestStartedAt = Time.realtimeSinceStartup;
+        firstTokenAt = -1f;
+        llmAgent.temperature = temperature;
 
         Task<string> chatTask = ChatWithRetry(question, addToHistory);
-        Task finished = await Task.WhenAny(
-            chatTask, Task.Delay(TimeSpan.FromSeconds(llmTimeout)));
-
-        acceptStream = false;            // 늦게 도착하는 토큰 무시
-        if (finished != chatTask)        // 타임아웃: 붙잡힌 요청이 내면 대화의 슬롯을 막지 않게 끊는다
+        while (!chatTask.IsCompleted)
         {
-            llmAgent.CancelRequests();
-            return null;
+            if (this == null) return null;
+            if (Time.realtimeSinceStartup - lastStreamProgress > llmTimeout)
+            {
+                acceptStream = false;            // 늦게 도착하는 토큰 무시
+                llmAgent.CancelRequests();       // 붙잡힌 요청이 내면 대화의 슬롯을 막지 않게 끊는다
+                Debug.LogWarning($"[Dialogue] {llmTimeout:0}초 동안 응답이 없어 끊었습니다.");
+                return null;
+            }
+            await Task.Delay(200);
         }
+
+        acceptStream = false;
         return await chatTask;
     }
 
     // 누적 부분 응답 콜백 (메인 스레드) — JSON 중 dialogue 값만 타자기처럼 표시
     private void OnStreamPartial(string partial)
     {
+        lastStreamProgress = Time.realtimeSinceStartup;
+        if (firstTokenAt < 0f && !string.IsNullOrEmpty(partial)) firstTokenAt = lastStreamProgress;
         if (!acceptStream || string.IsNullOrEmpty(partial)) return;
 
         string d = ExtractStreamingDialogue(partial);
@@ -505,14 +525,24 @@ public class DialogueManager : MonoBehaviour
             "- 호감가는 말이나 칭찬 → +10 ~ +20";
     }
 
+    /// <summary>스미스가 아닌 NPC 의 질문 때 시스템 프롬프트. 연구용 실험과 학습 데이터 생성기도 같은 원문을 쓰도록 따로 뺐다.</summary>
+    /// <param name="recentTurns">NPCInteraction.TurnLine 꼴의 최근 대화. 없으면 null.</param>
+    public static string BuildNpcPrompt(string name, string personality, string affinityLine, System.Collections.Generic.IReadOnlyList<string> recentTurns) =>
+        BuildDefaultPrompt(name, personality) + "\n" + affinityLine +
+        (recentTurns != null && recentTurns.Count > 0 ? "\n[최근 대화]\n" + string.Join("\n", recentTurns) : "");
+
     /// <summary>지금 대화 중인 NPC 의 호감도를 프롬프트에 알린다. 말투가 호감도에 따라 달라지게 한다.</summary>
     private string AffinityLine()
     {
         if (currentNPC == null) return "";
-        return $"[플레이어에 대한 호감도] {currentNPC.Affinity:0}/100 (낮을수록 차갑고 경계하며, 높을수록 조금 누그러진다)";
+        return AffinityLine(currentNPC.Affinity);
     }
 
-    private static string BuildMrSmithPrompt(string personality, string recentConversation, string relatedMemories, string currentUserInput, string affinityLine)
+    /// <summary>호감도 줄의 원문. 연구용 실험도 게임과 같은 프롬프트를 쓰도록 따로 뺐다.</summary>
+    public static string AffinityLine(float affinity) =>
+        $"[플레이어에 대한 호감도] {affinity:0}/100 (낮을수록 차갑고 경계하며, 높을수록 조금 누그러진다)";
+
+    public static string BuildMrSmithPrompt(string personality, string recentConversation, string relatedMemories, string currentUserInput, string affinityLine)
     {
         string character = string.IsNullOrWhiteSpace(personality)
             ? "Mr.Smith는 무뚝뚝하고 말수가 적은 마을 대장장이다. 플레이어에게는 반말을 쓰며, 속을 쉽게 드러내지 않는다. 쓸데없는 말이나 반복되는 말을 들으면 대답 대신 \"흠...\"이라고 짧게 넘긴다."
@@ -539,7 +569,7 @@ public class DialogueManager : MonoBehaviour
             (string.IsNullOrWhiteSpace(currentUserInput) ? "없음" : currentUserInput);
     }
 
-    private static bool IsMrSmith(NPCInteraction npc, string name)
+    public static bool IsMrSmith(NPCInteraction npc, string name)
     {
         if (npc != null && npc.GetComponent<MrSmithLongTermMemory>() != null) return true;
         if (npc != null && npc.gameObject.name == "Mr.Smith") return true;

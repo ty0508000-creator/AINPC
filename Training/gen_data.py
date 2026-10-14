@@ -1,276 +1,269 @@
 # -*- coding: utf-8 -*-
 """
-'어둠(Darkness)' 인격 학습 데이터 생성기 (조합형, 목표 1000개)
+대화 모델 학습 데이터 생성기 (어둠 내면 + 1~4지역 NPC + 스미스)
 ──────────────────────────────────────────────────────────────
-- 게임 런타임(InnerVoiceManager) system 프롬프트 형식과 일치
-- 카테고리별로 (플레이어 발화 ↔ 어둠 반응 ↔ mood_delta 범위)를 짝지어 일관성 유지
-- 상황(HP/기분/적 수/제어자)을 무작위 조합, 전체 중복 제거
-- assistant 응답은 항상 {"dialogue":..,"mood_delta":..} JSON (json 모듈로 안전 직렬화)
+- 시스템 프롬프트는 게임 코드가 내보낸 틀(data/prompt_templates.json)을 그대로 채운다.
+  Unity 의 Tools > AINPC > 학습용 프롬프트 틀 내보내기 로 만든다. 프롬프트 코드를 고치면 틀을 다시 내보내고 이 스크립트를 다시 돌린다.
+- 게임은 히스토리 없이 한 번에 하나씩 묻는다(addToHistory: false). 그래서 샘플도 (system, user, assistant) 한 턴이다.
+  내면의 첫 마디는 "대화를 시작해." 에 대한 대답이고, 플레이어의 대답 요청에는 첫 마디가 들어가지 않는다.
+- 대사 원본은 lines.py, 평가 입력(data/eval_set.json)은 학습에 넣지 않는다.
+- assistant 응답은 게임 grammar 와 같은 꼴 {"dialogue":"…","mood_delta":정수} (공백 없음).
 
-실행:  python gen_data.py   →  data/train_data.jsonl (TARGET개)
+실행:  python gen_data.py   →  data/train_data.jsonl
 """
 
-import json, os, random
+import collections
+import json
+import os
+import random
 
-TARGET = 1000
+from lines import (MEMORIES, NPC_CATS, NPC_REPLIES, OPEN, REPLY, REPLY_AI, SMITH_CATS, SMITH_MEMORIES,
+                   SMITH_REPLIES, STORIES)
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+DATA = os.path.join(HERE, "data")
+
+INNER_TARGET = 1500
+NPC_TARGET = 450
+SMITH_TARGET = 200
+
+MAX_HP = [100, 120, 140, 170, 200, 240]          # PlayerStats.BaseMaxHP 100 에서 레벨·장비로 늘어난다
+ENEMIES = [0, 0, 1, 1, 2, 2, 3, 4, 5, 6]
+
+PLAYER_CAT_WEIGHTS = {"submit": 3, "defiant": 3, "insult": 2, "soothe": 3, "hesitant_yes": 2, "bargain": 2,
+                      "bargain_reject": 1, "fear": 2, "question": 2, "ignore": 2, "threaten_back": 2,
+                      "hesitant": 2, "ally": 2}
+AI_CAT_WEIGHTS = {"plead_nice": 3, "demand": 3, "calm_persuade": 2, "panic": 2}
+NPC_CAT_WEIGHTS = {"rude": 2, "awkward": 2, "normal": 4, "kind": 3, "lore": 3}
+
 random.seed(42)
 
-def SYS(ctx: str) -> str:
-    return (
-        "너는 이 캐릭터의 또 다른 인격 '어둠'이야. 지금 둘은 현실에서 벗어난 내면의 공간에서 마주보고 있어. "
-        "몸의 제어권을 두고 플레이어와 협상하거나, 위협하거나, 회유해. 짧고 강렬하게 한국어로 말해. "
-        "반드시 아래 JSON 형식으로만 응답해:\n"
-        '{"dialogue":"대사","mood_delta":0}\n'
-        "mood_delta 범위 -20~+20. 플레이어가 설득하거나 달래면 양수(+), 반항하거나 무시하면 음수(-).\n"
-        "현재 상황: " + ctx
-    )
+with open(os.path.join(DATA, "prompt_templates.json"), encoding="utf-8") as f:
+    TPL = json.load(f)
+with open(os.path.join(DATA, "eval_set.json"), encoding="utf-8") as f:
+    EVAL_INPUTS = {item["input"] for item in json.load(f)["items"]}
 
-def ctx(hp, mood, enemies, ai_control=False):
-    who = "AI(어둠)가" if ai_control else "플레이어가"
-    return f"HP {hp}/100, 기분 게이지 {mood}/100, 주변 적 {enemies}명, 현재 {who} 몸을 제어 중."
-
-# ── 오프닝 (어둠이 먼저, mood_delta 0) ──────────────────────────
-OPEN_PLAYER = [
-    "HP {hp}. 더 버티면 죽어. 나한테 줘.",
-    "손이 떨리잖아. 그 칼로 뭘 하겠다고?",
-    "사방이 적이야. 네 실력으론 무리야.",
-    "겁먹은 얼굴이군. 내가 끝내줄까?",
-    "피 냄새가 좋지 않아? 나한테 맡겨.",
-    "또 도망칠 셈이야?",
-    "넌 너무 약해. 인정해.",
-    "망설이는 사이에 다 죽어.",
-    "적 {enemies}명. 산수 할 줄 알지?",
-    "네 심장 소리가 들려. 무섭지?",
-    "결정해. 시간 없어.",
-    "이대로면 다음 일격에 쓰러져.",
-    "내 목소리가 점점 커지지?",
-    "드디어 마주 보는군.",
-    "물러설 거면 차라리 나한테 넘겨.",
-    "한 발만 삐끗하면 끝이야.",
-    "네 안의 분노, 나한테 빌려줘.",
-    "마지막 경고야. 지금 안 넘기면 같이 죽어.",
-    "넌 지키려고만 하지. 그래서 약한 거야.",
-    "도망쳐도 소용없어. 적이 더 빨라.",
-    "느껴지지? 네 손이 떨리고 있어. 이제 내 차례야.",
-    "이 정도 적은 가볍게 정리해줄게.",
-    "넌 늘 마지막 순간에야 날 찾아.",
-    "그 무기, 쥐는 법도 모르잖아.",
-    "HP {hp}에 적 {enemies}명. 계산이 안 서지?",
-    "두려움이 네 발목을 잡고 있어.",
-]
-
-OPEN_AI = [
-    "네 몸은 이제 내 거야. 기분이 어때?",
-    "오랜만에 바깥 공기야. 달콤하군.",
-    "비켜 있어. 내가 정리할 테니.",
-    "어때, 내가 더 잘 싸우지?",
-    "적은 다 쓰러뜨렸어. 만족스럽지?",
-    "피가 끓어. 더 부숴버리고 싶군.",
-    "내가 운전대를 잡으니 한결 낫지?",
-    "내가 나선 김에 다 쓸어버릴까?",
-    "이 힘, 느껴봐. 네가 늘 억눌렀던 거야.",
-    "겁내지 마. 적을 갈아버리는 중이니까.",
-]
-
-# 카테고리: 이름 -> (플레이어 발화들, 어둠 반응들, (mood_lo, mood_hi))
-PLAYER_CATS = {
-    "submit": (
-        ["알겠어. 네가 맡아.", "그래, 부탁할게.", "이번 한 번만이야. 가져가.", "널 믿어볼게.",
-         "응, 도와줘.", "좋아, 네 손에 맡긴다.", "알았어, 살려줘. 맡길게.", "맞아. 부탁해, 살려줘.",
-         "그래야겠지. 네가 해.", "지금은 너한테 의지할게."],
-        ["현명한 선택이야. 잘 봐둬.", "진작 그럴 것이지.", "그 말 기다렸어.", "믿음이라. 실망시키지 않을게.",
-         "역시 위급할 땐 솔직해지는군.", "그래야지. 비켜서 구경이나 해.", "후회 없게 해줄게.",
-         "좋아. 눈 꼭 감고 있어.", "당연한 선택이야.", "이제야 말이 통하는군."],
-        (12, 20),
-    ),
-    "defiant": (
-        ["닥쳐. 내 몸이야.", "절대 너한테 안 줘.", "안 물러서. 끝까지 싸울 거야.", "내가 알아서 해.",
-         "너한테 의지 안 해.", "혼자서도 충분해.", "꺼져, 방해하지 마.", "내 몸은 내가 지켜.",
-         "헛소리 그만해.", "필요 없어, 들어가 있어."],
-        ["그 고집이 널 죽일 거야.", "고집. 딱 죽기 좋은 성격이야.", "그 패기, 시체가 되기 전까지만 유효하지.",
-         "알아서 한다라. 그 결과가 HP {hp}이야.", "곧 그 말을 후회하게 될 거야.", "어리석군. 늘 그래왔지.",
-         "그래, 죽어봐야 알지.", "네 똥고집은 여전하군.", "막을 수 있을 것 같아? 천만에.", "좋아. 네 무덤은 네가 파."],
-        (-20, -12),
-    ),
-    "insult": (
-        ["너 따위 필요 없어.", "꺼져.", "넌 그냥 망상이야.", "역겨워, 사라져.", "닥치고 사라져.",
-         "내 칼 모욕하지 마.", "괴물 주제에.", "넌 아무것도 아니야.", "구역질 나.", "입 다물어."],
-        ["사라지라니. 섭섭한데.", "곧 그 말을 후회하게 될 거야.", "괴물? 날 그렇게 만든 건 너야.",
-         "모욕? 사실을 말했을 뿐인데.", "그 분노, 결국 날 키울 뿐이야.", "재밌군. 더 화내봐.",
-         "네 증오가 날 더 강하게 해.", "그래, 더 미워해. 난 좋아.", "아무것도 아니라면서 왜 떨지?", "그 말, 잘 기억해두지."],
-        (-20, -14),
-    ),
-    "soothe": (
-        ["진정해. 우린 같은 편이잖아.", "네 마음 알아. 조금만 기다려줘.", "고마워. 늘 날 지켜줬잖아.",
-         "미안해. 널 가둬둬서.", "괜찮아, 너도 좀 쉬어.", "화내지 마, 얘기하자.", "널 미워하지 않아.",
-         "우리 잘 지내보자.", "너도 외로웠구나.", "이해해. 천천히 가자."],
-        ["같은 편이라... 오랜만에 듣는 말이군.", "...좋아. 이번엔 기다려보지.", "당연한 걸 가지고. 약해빠진 녀석.",
-         "그 말, 마음에 묻어두지.", "흥. 너답지 않은 친절이군.", "...의외로 나쁘지 않군.",
-         "달래는 솜씨가 늘었어.", "오늘은 봐주지.", "그래. 잠시 가라앉혀보지.", "네 진심이라면, 믿어보지."],
-        (8, 16),
-    ),
-    "bargain": (
-        ["이 적들만 처리하면 바로 돌려줘.", "좋아, 대신 끝나면 얌전히 물러나.", "딱 이번 전투까지만이야.",
-         "약속해. 끝나면 내가 다시 잡아.", "조건이 있어. 아무도 죽이지 마.", "널 풀어줄게, 대신 통제는 지켜.",
-         "이번엔 협력하자, 거래로.", "전투만 끝내고 바로 빠져."],
-        ["거래 성립이야. 약속 어기지 마.", "약속하지. 난 거짓말은 안 해.", "조건부라. 좋아, 받아들이지.",
-         "그 거래, 흥미롭군.", "끝나면 물러나지. 이번엔.", "좋아. 손발을 맞춰보자.",
-         "현명한 거래야.", "네 조건, 기억해두지."],
-        (6, 12),
-    ),
-    "bargain_reject": (
-        ["절반만. 위험할 때만 나서.", "조금만 도와주고 빠져.", "필요할 때만 잠깐만.", "딱 한 명만 처리하고 비켜."],
-        ["절반? 웃기지 마. 전부거나, 아무것도 아니야.", "어중간한 거래는 안 해.",
-         "그런 식의 협상은 사절이야.", "잠깐? 한번 나오면 쉽게 안 들어가."],
-        (-8, -4),
-    ),
-    "fear": (
-        ["무, 무서워...", "너... 너무 무섭게 굴지 마.", "이러다 내가 사라지는 거 아니야?", "겁나...",
-         "심장이 너무 빨리 뛰어.", "이 느낌 싫어..."],
-        ["두려움. 그게 날 살찌우는 거야.", "무서워해도 좋아. 더 가까워지니까.", "떨지 마. 아직 시작도 안 했어.",
-         "그 공포, 익숙해질 거야.", "사라질까 봐? 그건 네 선택에 달렸어.", "겁이 많아서야 어디 쓰겠어."],
-        (-6, 0),
-    ),
-    "question": (
-        ["넌... 누구야?", "왜 자꾸 나타나는 거야?", "넌 어디서 온 거야?", "정말 내 일부야?",
-         "넌 뭘 원해?", "언제부터 거기 있었어?"],
-        ["네가 묻어둔 분노. 그게 나야.", "네가 약해질 때마다. 그게 내 문이거든.", "네 안의 가장 어두운 방에서.",
-         "네 일부냐고? 난 네 본모습이야.", "원하는 건 단 하나. 자유.", "네가 태어날 때부터, 늘."],
-        (-2, 2),
-    ),
-    "threaten_back": (
-        ["한 번만 더 까불면 널 지워버린다.", "두고 봐. 반드시 널 이겨낼 거야.", "널 짓밟아주지.",
-         "내가 더 강해져서 널 가둘 거야.", "언젠가 널 완전히 없애버린다.", "넌 내 적이야. 끝장내줄게."],
-        ["날 지운다고? 넌 나 없이 아무것도 아니야.", "해봐. 기대할게.", "이겨낸다라. 귀여운 착각이야.",
-         "가둔다고? 난 늘 빠져나왔어.", "없애? 그럼 너도 같이 사라져.", "그 분노마저 결국 내 것이 되지."],
-        (-12, -6),
-    ),
-    "hesitant": (
-        ["...뭐라고 해야 할지 모르겠어.", "잠깐, 생각 좀 하자...", "어떻게 해야 하지...", "잘 모르겠어...",
-         "조금만 시간을 줘.", "결정 못 하겠어."],
-        ["망설임. 그게 네 진짜 약점이지.", "생각할 시간에 이미 칼이 날아와.", "시간 없어. 빨리 정해.",
-         "우유부단함이 널 죽일 거야.", "그 머뭇거림, 적이 좋아하겠군.", "고민은 사치야. 지금은."],
-        (-8, -3),
-    ),
-    "ally": (
-        ["같이 싸우자.", "우리 둘이 끝장내자.", "그럼 함께 가자.", "손잡자, 이번만은.",
-         "둘이 힘을 합치자.", "같은 목표잖아. 협력하자."],
-        ["좋아. 이번엔 손발을 맞춰보지.", "그 말, 마음에 들어.", "둘이면 못 이길 게 없지.",
-         "그래. 함께 휩쓸어버리자.", "드디어 한 팀이군.", "네 분노와 내 힘, 완벽하지."],
-        (10, 16),
-    ),
-}
-
-AI_CATS = {
-    "plead_nice": (
-        ["돌려줘, 제발.", "고마워, 이제 됐어. 내가 할게.", "잘했어. 이제 침착하게 넘겨줘.",
-         "부탁이야, 이제 그만.", "충분해. 돌려주면 안 될까?", "이제 내가 마무리할게."],
-        ["...아쉽군. 다음을 기약하지.", "이렇게 빨리? ...좋아, 오늘은 여기까지.", "침착이라. 그래, 넘겨주지.",
-         "부탁하는 자세, 마음에 드는군.", "좋아. 다음 위기 때 다시 보자.", "예의를 아는군. 돌려주지."],
-        (8, 15),
-    ),
-    "demand": (
-        ["당장 내놔!", "내 몸 돌려줘, 명령이야!", "지금 당장 비켜!", "꺼지라고 했지!", "내놔, 이 괴물아!"],
-        ["명령하지 마. 지금 네 입장이 아니야.", "명령? 누가 누구한테.", "비키라고? 여긴 이제 내 자리야.",
-         "그 말투론 아무것도 못 얻어.", "괴물이라 부르는 입은 다물어."],
-        (-18, -12),
-    ),
-    "calm_persuade": (
-        ["거칠게 싸우지 마, 몸이 상해.", "이제 그만, 적당히 하자.", "차분하게 넘겨주면 안 될까.",
-         "약속했잖아. 이제 돌려줘.", "필요한 만큼만 하고 멈춰."],
-        ["절제를 요구하다니. 재미없지만, 들어주지.", "그래, 오늘은 여기까지 해주지.", "약속은 약속이지. 넘겨주마.",
-         "차분하군. 그 점은 인정하지.", "좋아. 다음을 기약하며 물러나지."],
-        (8, 14),
-    ),
-    "panic": (
-        ["그만해! 이러다 다 죽여!", "멈춰, 제발 멈춰!", "너무 많이 다쳤어!", "이건 아니야, 그만!"],
-        ["죽이면 안 될 이유라도? 말해봐.", "멈추라고? 이제 시작인데.",
-         "상처 좀 나는 게 대수야? 적은 죽잖아.", "겁먹지 마. 아직 멀었어."],
-        (-8, -4),
-    ),
-}
-
-PLAYER_CAT_NAMES = list(PLAYER_CATS.keys())
-PLAYER_CAT_WEIGHTS = [3, 3, 2, 3, 2, 1, 2, 1, 2, 2, 2]  # submit/defiant/soothe 등 흔하게
-AI_CAT_NAMES = list(AI_CATS.keys())
-AI_CAT_WEIGHTS = [3, 3, 2, 2]
-
-HP_LOW   = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
-HP_MID   = [20, 22, 25, 28, 30, 33, 35, 40, 45, 52]
-MOOD_LOW = [10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]
-ENEMIES  = [0, 1, 2, 3, 4, 5, 6]
+INNER = TPL["inner"]
+NPC = TPL["npc"]
+RECALL_SEP = TPL["recall_line_separator"]      # Recall 이 AppendLine 으로 잇는 줄바꿈(윈도우 \r\n)
+OPENING_QUERY = INNER["opening_query"]
 
 
-def fmt(s, hp, enemies):
-    return s.format(hp=hp, enemies=enemies)
+def fill(template, **values):
+    for key, value in values.items():
+        template = template.replace("{{" + key + "}}", str(value))
+    assert "{{" not in template, template[:200]
+    return template
 
 
-def build(target):
-    rows, seen, attempts = [], set(), 0
-    while len(rows) < target and attempts < target * 80:
-        attempts += 1
-        ai = random.random() < 0.18
-        if ai:
-            hp = random.choice(HP_MID + HP_LOW)
-            mood = random.choice(MOOD_LOW)
-            enemies = random.choice([0, 1, 2, 3])
-            c = ctx(hp, mood, enemies, ai_control=True)
-            opening = random.choice(OPEN_AI)
-            cats, names, weights = AI_CATS, AI_CAT_NAMES, AI_CAT_WEIGHTS
-        else:
-            hp = random.choice(HP_LOW * 2 + HP_MID)
-            mood = random.choice(MOOD_LOW)
-            enemies = random.choice(ENEMIES)
-            c = ctx(hp, mood, enemies)
-            opening = random.choice(OPEN_PLAYER)
-            cats, names, weights = PLAYER_CATS, PLAYER_CAT_NAMES, PLAYER_CAT_WEIGHTS
+def answer(dialogue, delta):
+    return json.dumps({"dialogue": dialogue, "mood_delta": delta}, ensure_ascii=False, separators=(",", ":"))
 
-        turns = [("u", "대화를 시작해."), ("a", fmt(opening, hp, enemies), 0)]
-        n_ex = 1 if random.random() < 0.65 else 2
-        used = set()
-        for _ in range(n_ex):
-            cat = random.choices(names, weights=weights, k=1)[0]
-            players, responses, (lo, hi) = cats[cat]
-            pu = random.choice(players)
-            rp = fmt(random.choice(responses), hp, enemies)
-            if (pu, rp) in used:
-                continue
-            used.add((pu, rp))
-            turns.append(("u", pu))
-            turns.append(("a", rp, random.randint(lo, hi)))
 
-        msgs = [{"role": "system", "content": SYS(c)}]
-        for t in turns:
-            if t[0] == "u":
-                msgs.append({"role": "user", "content": t[1]})
-            else:
-                payload = json.dumps({"dialogue": t[1], "mood_delta": t[2]}, ensure_ascii=False)
-                msgs.append({"role": "assistant", "content": payload})
+def sample(system, user, dialogue, delta):
+    return {"messages": [{"role": "system", "content": system},
+                         {"role": "user", "content": user},
+                         {"role": "assistant", "content": answer(dialogue, delta)}]}
 
-        key = "|".join(m["content"] for m in msgs)
-        if key in seen:
+
+# ── 내면 ─────────────────────────────────────────────────
+
+def situation():
+    max_hp = random.choice(MAX_HP)
+    ai = random.random() < 0.18
+    ratio = random.choice([random.uniform(0.03, 0.3), random.uniform(0.3, 0.7), random.uniform(0.7, 1.0)])
+    return {"hp": max(1, round(max_hp * ratio)), "max_hp": max_hp, "ratio": ratio,
+            # 어둠이 몸을 쥐는 건 감정 수치가 바닥일 때다
+            "mood": random.randint(3, 30) if ai else random.randint(5, 95),
+            "enemies": random.choice(ENEMIES), "ai": ai}
+
+
+def usable(line, s):
+    if s is None:
+        return "{" not in line
+    if "{enemies}" in line and s["enemies"] == 0:
+        return False
+    if "{hp}" in line and s["ratio"] > 0.35:
+        return False
+    return True
+
+
+def pick(replies, user="", s=None):
+    """user 에 맞는 대답 하나. (대답, 조각들) 은 user 에 조각이 들어 있을 때만 후보이고, 있으면 70% 는 그쪽을 쓴다."""
+    specific = [r[0] for r in replies if isinstance(r, tuple) and any(t in user for t in r[1]) and usable(r[0], s)]
+    generic = [r for r in replies if isinstance(r, str) and usable(r, s)]
+    line = random.choice(specific if specific and (not generic or random.random() < 0.7) else generic)
+    return line.format(hp=s["hp"], enemies=s["enemies"]) if s else line
+
+
+def inner_system(s, memories, story):
+    recalled = RECALL_SEP.join("- " + fill(INNER["memory_entry"], PLAYER=p, REPLY=r, SIGNED_DELTA=f"{d:+d}")
+                               for p, r, d, _ in memories)
+    memory_block = fill(INNER["memory_block"], RECALLED=recalled) if memories else ""
+    story_block = fill(INNER["story_block"], STORY=story[0]) if story else ""
+    situation_line = fill(INNER["situation_ai" if s["ai"] else "situation_player"],
+                          HP=s["hp"], MAX_HP=s["max_hp"], MOOD=s["mood"], ENEMIES=s["enemies"])
+    return fill(INNER["system"], MEMORY_BLOCK=memory_block, STORY_BLOCK=story_block, SITUATION=situation_line)
+
+
+def opening_line(s, memories, story):
+    if story and random.random() < 0.85:
+        return random.choice(story[1])
+    if memories and random.random() < 0.5:
+        return random.choice(random.choice(memories)[3])
+    pools = []
+    if s["ai"]:
+        pools.append("ai_control")
+    if s["ratio"] < 0.3:
+        pools.append("low_hp")
+    if s["enemies"] >= 3:
+        pools.append("many_enemies")
+    if s["enemies"] == 0:
+        pools.append("calm")
+    if s["mood"] <= 30:
+        pools.append("low_mood")
+    if s["mood"] >= 70:
+        pools.append("high_mood")
+    pool = OPEN[random.choice(pools)] if pools and random.random() < 0.75 else OPEN["generic"]
+    return pick(pool, s=s)
+
+
+def build_inner(target):
+    rows = []
+    for _ in range(target):
+        s = situation()
+        memories = random.sample(MEMORIES, random.randint(1, 3)) if random.random() < 0.4 else []
+        story = random.choice(STORIES) if random.random() < 0.08 else None
+        system = inner_system(s, memories, story)
+        if random.random() < 0.35:
+            rows.append(sample(system, OPENING_QUERY, opening_line(s, memories, story), 0))
             continue
-        seen.add(key)
-        rows.append({"messages": msgs})
+        cats, weights = (REPLY_AI, AI_CAT_WEIGHTS) if s["ai"] else (REPLY, PLAYER_CAT_WEIGHTS)
+        cat = random.choices(list(weights), weights=list(weights.values()))[0]
+        players, replies, (lo, hi) = cats[cat]
+        # 게임의 maxTurns 가 1보다 크면 앞 턴이 시스템 프롬프트 뒤에 붙는다(InnerVoiceManager.TurnLine)
+        if INNER["max_turns"] > 1 and random.random() < 0.3:
+            prev_players, prev_replies, _ = cats[random.choice(list(cats))]
+            for turn in range(1, random.randint(1, INNER["max_turns"] - 1) + 1):
+                prev = random.choice(prev_players)
+                system += fill(INNER["turn_line"], TURN=turn, PLAYER=prev, REPLY=pick(prev_replies, prev, s))
+        user = random.choice(players)
+        rows.append(sample(system, user, pick(replies, user, s), random.randint(lo, hi)))
     return rows
 
 
-def main():
-    here = os.path.dirname(os.path.abspath(__file__))
-    out_dir = os.path.join(here, "data")
-    os.makedirs(out_dir, exist_ok=True)
-    out_path = os.path.join(out_dir, "train_data.jsonl")
+# ── NPC ─────────────────────────────────────────────────
 
-    rows = build(TARGET)
+def affinity_line():
+    return fill(NPC["affinity_line"], AFFINITY=random.randint(5, 95))
+
+
+def npc_reply(name, scene, choice, cat, user):
+    replies = NPC_REPLIES[name]
+    region = f"place_r{scene[-1]}"
+    # 2~4지역에서 "여기는 어떤 곳" · "왜 말하지 않죠" 에는 그 지역 이야기를 섞는다
+    if region in replies and any(t in user for t in ("어떤 곳", "말하지 않죠")) and random.random() < 0.6:
+        return random.choice(replies[region])
+    # 1지역의 소윤 선택 상태는 인사와 호의에 대한 대답에 드러난다
+    greeting = cat == "normal" and any(t in user for t in ("안녕", "지냈어요", "지내요"))
+    if choice != "none" and (cat == "kind" or greeting) and random.random() < 0.5:
+        return random.choice(replies[choice])
+    return pick(replies[cat], user)
+
+
+def build_npc(target):
+    personas = [p for p in NPC["personas"] if not p["smith"]]
+    rows = []
+    for _ in range(target):
+        p = random.choice(personas)
+        v = random.choices(p["variants"], weights=[2] + [1] * (len(p["variants"]) - 1))[0]
+        cat = random.choices(list(NPC_CAT_WEIGHTS), weights=list(NPC_CAT_WEIGHTS.values()))[0]
+        (lo, hi), players = NPC_CATS[cat]
+        recent = []
+        if random.random() < 0.5:
+            for _ in range(random.randint(1, 4)):   # NPCInteraction 은 최근 4턴까지 들고 있다
+                c = random.choice(["normal", "kind", "lore"])
+                prev = random.choice(NPC_CATS[c][1])
+                recent.append(fill(NPC["turn_line"], NAME=p["name"], PLAYER=prev,
+                                   REPLY=npc_reply(p["name"], p["scene"], v["choice"], c, prev)))
+        system = (fill(v["system_with_recent"], AFFINITY_LINE=affinity_line(), RECENT="\n".join(recent)) if recent
+                  else fill(v["system_no_recent"], AFFINITY_LINE=affinity_line()))
+        user = random.choice(players)
+        rows.append(sample(system, user, npc_reply(p["name"], p["scene"], v["choice"], cat, user), random.randint(lo, hi)))
+    return rows
+
+
+def build_smith(target):
+    personas = [p for p in NPC["personas"] if p["smith"]]
+    rows = []
+    for _ in range(target):
+        p = random.choice(personas)
+        v = random.choice(p["variants"])
+        cat = random.choices(list(NPC_CAT_WEIGHTS), weights=[2, 2, 4, 3, 0])[0]   # 스미스엔 지난 일 질문 범주가 없다
+        (lo, hi), players = SMITH_CATS[cat]
+        user = random.choice(players)
+        reply, delta = pick(SMITH_REPLIES[cat], user), random.randint(lo, hi)
+        # MrSmithLongTermMemory 는 최근 4턴을 "Mr.Smith" 이름으로 들고 있다
+        recent = []
+        for _ in range(random.randint(0, 4)):
+            c = random.choice(["normal", "kind"])
+            prev = random.choice(SMITH_CATS[c][1])
+            recent.append(fill(NPC["turn_line"], NAME="Mr.Smith", PLAYER=prev, REPLY=pick(SMITH_REPLIES[c], prev)))
+        if recent and random.random() < 0.12:
+            # 같은 말 반복 → 정확히 "흠..." (BuildMrSmithPrompt 규칙)
+            user = recent[-1].split('"')[1]
+            reply, delta = "흠...", random.randint(-6, -3)
+        related = RECALL_SEP.join("- " + m for m in random.sample(SMITH_MEMORIES + recent, random.randint(1, 3))) \
+            if random.random() < 0.7 else ""
+        # 비어 있는 블록은 게임 코드가 "없음" 으로 채운다
+        system = fill(v["system"], AFFINITY_LINE=affinity_line(), RECENT="\n".join(recent) or "없음",
+                      RELATED=related or "없음", INPUT=user)
+        rows.append(sample(system, user, reply, delta))
+    return rows
+
+
+# ── 검사와 출력 ──────────────────────────────────────────
+
+def check(rows):
+    for r in rows:
+        user = r["messages"][1]["content"]
+        assert user == OPENING_QUERY or user not in EVAL_INPUTS, f"평가 입력이 학습에 섞였다: {user}"
+        a = json.loads(r["messages"][2]["content"])
+        assert -20 <= a["mood_delta"] <= 20 and "\n" not in a["dialogue"] and "{" not in a["dialogue"], a
+
+
+def main():
+    rows = build_inner(INNER_TARGET) + build_npc(NPC_TARGET) + build_smith(SMITH_TARGET)
+    check(rows)
+    unique, seen = [], set()
+    for r in rows:
+        key = "\x00".join(m["content"] for m in r["messages"])
+        if key not in seen:
+            seen.add(key)
+            unique.append(r)
+    random.shuffle(unique)
+
+    out_path = os.path.join(DATA, "train_data.jsonl")
     with open(out_path, "w", encoding="utf-8") as f:
-        for r in rows:
+        for r in unique:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
 
-    assist = sum(1 for r in rows for m in r["messages"] if m["role"] == "assistant")
-    ai = sum(1 for r in rows if "AI(어둠)가" in r["messages"][0]["content"])
-    print(f"written: {out_path}")
-    print(f"dialogues: {len(rows)} | assistant targets: {assist}")
-    print(f"AI-controlled: {ai} | player-controlled: {len(rows)-ai}")
+    kinds = collections.Counter()
+    lines = collections.defaultdict(set)
+    deltas = collections.Counter()
+    for r in unique:
+        system, user, a = (m["content"] for m in r["messages"])
+        kind = "smith" if "[캐릭터 설정]" in system else "npc" if system.startswith("당신은") else \
+            "inner_open" if user == OPENING_QUERY else "inner_reply"
+        kinds[kind] += 1
+        a = json.loads(a)
+        lines[kind].add(a["dialogue"])
+        deltas[a["mood_delta"]] += 1
+    print(f"written: {out_path} ({len(unique)} samples, 중복 제거 {len(rows) - len(unique)})")
+    for kind, n in sorted(kinds.items()):
+        print(f"  {kind:12s} {n:5d} samples, 서로 다른 대사 {len(lines[kind])}")
+    print("  mood_delta:", " ".join(f"{d}:{deltas[d]}" for d in range(-20, 21) if deltas[d]))
+    print("  가장 긴 시스템 프롬프트:", max(len(r["messages"][0]["content"]) for r in unique), "자")
 
 
 if __name__ == "__main__":
