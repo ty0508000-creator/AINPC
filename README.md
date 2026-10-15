@@ -142,7 +142,7 @@ UI 기본 글꼴은 `NeoDunggeunmoPro-Regular.ttf`입니다. TextMeshPro용 동�
 - 추론 런타임: [LLMUnity / undreamai](https://github.com/undreamai/LLMUnity). 포함 라이선스를 확인하세요.
 - 목재/종이 UI: Black Hammer, **Fantasy Wooden GUI : Free 2.1**. 공식 패키지 PNG 6개. [출처 기록](Assets/Resources/RpgWooden/README.md).
 - 글꼴: 프로젝트의 Paperlogy TMP 에셋. 배포 전 원본 이용 조건과 고지 파일 점검이 필요합니다.
-- 학습 코드의 베이스 모델: Meta Llama 3.1 계열. 실제 배포 모델과 파생 모델의 이용 조건·고지를 확인해야 합니다.
+- 대화 모델: **Built with Llama.** darkness 는 Meta Llama 3.1 8B Instruct 의 파생 모델입니다(Llama 3.1 Community License). 고지 파일 `NOTICE.txt` 와 라이선스 전문 `LLAMA_3.1_LICENSE.txt`(meta-llama/llama-models 공식 원문)는 `Assets/StreamingAssets/Licenses/` 에 있어 빌드에 같이 들어갑니다. 배포 전에 남은 조건: 배포하는 파인튜닝 모델의 이름을 "Llama" 로 시작하게 하기(재학습 때 반영).
 
 외부 아트는 프로젝트 자체 저작물이 아닙니다. 독립 재배포와 공개 저장소 포함 여부는 배포 전에 확인해야 합니다.
 

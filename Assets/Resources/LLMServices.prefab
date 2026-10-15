@@ -166,7 +166,7 @@ MonoBehaviour:
   _grammar: 
   numPredict: 200
   cachePrompt: 1
-  seed: 0
+  seed: -1
   temperature: 0.2
   topK: 40
   topP: 0.9
@@ -242,7 +242,7 @@ MonoBehaviour:
   _numThreads: -1
   _numGPULayers: 99
   _parallelPrompts: -1
-  _contextSize: 4096
+  _contextSize: 2048
   _batchSize: 512
   _model: Models/darkness-Q4_K_M.gguf
   _flashAttention: 0

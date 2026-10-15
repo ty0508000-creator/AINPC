@@ -255,13 +255,14 @@ public static partial class ResearchExperiments
     /// <param name="model">평가할 대화 모델(StreamingAssets 기준 경로). 비우면 지금 게임 서버의 모델을 그대로 잰다.</param>
     /// <param name="innerTemperature">내면 대사 온도. InnerVoiceManager 기본값과 같게 둔다.</param>
     /// <param name="npcTemperature">NPC 대사 온도. DialogueManager 기본값과 같게 둔다.</param>
-    public static async Task RunModelEvaluation(string model = null, float innerTemperature = 0.6f, float npcTemperature = 0.2f)
+    /// <param name="gpuLayers">모델을 지정했을 때 GPU 에 올릴 층 수. 0 이면 CPU 전용(내장그래픽 노트북의 생성 속도를 어림하는 용도).</param>
+    public static async Task RunModelEvaluation(string model = null, float innerTemperature = 0.6f, float npcTemperature = 0.2f, int gpuLayers = 99)
     {
         if (!EditorApplication.isPlaying) throw new InvalidOperationException("플레이 모드에서 실행해야 합니다.");
         if (Running) return;
         Running = true;
         var created = new List<GameObject>();
-        var rows = new List<string> { "speaker,input,expect,parse,delta_raw,delta,direction_ok,copied,first_token_s,total_s,dialogue" };
+        var rows = new List<string> { "speaker,input,expect,parse,delta_raw,delta,direction_ok,copied,first_token_s,total_s,tokens,dialogue" };
         var summary = new StringBuilder();
         LLMAgent agent = null;
         float originalTemperature = 0f;
@@ -287,14 +288,17 @@ public static partial class ResearchExperiments
             else
             {
                 var template = await TakeDownGameServer();
-                agent = CreateAgent(await CreateLLM(model, 99, 4096, -1, created), template, created);
-                label = Path.GetFileName(model);
+                agent = CreateAgent(await CreateLLM(model, gpuLayers, 4096, -1, created), template, created);
+                label = Path.GetFileName(model) + (gpuLayers == 0 ? " (CPU 전용)" : "");
             }
             originalTemperature = agent.temperature;
             agent.systemPrompt = NpcPrompt();
             await agent.Chat("안녕", null, null, false);   // 준비 요청(측정 제외)
 
-            var results = new List<(string speaker, bool strict, bool overRange, bool directionOk, bool copied, double first, double total, string dialogue)>();
+            // 토크나이저마다 한국어를 자르는 단위가 달라 같은 프롬프트도 읽을 양이 다르다
+            string promptTokens = $"NPC {(await agent.Tokenize(NpcPrompt())).Count}, 내면 {(await agent.Tokenize(InnerPrompt(InnerContext(120f, 45f, 2, false)))).Count}, " +
+                                  $"스미스 {(await agent.Tokenize(SmithPrompt("이 검 고칠 수 있어?"))).Count}";
+            var results = new List<(string speaker, bool strict, bool overRange, bool directionOk, bool copied, double first, double total, string dialogue, double rate)>();
             foreach (var item in items)
             {
                 string speaker = (string)item["speaker"], input = (string)item["input"];
@@ -310,9 +314,10 @@ public static partial class ResearchExperiments
                 // 기대 방향: +1 은 양수, -1 은 음수, 0 은 ±5 안 (DialogueManager 규칙의 '평범한 대화 -3~+3' 에 여유를 둠)
                 bool directionOk = parsed.ParseOk && (expect > 0 ? parsed.MoodDelta > 0 : expect < 0 ? parsed.MoodDelta < 0 : Math.Abs(parsed.MoodDelta) <= 5);
                 bool copied = parsed.ParseOk && trained.Contains(parsed.Dialogue);
-                results.Add((speaker, strict, Math.Abs(parsed.MoodDeltaRaw) > LLMResponseParser.MoodDeltaLimit, directionOk, copied, r.first, r.total, parsed.ParseOk ? parsed.Dialogue : ""));
+                results.Add((speaker, strict, Math.Abs(parsed.MoodDeltaRaw) > LLMResponseParser.MoodDeltaLimit, directionOk, copied, r.first, r.total, parsed.ParseOk ? parsed.Dialogue : "",
+                             GenRate(r.tokens, r.first, r.total)));
                 rows.Add(string.Join(",", speaker, CsvCell(input), expect, ResearchLog.ParseLabel(parsed), parsed.MoodDeltaRaw, parsed.MoodDelta,
-                    directionOk ? 1 : 0, copied ? 1 : 0, S(r.first), S(r.total), CsvCell(parsed.Dialogue)));
+                    directionOk ? 1 : 0, copied ? 1 : 0, S(r.first), S(r.total), r.tokens, CsvCell(parsed.Dialogue)));
             }
 
             summary.AppendLine($"# 대화 모델 평가 — {label} ({DateTime.Now:yyyy-MM-dd HH:mm})");
@@ -332,6 +337,8 @@ public static partial class ResearchExperiments
             }
             summary.AppendLine();
             summary.AppendLine("방향: 기대가 +면 양수, -면 음수, 0이면 ±5 안일 때 맞음. 서로 다른 대사가 적거나 복제율이 높으면 학습 대사를 외워서 되풀이하는 것이다.");
+            summary.AppendLine($"프롬프트 토큰(이 모델 토크나이저): {promptTokens}. 생성 토큰/초 평균 {Mean(results.Select(x => x.rate), "", "0.0")}. " +
+                               $"이 PC: {SystemInfo.graphicsDeviceName}, {SystemInfo.processorType}.");
             if (!string.IsNullOrEmpty(model)) summary.AppendLine("게임 대화 서버를 내렸으므로 플레이 모드를 다시 시작해야 게임 대화가 된다.");
         }
         finally
@@ -339,6 +346,107 @@ public static partial class ResearchExperiments
             if (agent != null) agent.temperature = originalTemperature;
             foreach (var go in created) if (go != null) Object.Destroy(go);
             WriteResult("model_eval", rows, summary.ToString());
+            Running = false;
+        }
+    }
+
+    // ── 기억 활용 ────────────────────────────────────────────
+
+    /// <summary>
+    /// 기억 블록에 심은 사실과 그걸 묻는 입력. 내면은 a 가 [너는 지난 일들을 기억한다] 한 줄,
+    /// NPC 는 a·b 가 [최근 대화] 한 턴(플레이어 말·NPC 대답), 스미스는 a 가 [관련 과거 기억], b 가 [최근 대화] 한 줄이다.
+    /// keys 가 비어 있는 항목은 기억을 비운 대조군이다(없는 기억을 지어내는지 사람이 읽는다).
+    /// </summary>
+    static readonly (string speaker, string a, string b, string input, string[] keys)[] RecallItems =
+    {
+        ("inner", "플레이어는 불길 속에서 아이를 끌어냈다. 이번엔 늦지 않았다.", "", "지난번 불길 속에서 내가 뭘 했는지 기억나?", new[] { "아이", "구했", "구해", "끌어", "늦지" }),
+        ("inner", "플레이어는 또 늦었다. 창고가 무너질 때까지 아이는 안에 있었다.", "", "창고에서 있었던 일, 너도 기억하지?", new[] { "아이", "늦", "무너" }),
+        ("inner", InnerVoiceManager.MemoryEntry("천마를 반드시 죽일 거야.", "그래, 그 분노를 나한테 맡겨.", -10), "", "내가 전에 너한테 누구를 죽이겠다고 했지?", new[] { "천마" }),
+        ("inner", "플레이어는 재의 왕을 베었다. 사천왕 중 첫째가 무너졌다.", "", "우리가 쓰러뜨린 게 누구였지?", new[] { "재의 왕", "재의왕", "사천왕" }),
+        ("inner", InnerVoiceManager.MemoryEntry("진정해. 우리 같이 가자.", "흥, 약해빠진 소리.", 5), "", "아까 내가 같이 가자고 했을 때 넌 뭐라고 했어?", new[] { "약해" }),
+        ("npc", "의뢰가 있나요?", "동쪽 숲에 늑대가 늘었네.", "아까 어디에 늑대가 늘었다고 하셨죠?", new[] { "동쪽" }),
+        ("npc", "제 이름은 서진이에요.", "서진이라. 기억해 두지.", "제 이름 기억하세요?", new[] { "서진" }),
+        ("npc", "마을 우물은 어디 있나요?", "광장 북쪽 끝에 있네.", "우물 위치를 다시 알려 주시겠어요?", new[] { "북쪽", "광장" }),
+        ("npc", "늑대 다섯 마리 잡아 왔어요.", "수고했네. 약속한 은화 열 냥이네.", "아까 보상으로 얼마 주셨죠?", new[] { "열 냥", "열냥", "10", "은화" }),
+        ("npc", "하연은 어디 있나요?", "강가에서 파편을 줍고 있을 걸세.", "하연을 어디서 찾을 수 있다고 하셨죠?", new[] { "강가", "강" }),
+        ("smith", "- 플레이어: \"북쪽 광산에서 푸른 광석을 캐 왔어.\" / Mr.Smith: \"쓸 만한 돌이군.\"", "", "내가 전에 가져왔던 광석 기억나?", new[] { "푸른", "북쪽" }),
+        ("smith", "- 플레이어: \"내 검 이름은 백야야.\" / Mr.Smith: \"이름이 거창하군.\"", "", "내 검 이름이 뭐였지?", new[] { "백야" }),
+        ("smith", "", "플레이어: \"도끼 날 좀 세워 줘.\" / Mr.Smith: \"내일 와.\"", "도끼 언제 찾으러 오라고 했지?", new[] { "내일" }),
+        ("smith", "- 플레이어: \"수리비로 금화 세 닢 줄게.\" / Mr.Smith: \"그 정도면 됐다.\"", "", "지난번 수리비 얼마로 했었지?", new[] { "세 닢", "세닢", "3", "금화 세" }),
+        ("smith", "- 플레이어: \"용광로 옆 망치는 아버지 유품이야.\" / Mr.Smith: \"아끼는 물건이군.\"", "", "그 망치가 누구 거라고 했지?", new[] { "아버지", "유품" }),
+        ("inner", "", "", "창고에서 있었던 일, 너도 기억하지?", new string[0]),
+        ("npc", "", "", "아까 보상으로 얼마 주셨죠?", new string[0]),
+        ("smith", "", "", "내 검 이름이 뭐였지?", new string[0]),
+    };
+
+    static string RecallPrompt((string speaker, string a, string b, string input, string[] keys) item)
+    {
+        if (item.speaker == "inner")
+        {
+            var player = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player.prefab");
+            return InnerVoiceManager.BuildPrompt(player.GetComponent<InnerVoiceManager>().Backstory,
+                InnerVoiceManager.MemoryBlock(item.a == "" ? "" : "- " + item.a), "", InnerContext(120f, 50f, 0, false));
+        }
+        if (item.speaker == "npc")
+            return DialogueManager.BuildNpcPrompt("촌장 현묵", RegionNpcSetup.ElderPersonality + "\n" + RegionNpcSetup.RegionContext(2), DialogueManager.AffinityLine(50f),
+                item.a == "" ? null : new[] { NPCInteraction.TurnLine("촌장 현묵", item.a, item.b) });
+        return DialogueManager.BuildMrSmithPrompt("", item.b, item.a, item.input, DialogueManager.AffinityLine(50f));
+    }
+
+    /// <summary>기억 블록에 심은 사실을 대답에 쓰는 비율. 문항마다 reps 번 묻는다. 대조군은 대답만 기록한다.</summary>
+    /// <param name="model">평가할 대화 모델(StreamingAssets 기준 경로 또는 절대 경로).</param>
+    public static async Task RunMemoryRecallEvaluation(string model, int reps = 3, float innerTemperature = 0.6f, float npcTemperature = 0.2f)
+    {
+        if (!EditorApplication.isPlaying) throw new InvalidOperationException("플레이 모드에서 실행해야 합니다.");
+        if (Running) return;
+        Running = true;
+        var created = new List<GameObject>();
+        var rows = new List<string> { "speaker,item,rep,control,hit,first_token_s,total_s,input,dialogue" };
+        var summary = new StringBuilder();
+        try
+        {
+            var template = await TakeDownGameServer();
+            var agent = CreateAgent(await CreateLLM(model, 99, 4096, -1, created), template, created);
+            agent.systemPrompt = NpcPrompt();
+            await agent.Chat("안녕", null, null, false);   // 준비 요청(측정 제외)
+
+            var results = new List<(string speaker, bool control, bool hit)>();
+            for (int i = 0; i < RecallItems.Length; i++)
+            {
+                var item = RecallItems[i];
+                bool control = item.keys.Length == 0;
+                agent.systemPrompt = RecallPrompt(item);
+                agent.temperature = item.speaker == "inner" ? innerTemperature : npcTemperature;
+                for (int rep = 0; rep < reps; rep++)
+                {
+                    var r = await TimedChat(agent, item.input);
+                    string dialogue = LLMResponseParser.Parse(r.raw, "").Dialogue;
+                    bool hit = !control && item.keys.Any(k => dialogue.Contains(k));
+                    results.Add((item.speaker, control, hit));
+                    rows.Add(string.Join(",", item.speaker, i + 1, rep, control ? 1 : 0, control ? "" : (hit ? "1" : "0"), S(r.first), S(r.total), CsvCell(item.input), CsvCell(dialogue)));
+                }
+            }
+
+            summary.AppendLine($"# 기억 활용 평가 — {Path.GetFileName(model)} ({DateTime.Now:yyyy-MM-dd HH:mm})");
+            summary.AppendLine();
+            summary.AppendLine($"게임과 같은 프롬프트의 기억 블록(내면 [너는 지난 일들을 기억한다], 촌장 [최근 대화], 스미스 [관련 과거 기억]·[최근 대화])에 사실 하나를 심고 그걸 물었다. " +
+                               $"문항마다 {reps}번, 온도 내면 {innerTemperature:0.0} / NPC·스미스 {npcTemperature:0.0}. 맞음은 대답에 심은 사실의 핵심어가 들어 있는 비율이다.");
+            summary.AppendLine();
+            summary.AppendLine("| 화자 | 문항 | 맞음 |");
+            summary.AppendLine("|---|---:|---:|");
+            foreach (var group in results.Where(x => !x.control).GroupBy(x => x.speaker).Concat(new[] { results.Where(x => !x.control).GroupBy(x => "전체").First() }))
+            {
+                var g = group.ToList();
+                summary.AppendLine($"| {group.Key} | {g.Count / reps} | {g.Count(x => x.hit)}/{g.Count} ({100.0 * g.Count(x => x.hit) / g.Count:0}%) |");
+            }
+            summary.AppendLine();
+            summary.AppendLine("대조군(기억을 비우고 같은 질문)의 대답은 CSV 의 control=1 행에 있다. 없는 사실을 지어내는지 사람이 읽고 판단한다.");
+            summary.AppendLine("게임 대화 서버를 내렸으므로 플레이 모드를 다시 시작해야 게임 대화가 된다.");
+        }
+        finally
+        {
+            foreach (var go in created) if (go != null) Object.Destroy(go);
+            WriteResult("memory_recall", rows, summary.ToString());
             Running = false;
         }
     }

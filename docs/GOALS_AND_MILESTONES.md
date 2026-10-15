@@ -205,8 +205,8 @@
 ### 제출 직전에 해야 함
 
 - [ ] 사용자 테스트.
-- [ ] 실행 빌드. Windows 빌드에서 LLM 기동까지 확인했다. 배포용으로 쓰지 않는 모델 빼기와 실제 플레이 확인이 남았다.
-- [ ] 모델·에셋 라이선스 고지.
+- [ ] 실행 빌드. Windows 빌드에서 LLM 기동까지 확인했다. 쓰지 않는 모델(원본 Llama 3 8B, granite)은 StreamingAssets 와 LLMManager 에서 뺐다(10/15). 실제 플레이 확인이 남았다.
+- [ ] 모델·에셋 라이선스 고지. Llama 고지 파일·라이선스 전문(`StreamingAssets/Licenses/`)과 README 크레딧을 넣었다(10/15). 배포 모델 이름의 "Llama" 접두, MiniLM·에셋 고지가 남았다.
 - [ ] 발표 영상.
 - [ ] 신청서 주장별 증거 목록. 초안은 [연구 근거](RESEARCH_EVIDENCE.md).
 

@@ -15,6 +15,15 @@ SHA-256:
 
 Main 씬의 모델 경로는 변경하지 않았습니다. Chat 샘플 씬은 여전히 StreamingAssets 기준 원본 파일명을 참조하지만, 정리 전에도 그 위치에 원본 모델이 없었습니다. Chat 샘플을 실행하려면 별도 모델 설정이 필요합니다. 이번 작업에서 샘플 씬을 임의로 변경하지 않았습니다.
 
+## StreamingAssets 정리 (2026-10-15)
+
+StreamingAssets 는 통째로 빌드에 들어가므로 게임이 쓰지 않는 모델 두 개를 `C:/AINPC-ModelArchive/` 로 옮기고 LLMManager 목록에서도 뺐다. 옮기기만 했고 지우지 않았다.
+
+- `Meta-Llama-3-8B-Instruct-Q4_K_M.gguf` (4.9GB): Chat 샘플 씬만 참조한다.
+- `granite-embedding-97M-multilingual-r2-Q6_K.gguf` (113MB): LlamaLib 2.0.5 가 읽지 못한다([연구 근거](RESEARCH_EVIDENCE.md) 6절).
+
+되돌리려면 파일을 `Assets/StreamingAssets/Models/` 로 다시 옮기고 LLM 컴포넌트에서 모델을 다시 고른다.
+
 ## 검증 결과 보존
 
 `VerificationResults/Cleanup-20260921/VerificationResults`에 테스트 결과·이미지·테스트 저장 파일 47개를 복사하고 원본과 해시 비교했습니다. Unity 검증 로그는 같은 보관 폴더의 `Logs`에 복사했습니다. 이 경로는 기존 gitignore 규칙으로 Git에서 제외됩니다.
