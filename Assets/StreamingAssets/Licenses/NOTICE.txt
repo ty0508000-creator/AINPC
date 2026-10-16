@@ -1,12 +1,8 @@
 AINPC — 포함된 AI 모델 고지 (Notice)
 
-Built with Llama
+이 게임의 대화 모델(StreamingAssets/Models/AINPC-Qwen3-4B-Q4_K_M.gguf)은
+Qwen/Qwen3-4B-Instruct-2507 (Copyright 2024 Alibaba Cloud) 를 이 프로젝트의 대화 데이터로
+파인튜닝(LoRA 병합)하고 Q4_K_M 으로 양자화한 수정본이다.
 
-이 게임의 대화 모델(StreamingAssets/Models/darkness-Q4_K_M.gguf)은
-Meta Llama 3.1 8B Instruct 를 파인튜닝한 파생 모델이다.
-
-Llama 3.1 is licensed under the Llama 3.1 Community License, Copyright © Meta Platforms, Inc. All Rights Reserved.
-
-라이선스 전문: 같은 폴더의 LLAMA_3.1_LICENSE.txt
-  원본: https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/LICENSE
-이용 정책(Acceptable Use Policy): https://llama.meta.com/llama3_1/use-policy
+라이선스: Apache License 2.0 — 같은 폴더의 QWEN3_LICENSE.txt
+  원본 모델: https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507

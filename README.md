@@ -62,13 +62,13 @@
 GGUF는 Git에서 제외됩니다. 저장소만 내려받아서는 LLM 준비가 완료되지 않습니다.
 
 - LLM 서버는 씬이 아니라 `Assets/Resources/LLMServices.prefab`에 있고, 게임 시작 때 한 번 떠서 씬이 바뀌어도 유지됩니다.
-- 대화·내면 서버(`InnerVoice_LLM_Server`): `Assets/StreamingAssets/Models/darkness-Q4_K_M.gguf`. NPC 대화와 내면 대화가 같은 에이전트를 씁니다.
+- 대화·내면 서버(`InnerVoice_LLM_Server`): `Assets/StreamingAssets/Models/AINPC-Qwen3-4B-Q4_K_M.gguf`(2.5GB, Qwen3-4B-Instruct-2507 을 `Training/data/train_data.jsonl` 로 파인튜닝). NPC 대화와 내면 대화가 같은 에이전트를 쓰고, 성격은 요청마다 바꾸는 시스템 프롬프트로 나눕니다.
 - 임베딩 서버(`Embedding_Server`): `Assets/StreamingAssets/Models/all-MiniLM-L12-v2.Q4_K_M.gguf`. 기억 저장·검색을 확인했습니다(2026-10-12).
 - 응답은 JSON grammar(`LLMServices`의 `useJsonGrammar`)로 형식을 강제합니다.
 
 `Training/`에 학습 코드와 노트북이 있습니다. 학습은 게임 실행과 별도 작업이며 GPU·패키지·모델 이용 조건 확인이 필요합니다.
 
-이 PC의 학습용 원본 GGUF는 프로젝트 밖 `C:/AINPC-ModelArchive/Meta-Llama-3-8B-Instruct-Q4_K_M.gguf`에 보관합니다. 게임 실행용 darkness 모델은 위 StreamingAssets 경로를 유지합니다. 모델 보관 위치와 정리 상태는 [로컬 용량 관리](docs/LOCAL_STORAGE.md)를 참고하세요.
+대화 모델은 `Training/train_local.py`(윈도우 + NVIDIA GPU)로 학습합니다. 이 PC의 이전 모델(darkness, 원본 Llama 3 8B)과 학습 산출물은 프로젝트 밖 `C:/AINPC-ModelArchive/`에 보관합니다. 모델 보관 위치와 정리 상태는 [로컬 용량 관리](docs/LOCAL_STORAGE.md), 모델 비교는 [연구 근거](docs/RESEARCH_EVIDENCE.md) 7·8절을 참고하세요.
 
 목표 PC에서 RAM/VRAM, 첫 응답 및 완료 시간은 아직 측정하지 않았습니다. 기존 문서의 RAM 수치와 경량화 속도 배수는 보장 사양이 아닙니다.
 
@@ -142,7 +142,7 @@ UI 기본 글꼴은 `NeoDunggeunmoPro-Regular.ttf`입니다. TextMeshPro용 동�
 - 추론 런타임: [LLMUnity / undreamai](https://github.com/undreamai/LLMUnity). 포함 라이선스를 확인하세요.
 - 목재/종이 UI: Black Hammer, **Fantasy Wooden GUI : Free 2.1**. 공식 패키지 PNG 6개. [출처 기록](Assets/Resources/RpgWooden/README.md).
 - 글꼴: 프로젝트의 Paperlogy TMP 에셋. 배포 전 원본 이용 조건과 고지 파일 점검이 필요합니다.
-- 대화 모델: **Built with Llama.** darkness 는 Meta Llama 3.1 8B Instruct 의 파생 모델입니다(Llama 3.1 Community License). 고지 파일 `NOTICE.txt` 와 라이선스 전문 `LLAMA_3.1_LICENSE.txt`(meta-llama/llama-models 공식 원문)는 `Assets/StreamingAssets/Licenses/` 에 있어 빌드에 같이 들어갑니다. 배포 전에 남은 조건: 배포하는 파인튜닝 모델의 이름을 "Llama" 로 시작하게 하기(재학습 때 반영).
+- 대화 모델: AINPC-Qwen3-4B 는 Qwen/Qwen3-4B-Instruct-2507(Copyright 2024 Alibaba Cloud, Apache License 2.0)을 파인튜닝한 수정본입니다. 수정 사실을 적은 고지 `NOTICE.txt` 와 라이선스 사본 `QWEN3_LICENSE.txt` 는 `Assets/StreamingAssets/Licenses/` 에 있어 빌드에 같이 들어갑니다.
 
 외부 아트는 프로젝트 자체 저작물이 아닙니다. 독립 재배포와 공개 저장소 포함 여부는 배포 전에 확인해야 합니다.
 

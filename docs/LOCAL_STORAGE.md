@@ -24,6 +24,14 @@ StreamingAssets 는 통째로 빌드에 들어가므로 게임이 쓰지 않는 
 
 되돌리려면 파일을 `Assets/StreamingAssets/Models/` 로 다시 옮기고 LLM 컴포넌트에서 모델을 다시 고른다.
 
+## 대화 모델 교체 (2026-10-16)
+
+대화 모델을 `AINPC-Qwen3-4B-Q4_K_M.gguf`(2.5GB)로 바꾸고, 쓰지 않게 된 `darkness-Q4_K_M.gguf`(4.9GB)를 `C:/AINPC-ModelArchive/` 로 옮겼다. LLMManager 목록도 같이 바꿨다.
+
+- 학습 환경·원본 가중치·학습 산출물: `C:/AINPC-ModelArchive/train/` (가상환경, `base/` 원본 12.7GB, `out/qwen3`·`out/kanana` 의 LoRA·병합 모델·GGUF)
+- 비교용 후보 GGUF 7개: `C:/AINPC-ModelArchive/candidates/` (11.6GB)
+- 되돌리려면 darkness 를 `Assets/StreamingAssets/Models/` 로 다시 옮기고 `LLMServices.prefab` 의 `InnerVoice_LLM_Server` 에서 모델을 다시 고른다.
+
 ## 검증 결과 보존
 
 `VerificationResults/Cleanup-20260921/VerificationResults`에 테스트 결과·이미지·테스트 저장 파일 47개를 복사하고 원본과 해시 비교했습니다. Unity 검증 로그는 같은 보관 폴더의 `Logs`에 복사했습니다. 이 경로는 기존 gitignore 규칙으로 Git에서 제외됩니다.

@@ -23,7 +23,7 @@ using Object = UnityEngine.Object;
 /// </summary>
 public static partial class ResearchExperiments
 {
-    const string DialogueModel = "Models/darkness-Q4_K_M.gguf";
+    const string DialogueModel = "Models/AINPC-Qwen3-4B-Q4_K_M.gguf";
     public const string EvalSetPath = "Training/data/eval_set.json";
     const string TrainDataPath = "Training/data/train_data.jsonl";
     const float EvalMaxHp = 170f;

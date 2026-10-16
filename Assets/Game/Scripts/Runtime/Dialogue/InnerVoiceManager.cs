@@ -21,7 +21,7 @@ public class InnerVoiceManager : MonoBehaviour
     [SerializeField] private LLMAgent llmAgent;
     [Tooltip("응답 글자가 이 시간(초) 동안 하나도 오지 않으면 끊고 침묵 속에 종료 (소프트락 방지). 느려도 글자가 나오는 동안은 기다린다.")]
     [SerializeField] private float llmTimeout = 20f;
-    [Tooltip("내면 대사의 샘플링 온도. 낮으면 학습한 대사를 그대로 되풀이한다. 0.6 은 darkness 모델 메타데이터의 권장값. LLMAgent 를 NPC 와 같이 쓰므로 요청마다 이 값으로 맞춘다.")]
+    [Tooltip("내면 대사의 샘플링 온도. 낮으면 학습한 대사를 그대로 되풀이한다. 0.6 은 모델 비교 평가(docs/RESEARCH_EVIDENCE 7·8절)에 쓴 값. LLMAgent 를 NPC 와 같이 쓰므로 요청마다 이 값으로 맞춘다.")]
     [SerializeField, Range(0f, 2f)] private float temperature = 0.6f;
     [Tooltip("(A-3) 응답 파싱 실패 시 화면에 대신 띄울 어둠의 대사. 원문은 절대 노출하지 않는다.")]
     [SerializeField] private string parseFailFallbackLine = "…";

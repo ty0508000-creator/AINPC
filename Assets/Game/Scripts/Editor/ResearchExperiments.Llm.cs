@@ -175,7 +175,7 @@ public static partial class ResearchExperiments
 
             summary.AppendLine($"# CPU 전용 응답 시간 ({DateTime.Now:yyyy-MM-dd HH:mm})");
             summary.AppendLine();
-            summary.AppendLine($"모델 darkness-Q4_K_M(8B, 4.9GB), JSON grammar 켬, 게임과 같은 NPC·내면 프롬프트. 이 PC: {SystemInfo.processorType} ({SystemInfo.processorCount}스레드), RAM {SystemInfo.systemMemorySize / 1024}GB, {SystemInfo.graphicsDeviceName}.");
+            summary.AppendLine($"모델 {Path.GetFileName(DialogueModel)}, JSON grammar 켬, 게임과 같은 NPC·내면 프롬프트. 이 PC: {SystemInfo.processorType} ({SystemInfo.processorCount}스레드), RAM {SystemInfo.systemMemorySize / 1024}GB, {SystemInfo.graphicsDeviceName}.");
             summary.AppendLine("cold = 프롬프트를 처음부터 읽음(화자가 바뀜), warm = 같은 화자라 앞부분을 재사용.");
             summary.AppendLine();
             summary.AppendLine("| 설정 | 첫 글자까지 cold | 첫 글자까지 warm | 전체 응답 cold | 전체 응답 warm | 모델 로딩 |");
@@ -187,7 +187,7 @@ public static partial class ResearchExperiments
             foreach (int threads in new[] { -1, 4 })
             {
                 var watch = Stopwatch.StartNew();
-                var llm = await CreateLLM("Models/darkness-Q4_K_M.gguf", 0, 4096, threads, created);
+                var llm = await CreateLLM(DialogueModel, 0, 4096, threads, created);
                 double loadSeconds = watch.Elapsed.TotalSeconds;
                 var agentGo = new GameObject("research cpu agent"); agentGo.SetActive(false); created.Add(agentGo);
                 var agent = agentGo.AddComponent<LLMAgent>();

@@ -47,6 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b68d8765b9ade74cbded914b6c10043, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LLMServices
+  useJsonGrammar: 1
 --- !u!1 &2593149799298153111
 GameObject:
   m_ObjectHideFlags: 0
@@ -244,13 +245,13 @@ MonoBehaviour:
   _parallelPrompts: -1
   _contextSize: 2048
   _batchSize: 512
-  _model: Models/darkness-Q4_K_M.gguf
+  _model: Models/AINPC-Qwen3-4B-Q4_K_M.gguf
   _flashAttention: 0
   _reasoning: 0
   _lora: 
   _loraWeights: 
   dontDestroyOnLoad: 0
   _embeddingsOnly: 0
-  _embeddingLength: 4096
+  _embeddingLength: 2560
   minContextLength: 0
-  maxContextLength: 8192
+  maxContextLength: 262144
