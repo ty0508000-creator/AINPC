@@ -25,7 +25,7 @@ from unsloth.chat_templates import get_chat_template
 # VRAM 8GB  → Llama-3.2-3B-Instruct
 # VRAM 16GB → Meta-Llama-3.1-8B-Instruct
 MODEL_NAME      = "unsloth/Meta-Llama-3.1-8B-Instruct"
-DATA_PATH       = "data/train_data.jsonl"
+DATA_PATH       = "data/train_intent.jsonl"
 OUTPUT_LORA     = "output/darkness-lora"
 OUTPUT_GGUF     = "output/darkness-gguf"
 

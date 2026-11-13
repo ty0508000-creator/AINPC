@@ -111,7 +111,7 @@ def main():
     ap.add_argument("--model", required=True, help="베이스 모델(HF 폴더 또는 저장소 이름)")
     ap.add_argument("--name", required=True, help="출력 모델 이름(GGUF 파일 이름과 general.name)")
     ap.add_argument("--out", required=True, help="어댑터·병합 모델·GGUF 를 둘 폴더")
-    ap.add_argument("--data", default=os.path.join(HERE, "data", "train_data.jsonl"))
+    ap.add_argument("--data", default=os.path.join(HERE, "data", "train_intent.jsonl"))
     ap.add_argument("--epochs", type=float, default=2)
     ap.add_argument("--rank", type=int, default=16)
     ap.add_argument("--lr", type=float, default=2e-4)

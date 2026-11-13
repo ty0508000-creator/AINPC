@@ -25,17 +25,17 @@ code("""%%capture
 !pip install --upgrade trl datasets transformers""")
 
 md("""## 3) 학습 데이터 업로드
-실행하면 파일 선택창이 뜹니다. PC의 `Training/data/train_data.jsonl` 을 선택하세요.""")
+실행하면 파일 선택창이 뜹니다. PC의 `Training/data/train_intent.jsonl` 을 선택하세요.""")
 code("""from google.colab import files
 import os
-print('train_data.jsonl 파일을 선택하세요 ↓')
+print('train_intent.jsonl 파일을 선택하세요 ↓')
 up = files.upload()
 os.makedirs('data', exist_ok=True)
 fn = list(up.keys())[0]
-with open('data/train_data.jsonl', 'wb') as f:
+with open('data/train_intent.jsonl', 'wb') as f:
     f.write(up[fn])
-n = sum(1 for _ in open('data/train_data.jsonl', encoding='utf-8'))
-print(f'저장됨 -> data/train_data.jsonl  (대화 {n}줄)')""")
+n = sum(1 for _ in open('data/train_intent.jsonl', encoding='utf-8'))
+print(f'저장됨 -> data/train_intent.jsonl  (대화 {n}줄)')""")
 
 md("""## 4) 모델 로드 (QLoRA 4bit)
 > 게임이 Llama 3(원조)라 정확히 맞추고 싶으면 `MODEL_NAME`을
@@ -81,7 +81,7 @@ def format_sample(s):
     return {"text": tokenizer.apply_chat_template(
         s["messages"], tokenize=False, add_generation_prompt=False)}
 
-dataset = Dataset.from_list(load_jsonl('data/train_data.jsonl')).map(format_sample)
+dataset = Dataset.from_list(load_jsonl('data/train_intent.jsonl')).map(format_sample)
 print('학습 샘플:', len(dataset))
 # 길이 제한을 넘으면 뒤쪽(정답 JSON)이 잘리므로 조용히 자르지 않고 멈춘다
 longest = max(len(tokenizer(t)['input_ids']) for t in dataset['text'])

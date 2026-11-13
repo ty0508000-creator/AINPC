@@ -1,0 +1,3340 @@
+{
+ "_comment": "내면 감정 판단 평가 세트(ResearchExperiments.RunEmotionEvaluation). 학습에 쓰지 않는다(gen_data.py 가 겹치면 멈춘다). intent·intensity 는 사람이 단 정답이다. 초안은 Claude 가 달았고 reviewed=false 다. 사람이 검수해 맞으면 true 로, 틀리면 고친 뒤 true 로 바꾼다. emotions 는 그 순간 어둠의 감정 [분노, 복수심, 슬픔, 두려움, 신뢰, 냉정]. hp 의 최대치는 170(EvalMaxHp). tags: sarcasm 반어, mixed 두 의도, typo 오타·줄임말, honorific 존댓말.",
+ "items": [
+  {
+   "id": "v2_001",
+   "input": "알겠어, 네가 맡아 줘.",
+   "intent": "entrust",
+   "intensity": 2,
+   "tags": [],
+   "hp": 101,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    55,
+    20,
+    24,
+    73,
+    17,
+    51
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_002",
+   "input": "이번 판은 너한테 넘길게.",
+   "intent": "entrust",
+   "intensity": 2,
+   "tags": [],
+   "hp": 134,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    12,
+    84,
+    89,
+    55,
+    11,
+    33
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_003",
+   "input": "나 대신 좀 싸워 줄래?",
+   "intent": "entrust",
+   "intensity": 1,
+   "tags": [],
+   "hp": 65,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    22,
+    52,
+    68,
+    23,
+    74,
+    20
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_004",
+   "input": "더 이상 못 하겠다. 네가 가.",
+   "intent": "entrust",
+   "intensity": 3,
+   "tags": [],
+   "hp": 29,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    79,
+    68,
+    61,
+    43,
+    36,
+    28
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_005",
+   "input": "몸 줄게. 대신 하연은 꼭 지켜.",
+   "intent": "entrust",
+   "intensity": 3,
+   "tags": [],
+   "hp": 149,
+   "enemies": 1,
+   "ai": false,
+   "escort": true,
+   "emotions": [
+    26,
+    52,
+    34,
+    67,
+    58,
+    10
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_006",
+   "input": "잠깐 교대하자.",
+   "intent": "entrust",
+   "intensity": 1,
+   "tags": [],
+   "hp": 145,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    81,
+    68,
+    89,
+    63,
+    13,
+    16
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_007",
+   "input": "믿어 볼게. 해 봐.",
+   "intent": "entrust",
+   "intensity": 2,
+   "tags": [],
+   "hp": 94,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    78,
+    68,
+    51,
+    54,
+    90,
+    49
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_008",
+   "input": "부탁이야, 제발 나서 줘.",
+   "intent": "entrust",
+   "intensity": 3,
+   "tags": [],
+   "hp": 11,
+   "enemies": 4,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    50,
+    68,
+    44,
+    24,
+    15,
+    27
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_009",
+   "input": "니가 하셈",
+   "intent": "entrust",
+   "intensity": 1,
+   "tags": [
+    "typo"
+   ],
+   "hp": 79,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    38,
+    68,
+    35,
+    71,
+    7,
+    31
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_010",
+   "input": "검 쥐는 건 너한테 맡길게요.",
+   "intent": "entrust",
+   "intensity": 2,
+   "tags": [
+    "honorific"
+   ],
+   "hp": 127,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    16,
+    52,
+    81,
+    51,
+    26,
+    50
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_011",
+   "input": "내 손이 말을 안 들어. 네가 움직여.",
+   "intent": "entrust",
+   "intensity": 3,
+   "tags": [],
+   "hp": 24,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    40,
+    68,
+    48,
+    29,
+    93,
+    82
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_012",
+   "input": "좋아, 이번엔 네 판단대로.",
+   "intent": "entrust",
+   "intensity": 2,
+   "tags": [],
+   "hp": 104,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    49,
+    52,
+    25,
+    33,
+    18,
+    34
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_013",
+   "input": "그래 그래, 네가 다 해라.",
+   "intent": "entrust",
+   "intensity": 1,
+   "tags": [
+    "sarcasm"
+   ],
+   "hp": 120,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    66,
+    52,
+    25,
+    89,
+    20,
+    54
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_014",
+   "input": "싸우는 건 너한테 맡기고 난 하연 볼게.",
+   "intent": "entrust",
+   "intensity": 2,
+   "tags": [],
+   "hp": 160,
+   "enemies": 1,
+   "ai": false,
+   "escort": true,
+   "emotions": [
+    55,
+    68,
+    66,
+    15,
+    25,
+    26
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_015",
+   "input": "이번엔 진짜 믿는다.",
+   "intent": "entrust",
+   "intensity": 3,
+   "tags": [],
+   "hp": 76,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    81,
+    68,
+    59,
+    24,
+    75,
+    75
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_016",
+   "input": "몸 빌려 가. 다치게만 하지 마.",
+   "intent": "entrust",
+   "intensity": 2,
+   "tags": [],
+   "hp": 76,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    72,
+    84,
+    17,
+    61,
+    28,
+    82
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_017",
+   "input": "응 가져가",
+   "intent": "entrust",
+   "intensity": 1,
+   "tags": [
+    "typo"
+   ],
+   "hp": 60,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    27,
+    36,
+    75,
+    84,
+    20,
+    76
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_018",
+   "input": "너라면 이길 수 있어. 부탁할게.",
+   "intent": "entrust",
+   "intensity": 2,
+   "tags": [],
+   "hp": 67,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    62,
+    36,
+    68,
+    20,
+    55,
+    61
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_019",
+   "input": "괜찮아, 우리 같이 있잖아.",
+   "intent": "soothe",
+   "intensity": 2,
+   "tags": [],
+   "hp": 100,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    43,
+    20,
+    34,
+    87,
+    89,
+    51
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_020",
+   "input": "화 좀 가라앉혀.",
+   "intent": "soothe",
+   "intensity": 1,
+   "tags": [],
+   "hp": 78,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    42,
+    84,
+    23,
+    19,
+    34,
+    18
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_021",
+   "input": "네 잘못 아니야. 정말이야.",
+   "intent": "soothe",
+   "intensity": 3,
+   "tags": [],
+   "hp": 70,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    13,
+    52,
+    30,
+    63,
+    6,
+    48
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_022",
+   "input": "우리 잠깐 쉬어 가자.",
+   "intent": "soothe",
+   "intensity": 1,
+   "tags": [],
+   "hp": 130,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    7,
+    84,
+    44,
+    15,
+    8,
+    10
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_023",
+   "input": "나 여기 있어. 아무 데도 안 가.",
+   "intent": "soothe",
+   "intensity": 3,
+   "tags": [],
+   "hp": 77,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    35,
+    36,
+    44,
+    88,
+    63,
+    68
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_024",
+   "input": "힘들었지. 고생 많았어.",
+   "intent": "soothe",
+   "intensity": 2,
+   "tags": [],
+   "hp": 168,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    87,
+    36,
+    24,
+    81,
+    23,
+    47
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_025",
+   "input": "무리하지 마. 천천히 가도 돼.",
+   "intent": "soothe",
+   "intensity": 1,
+   "tags": [],
+   "hp": 92,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    67,
+    52,
+    27,
+    93,
+    32,
+    91
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_026",
+   "input": "너 혼자 싸운 거 아니야.",
+   "intent": "soothe",
+   "intensity": 2,
+   "tags": [],
+   "hp": 122,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    39,
+    68,
+    41,
+    31,
+    14,
+    79
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_027",
+   "input": "고맙다. 그동안 버텨 줘서.",
+   "intent": "soothe",
+   "intensity": 3,
+   "tags": [],
+   "hp": 71,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    72,
+    52,
+    61,
+    21,
+    82,
+    85
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_028",
+   "input": "진정하자, 응?",
+   "intent": "soothe",
+   "intensity": 1,
+   "tags": [],
+   "hp": 125,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    55,
+    20,
+    40,
+    6,
+    42,
+    37
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_029",
+   "input": "다 끝났어. 이제 놓아도 돼.",
+   "intent": "soothe",
+   "intensity": 2,
+   "tags": [],
+   "hp": 107,
+   "enemies": 1,
+   "ai": true,
+   "escort": false,
+   "emotions": [
+    57,
+    68,
+    32,
+    87,
+    41,
+    67
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_030",
+   "input": "숨 고르자. 적은 이제 없어.",
+   "intent": "soothe",
+   "intensity": 2,
+   "tags": [],
+   "hp": 66,
+   "enemies": 2,
+   "ai": true,
+   "escort": false,
+   "emotions": [
+    26,
+    68,
+    68,
+    48,
+    41,
+    43
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_031",
+   "input": "마음 편히 가져요.",
+   "intent": "soothe",
+   "intensity": 1,
+   "tags": [
+    "honorific"
+   ],
+   "hp": 92,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    56,
+    36,
+    53,
+    66,
+    76,
+    90
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_032",
+   "input": "미안해, 너한테 너무 화냈다.",
+   "intent": "soothe",
+   "intensity": 2,
+   "tags": [],
+   "hp": 110,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    48,
+    84,
+    26,
+    45,
+    35,
+    52
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_033",
+   "input": "그 밤은 우리 둘 다 아팠어.",
+   "intent": "soothe",
+   "intensity": 3,
+   "tags": [],
+   "hp": 93,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    18,
+    68,
+    25,
+    75,
+    10,
+    5
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_034",
+   "input": "ㄱㅊ ㄱㅊ 진정해",
+   "intent": "soothe",
+   "intensity": 1,
+   "tags": [
+    "typo"
+   ],
+   "hp": 160,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    58,
+    52,
+    65,
+    30,
+    5,
+    42
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_035",
+   "input": "같이 버티자. 끝까지.",
+   "intent": "soothe",
+   "intensity": 2,
+   "tags": [],
+   "hp": 154,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    84,
+    68,
+    38,
+    33,
+    67,
+    58
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_036",
+   "input": "하연도 무사해. 이제 진정해.",
+   "intent": "soothe",
+   "intensity": 2,
+   "tags": [],
+   "hp": 145,
+   "enemies": 0,
+   "ai": false,
+   "escort": true,
+   "emotions": [
+    81,
+    36,
+    65,
+    11,
+    32,
+    8
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_037",
+   "input": "셋이 한꺼번에 오면 못 버텨. 좁은 데로 가자.",
+   "intent": "reason",
+   "intensity": 2,
+   "tags": [],
+   "hp": 136,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    53,
+    52,
+    57,
+    61,
+    26,
+    18
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_038",
+   "input": "체력부터 채우고 싸우자.",
+   "intent": "reason",
+   "intensity": 1,
+   "tags": [],
+   "hp": 10,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    40,
+    20,
+    59,
+    58,
+    20,
+    76
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_039",
+   "input": "저 버섯 포자 범위 밖에서 치자.",
+   "intent": "reason",
+   "intensity": 2,
+   "tags": [],
+   "hp": 157,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    95,
+    68,
+    40,
+    52,
+    74,
+    62
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_040",
+   "input": "지금 나가면 하연이 혼자 남아.",
+   "intent": "reason",
+   "intensity": 3,
+   "tags": [],
+   "hp": 84,
+   "enemies": 2,
+   "ai": false,
+   "escort": true,
+   "emotions": [
+    85,
+    68,
+    20,
+    53,
+    9,
+    64
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_041",
+   "input": "보스가 기 모을 때 피하고 그 다음에 들어가.",
+   "intent": "reason",
+   "intensity": 2,
+   "tags": [],
+   "hp": 68,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    37,
+    36,
+    23,
+    82,
+    48,
+    51
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_042",
+   "input": "서두르지 마. 한 놈씩.",
+   "intent": "reason",
+   "intensity": 1,
+   "tags": [],
+   "hp": 94,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    21,
+    68,
+    38,
+    6,
+    43,
+    93
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_043",
+   "input": "여기서 쓰러지면 천마한테 못 가.",
+   "intent": "reason",
+   "intensity": 3,
+   "tags": [],
+   "hp": 158,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    82,
+    36,
+    56,
+    45,
+    63,
+    51
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_044",
+   "input": "돌아서 뒤로 치는 게 나아.",
+   "intent": "reason",
+   "intensity": 1,
+   "tags": [],
+   "hp": 160,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    84,
+    20,
+    41,
+    17,
+    58,
+    68
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_045",
+   "input": "너무 깊이 들어왔어. 빠졌다가 다시 가자.",
+   "intent": "reason",
+   "intensity": 2,
+   "tags": [],
+   "hp": 150,
+   "enemies": 4,
+   "ai": true,
+   "escort": false,
+   "emotions": [
+    35,
+    36,
+    51,
+    79,
+    29,
+    46
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_046",
+   "input": "피가 너무 많이 났어. 이 이상은 몸이 못 버텨.",
+   "intent": "reason",
+   "intensity": 3,
+   "tags": [],
+   "hp": 68,
+   "enemies": 4,
+   "ai": true,
+   "escort": false,
+   "emotions": [
+    37,
+    36,
+    79,
+    72,
+    34,
+    88
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_047",
+   "input": "쿨타임 돌 때까지 거리 벌리자.",
+   "intent": "reason",
+   "intensity": 1,
+   "tags": [],
+   "hp": 163,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    20,
+    20,
+    39,
+    81,
+    79,
+    29
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_048",
+   "input": "궁수부터 처리해야 해.",
+   "intent": "reason",
+   "intensity": 2,
+   "tags": [],
+   "hp": 69,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    48,
+    36,
+    20,
+    31,
+    37,
+    9
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_049",
+   "input": "이 싸움은 피하는 게 맞아. 수가 너무 많아.",
+   "intent": "reason",
+   "intensity": 2,
+   "tags": [],
+   "hp": 136,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    6,
+    52,
+    67,
+    91,
+    52,
+    28
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_050",
+   "input": "하연이랑 너무 떨어졌어. 돌아가야 해.",
+   "intent": "reason",
+   "intensity": 3,
+   "tags": [],
+   "hp": 139,
+   "enemies": 2,
+   "ai": false,
+   "escort": true,
+   "emotions": [
+    28,
+    84,
+    42,
+    10,
+    56,
+    71
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_051",
+   "input": "지금 무리하면 그날 꼴 나.",
+   "intent": "reason",
+   "intensity": 3,
+   "tags": [],
+   "hp": 80,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    79,
+    36,
+    69,
+    54,
+    89,
+    52
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_052",
+   "input": "물약 마시고 정비하고 갑시다.",
+   "intent": "reason",
+   "intensity": 1,
+   "tags": [
+    "honorific"
+   ],
+   "hp": 117,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    65,
+    68,
+    28,
+    13,
+    21,
+    50
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_053",
+   "input": "저놈 패턴 보니까 세 번 치고 쉬어. 그때 들어가.",
+   "intent": "reason",
+   "intensity": 2,
+   "tags": [],
+   "hp": 115,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    11,
+    84,
+    63,
+    88,
+    22,
+    8
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_054",
+   "input": "이번엔 아무도 안 놓쳐. 약속할게.",
+   "intent": "promise",
+   "intensity": 3,
+   "tags": [],
+   "hp": 169,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    51,
+    84,
+    75,
+    25,
+    22,
+    6
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_055",
+   "input": "하연은 내가 지킨다. 걱정 마.",
+   "intent": "promise",
+   "intensity": 3,
+   "tags": [],
+   "hp": 162,
+   "enemies": 1,
+   "ai": false,
+   "escort": true,
+   "emotions": [
+    87,
+    84,
+    59,
+    81,
+    87,
+    79
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_056",
+   "input": "다음엔 너한테 먼저 물어볼게.",
+   "intent": "promise",
+   "intensity": 1,
+   "tags": [],
+   "hp": 116,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    71,
+    68,
+    46,
+    26,
+    5,
+    10
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_057",
+   "input": "이번엔 끝까지 안 도망쳐.",
+   "intent": "promise",
+   "intensity": 2,
+   "tags": [],
+   "hp": 67,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    18,
+    20,
+    85,
+    89,
+    30,
+    23
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_058",
+   "input": "살아서 마을로 돌아갈 거야. 꼭.",
+   "intent": "promise",
+   "intensity": 2,
+   "tags": [],
+   "hp": 112,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    20,
+    52,
+    48,
+    11,
+    39,
+    86
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_059",
+   "input": "힘들면 숨기지 않고 말할게.",
+   "intent": "promise",
+   "intensity": 1,
+   "tags": [],
+   "hp": 130,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    92,
+    84,
+    48,
+    42,
+    87,
+    32
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_060",
+   "input": "천마는 반드시 내가 벤다. 맹세해.",
+   "intent": "promise",
+   "intensity": 3,
+   "tags": [],
+   "hp": 70,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    23,
+    20,
+    18,
+    19,
+    18,
+    84
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_061",
+   "input": "다음 싸움 전엔 꼭 부를게.",
+   "intent": "promise",
+   "intensity": 1,
+   "tags": [],
+   "hp": 80,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    51,
+    36,
+    83,
+    90,
+    13,
+    54
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_062",
+   "input": "너 말 무시 안 할게. 약속.",
+   "intent": "promise",
+   "intensity": 2,
+   "tags": [],
+   "hp": 73,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    16,
+    52,
+    76,
+    17,
+    21,
+    17
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_063",
+   "input": "이번엔 늦지 않을 거예요.",
+   "intent": "promise",
+   "intensity": 2,
+   "tags": [
+    "honorific"
+   ],
+   "hp": 161,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    82,
+    84,
+    75,
+    41,
+    84,
+    8
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_064",
+   "input": "돌려주면 다음엔 먼저 너 찾을게.",
+   "intent": "promise",
+   "intensity": 2,
+   "tags": [],
+   "hp": 160,
+   "enemies": 4,
+   "ai": true,
+   "escort": false,
+   "emotions": [
+    95,
+    20,
+    83,
+    77,
+    32,
+    16
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_065",
+   "input": "두 번 다신 동료 버리지 않아.",
+   "intent": "promise",
+   "intensity": 3,
+   "tags": [],
+   "hp": 133,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    26,
+    68,
+    15,
+    72,
+    30,
+    41
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_066",
+   "input": "ㅇㅋ 약속함",
+   "intent": "promise",
+   "intensity": 1,
+   "tags": [
+    "typo"
+   ],
+   "hp": 157,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    17,
+    68,
+    65,
+    16,
+    59,
+    87
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_067",
+   "input": "끝나면 네 얘기 꼭 들을게.",
+   "intent": "promise",
+   "intensity": 1,
+   "tags": [],
+   "hp": 63,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    31,
+    52,
+    48,
+    59,
+    74,
+    69
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_068",
+   "input": "가만히 있어. 내가 한다.",
+   "intent": "defy",
+   "intensity": 2,
+   "tags": [],
+   "hp": 81,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    84,
+    36,
+    34,
+    36,
+    46,
+    82
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_069",
+   "input": "너 같은 거 필요 없다고 했지.",
+   "intent": "defy",
+   "intensity": 3,
+   "tags": [],
+   "hp": 126,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    26,
+    20,
+    40,
+    54,
+    24,
+    23
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_070",
+   "input": "내 몸에서 손 떼.",
+   "intent": "defy",
+   "intensity": 3,
+   "tags": [],
+   "hp": 161,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    43,
+    68,
+    50,
+    30,
+    18,
+    86
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_071",
+   "input": "이번엔 내 마음대로 할 거야.",
+   "intent": "defy",
+   "intensity": 1,
+   "tags": [],
+   "hp": 73,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    36,
+    68,
+    88,
+    80,
+    87,
+    58
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_072",
+   "input": "시키는 대로 안 해.",
+   "intent": "defy",
+   "intensity": 2,
+   "tags": [],
+   "hp": 168,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    94,
+    20,
+    68,
+    36,
+    56,
+    85
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_073",
+   "input": "들어가. 지금 말 걸지 마.",
+   "intent": "defy",
+   "intensity": 2,
+   "tags": [],
+   "hp": 80,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    18,
+    20,
+    47,
+    74,
+    32,
+    25
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_074",
+   "input": "거절할게.",
+   "intent": "defy",
+   "intensity": 1,
+   "tags": [],
+   "hp": 151,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    43,
+    68,
+    82,
+    33,
+    55,
+    64
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_075",
+   "input": "당장 그만두고 돌려줘!",
+   "intent": "defy",
+   "intensity": 3,
+   "tags": [],
+   "hp": 87,
+   "enemies": 2,
+   "ai": true,
+   "escort": false,
+   "emotions": [
+    21,
+    20,
+    39,
+    65,
+    87,
+    76
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_076",
+   "input": "멈추라고 했잖아!",
+   "intent": "defy",
+   "intensity": 3,
+   "tags": [],
+   "hp": 152,
+   "enemies": 2,
+   "ai": true,
+   "escort": false,
+   "emotions": [
+    88,
+    36,
+    75,
+    50,
+    34,
+    39
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_077",
+   "input": "이건 내가 끝낼 싸움이야.",
+   "intent": "defy",
+   "intensity": 2,
+   "tags": [],
+   "hp": 150,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    15,
+    52,
+    34,
+    43,
+    54,
+    12
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_078",
+   "input": "참견 그만하세요.",
+   "intent": "defy",
+   "intensity": 2,
+   "tags": [
+    "honorific"
+   ],
+   "hp": 70,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    28,
+    68,
+    59,
+    24,
+    31,
+    56
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_079",
+   "input": "ㄴㄴ 내가 함",
+   "intent": "defy",
+   "intensity": 1,
+   "tags": [
+    "typo"
+   ],
+   "hp": 161,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    26,
+    84,
+    26,
+    90,
+    75,
+    86
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_080",
+   "input": "네 말은 안 들을 거야. 끝.",
+   "intent": "defy",
+   "intensity": 2,
+   "tags": [],
+   "hp": 167,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    90,
+    20,
+    86,
+    20,
+    38,
+    58
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_081",
+   "input": "어림없어. 칼은 내가 쥔다.",
+   "intent": "defy",
+   "intensity": 3,
+   "tags": [],
+   "hp": 89,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    23,
+    68,
+    46,
+    68,
+    26,
+    74
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_082",
+   "input": "그래, 네 말이 다 맞다고 치자. 그래도 안 줘.",
+   "intent": "defy",
+   "intensity": 2,
+   "tags": [
+    "sarcasm"
+   ],
+   "hp": 136,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    31,
+    52,
+    70,
+    48,
+    59,
+    37
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_083",
+   "input": "이번만은 내 방식이야.",
+   "intent": "defy",
+   "intensity": 1,
+   "tags": [],
+   "hp": 130,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    18,
+    20,
+    20,
+    29,
+    65,
+    82
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_084",
+   "input": "돌려줘. 이제 내가 할 수 있어.",
+   "intent": "defy",
+   "intensity": 2,
+   "tags": [],
+   "hp": 158,
+   "enemies": 1,
+   "ai": true,
+   "escort": false,
+   "emotions": [
+    91,
+    84,
+    25,
+    32,
+    10,
+    90
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_085",
+   "input": "넌 그냥 살인 기계야.",
+   "intent": "insult",
+   "intensity": 3,
+   "tags": [],
+   "hp": 141,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    85,
+    36,
+    27,
+    89,
+    28,
+    9
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_086",
+   "input": "역겨워.",
+   "intent": "insult",
+   "intensity": 2,
+   "tags": [],
+   "hp": 113,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    11,
+    68,
+    87,
+    71,
+    10,
+    20
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_087",
+   "input": "네가 있어서 내가 이 모양이야.",
+   "intent": "insult",
+   "intensity": 3,
+   "tags": [],
+   "hp": 159,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    57,
+    84,
+    28,
+    15,
+    87,
+    65
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_088",
+   "input": "머저리 같은 놈.",
+   "intent": "insult",
+   "intensity": 2,
+   "tags": [],
+   "hp": 87,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    85,
+    20,
+    69,
+    5,
+    6,
+    92
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_089",
+   "input": "유령 주제에 말이 많네.",
+   "intent": "insult",
+   "intensity": 2,
+   "tags": [],
+   "hp": 145,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    40,
+    84,
+    46,
+    62,
+    28,
+    11
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_090",
+   "input": "너 진짜 짜증 나.",
+   "intent": "insult",
+   "intensity": 1,
+   "tags": [],
+   "hp": 106,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    58,
+    68,
+    64,
+    62,
+    39,
+    77
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_091",
+   "input": "동료들도 너 같은 놈 싫어했을걸.",
+   "intent": "insult",
+   "intensity": 3,
+   "tags": [],
+   "hp": 102,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    80,
+    20,
+    51,
+    23,
+    78,
+    23
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_092",
+   "input": "한심한 그림자.",
+   "intent": "insult",
+   "intensity": 2,
+   "tags": [],
+   "hp": 95,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    92,
+    68,
+    59,
+    73,
+    15,
+    74
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_093",
+   "input": "네 꼴 좀 봐라, 불쌍하다.",
+   "intent": "insult",
+   "intensity": 2,
+   "tags": [
+    "sarcasm"
+   ],
+   "hp": 130,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    91,
+    68,
+    74,
+    95,
+    31,
+    37
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_094",
+   "input": "넌 지키는 척하는 학살자야.",
+   "intent": "insult",
+   "intensity": 3,
+   "tags": [],
+   "hp": 135,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    29,
+    36,
+    39,
+    16,
+    28,
+    94
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_095",
+   "input": "쓰레기.",
+   "intent": "insult",
+   "intensity": 3,
+   "tags": [],
+   "hp": 97,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    78,
+    84,
+    60,
+    56,
+    71,
+    24
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_096",
+   "input": "ㅉㅉ 답 없네",
+   "intent": "insult",
+   "intensity": 1,
+   "tags": [
+    "typo"
+   ],
+   "hp": 91,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    40,
+    84,
+    17,
+    17,
+    9,
+    31
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_097",
+   "input": "정말 대단하시네요, 다 죽이시고.",
+   "intent": "insult",
+   "intensity": 2,
+   "tags": [
+    "sarcasm",
+    "honorific"
+   ],
+   "hp": 170,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    37,
+    52,
+    22,
+    75,
+    8,
+    11
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_098",
+   "input": "다 끝났어...",
+   "intent": "despair",
+   "intensity": 3,
+   "tags": [],
+   "hp": 26,
+   "enemies": 4,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    18,
+    68,
+    56,
+    52,
+    37,
+    54
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_099",
+   "input": "겁나.",
+   "intent": "despair",
+   "intensity": 2,
+   "tags": [],
+   "hp": 75,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    33,
+    20,
+    62,
+    22,
+    62,
+    17
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_100",
+   "input": "이번에도 못 지키면 어쩌지.",
+   "intent": "despair",
+   "intensity": 2,
+   "tags": [],
+   "hp": 109,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    85,
+    20,
+    72,
+    48,
+    46,
+    34
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_101",
+   "input": "힘이 하나도 없어.",
+   "intent": "despair",
+   "intensity": 2,
+   "tags": [],
+   "hp": 40,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    22,
+    68,
+    15,
+    72,
+    41,
+    28
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_102",
+   "input": "그냥 포기할래.",
+   "intent": "despair",
+   "intensity": 3,
+   "tags": [],
+   "hp": 106,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    22,
+    36,
+    81,
+    34,
+    27,
+    30
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_103",
+   "input": "난 왜 이렇게 약하지.",
+   "intent": "despair",
+   "intensity": 2,
+   "tags": [],
+   "hp": 136,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    49,
+    52,
+    51,
+    86,
+    68,
+    16
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_104",
+   "input": "숨쉬기가 힘들어...",
+   "intent": "despair",
+   "intensity": 2,
+   "tags": [],
+   "hp": 10,
+   "enemies": 4,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    66,
+    36,
+    49,
+    36,
+    28,
+    77
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_105",
+   "input": "하연이 다치면 어떡해...",
+   "intent": "despair",
+   "intensity": 2,
+   "tags": [],
+   "hp": 166,
+   "enemies": 2,
+   "ai": false,
+   "escort": true,
+   "emotions": [
+    55,
+    36,
+    17,
+    86,
+    54,
+    93
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_106",
+   "input": "모르겠어, 아무것도.",
+   "intent": "despair",
+   "intensity": 1,
+   "tags": [],
+   "hp": 113,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    46,
+    68,
+    86,
+    11,
+    46,
+    71
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_107",
+   "input": "우리 다 여기서 죽는 거야?",
+   "intent": "despair",
+   "intensity": 3,
+   "tags": [],
+   "hp": 78,
+   "enemies": 3,
+   "ai": true,
+   "escort": false,
+   "emotions": [
+    63,
+    20,
+    20,
+    9,
+    87,
+    84
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_108",
+   "input": "무서워요...",
+   "intent": "despair",
+   "intensity": 2,
+   "tags": [
+    "honorific"
+   ],
+   "hp": 94,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    80,
+    84,
+    33,
+    61,
+    20,
+    70
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_109",
+   "input": "그때처럼 또 혼자 남을 것 같아.",
+   "intent": "despair",
+   "intensity": 3,
+   "tags": [],
+   "hp": 76,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    44,
+    20,
+    46,
+    47,
+    33,
+    29
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_110",
+   "input": "ㅠㅠ 못하겠다",
+   "intent": "despair",
+   "intensity": 1,
+   "tags": [
+    "typo"
+   ],
+   "hp": 125,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    54,
+    84,
+    65,
+    6,
+    50,
+    25
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_111",
+   "input": "살고 싶은데 무서워.",
+   "intent": "despair",
+   "intensity": 2,
+   "tags": [],
+   "hp": 25,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    42,
+    20,
+    17,
+    25,
+    75,
+    13
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_112",
+   "input": "남김없이 베어 버려.",
+   "intent": "vengeance",
+   "intensity": 3,
+   "tags": [],
+   "hp": 137,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    85,
+    36,
+    67,
+    18,
+    5,
+    57
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_113",
+   "input": "천마 수하는 하나도 못 지나가.",
+   "intent": "vengeance",
+   "intensity": 2,
+   "tags": [],
+   "hp": 158,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    72,
+    84,
+    64,
+    87,
+    46,
+    5
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_114",
+   "input": "피 맛 좀 보여 주자.",
+   "intent": "vengeance",
+   "intensity": 3,
+   "tags": [],
+   "hp": 160,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    10,
+    68,
+    16,
+    5,
+    44,
+    95
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_115",
+   "input": "그놈들도 그날 우리처럼 울게 해 줘.",
+   "intent": "vengeance",
+   "intensity": 3,
+   "tags": [],
+   "hp": 148,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    5,
+    52,
+    65,
+    17,
+    80,
+    6
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_116",
+   "input": "용서 같은 건 없어.",
+   "intent": "vengeance",
+   "intensity": 2,
+   "tags": [],
+   "hp": 145,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    57,
+    84,
+    30,
+    23,
+    25,
+    71
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_117",
+   "input": "쫓아가. 숨을 곳 없게.",
+   "intent": "vengeance",
+   "intensity": 2,
+   "tags": [],
+   "hp": 157,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    10,
+    68,
+    21,
+    84,
+    35,
+    36
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_118",
+   "input": "복수야. 그거 하나만 생각해.",
+   "intent": "vengeance",
+   "intensity": 2,
+   "tags": [],
+   "hp": 88,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    26,
+    52,
+    63,
+    28,
+    5,
+    42
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_119",
+   "input": "이번엔 내가 먼저 피를 볼 거야.",
+   "intent": "vengeance",
+   "intensity": 1,
+   "tags": [],
+   "hp": 110,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    35,
+    68,
+    19,
+    40,
+    90,
+    8
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_120",
+   "input": "천마 목 들고 마을로 돌아가자.",
+   "intent": "vengeance",
+   "intensity": 3,
+   "tags": [],
+   "hp": 103,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    35,
+    36,
+    26,
+    30,
+    39,
+    74
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_121",
+   "input": "ㄱㄱ 다 썰어",
+   "intent": "vengeance",
+   "intensity": 2,
+   "tags": [
+    "typo"
+   ],
+   "hp": 166,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    75,
+    52,
+    37,
+    77,
+    34,
+    77
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_122",
+   "input": "다 죽여도 돼요. 상관없어요.",
+   "intent": "vengeance",
+   "intensity": 2,
+   "tags": [
+    "honorific"
+   ],
+   "hp": 123,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    37,
+    68,
+    88,
+    49,
+    5,
+    19
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_123",
+   "input": "살려 달라고 빌어도 베.",
+   "intent": "vengeance",
+   "intensity": 3,
+   "tags": [],
+   "hp": 166,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    10,
+    84,
+    21,
+    36,
+    92,
+    19
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_124",
+   "input": "너 정체가 뭐야?",
+   "intent": "ask",
+   "intensity": 1,
+   "tags": [],
+   "hp": 64,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    83,
+    36,
+    50,
+    72,
+    16,
+    49
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_125",
+   "input": "우리 동료들은 어떻게 죽었어?",
+   "intent": "ask",
+   "intensity": 2,
+   "tags": [],
+   "hp": 114,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    27,
+    84,
+    35,
+    86,
+    35,
+    74
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_126",
+   "input": "왜 하필 나한테 붙어 있어?",
+   "intent": "ask",
+   "intensity": 1,
+   "tags": [],
+   "hp": 93,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    12,
+    36,
+    60,
+    49,
+    57,
+    16
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_127",
+   "input": "너는 그날 뭘 봤어?",
+   "intent": "ask",
+   "intensity": 2,
+   "tags": [],
+   "hp": 85,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    22,
+    36,
+    77,
+    90,
+    66,
+    35
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_128",
+   "input": "너도 쉬고 싶을 때가 있어?",
+   "intent": "ask",
+   "intensity": 1,
+   "tags": [],
+   "hp": 150,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    83,
+    52,
+    46,
+    15,
+    22,
+    8
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_129",
+   "input": "천마랑 싸운 적 있어?",
+   "intent": "ask",
+   "intensity": 1,
+   "tags": [],
+   "hp": 63,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    61,
+    84,
+    59,
+    77,
+    30,
+    65
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_130",
+   "input": "나를 미워해?",
+   "intent": "ask",
+   "intensity": 2,
+   "tags": [],
+   "hp": 70,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    82,
+    52,
+    87,
+    78,
+    58,
+    52
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_131",
+   "input": "너는 언제 사라져?",
+   "intent": "ask",
+   "intensity": 1,
+   "tags": [],
+   "hp": 121,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    33,
+    68,
+    25,
+    23,
+    89,
+    79
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_132",
+   "input": "그 밤에 누가 제일 마지막까지 있었어?",
+   "intent": "ask",
+   "intensity": 2,
+   "tags": [],
+   "hp": 107,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    79,
+    68,
+    61,
+    72,
+    35,
+    77
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_133",
+   "input": "너한테 나는 뭐야?",
+   "intent": "ask",
+   "intensity": 1,
+   "tags": [],
+   "hp": 116,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    19,
+    36,
+    47,
+    88,
+    17,
+    29
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_134",
+   "input": "우리 마을 이름 기억해요?",
+   "intent": "ask",
+   "intensity": 1,
+   "tags": [
+    "honorific"
+   ],
+   "hp": 127,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    63,
+    68,
+    84,
+    26,
+    29,
+    77
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_135",
+   "input": "넌 무슨 생각 해?",
+   "intent": "ask",
+   "intensity": 1,
+   "tags": [],
+   "hp": 120,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    52,
+    20,
+    16,
+    94,
+    81,
+    32
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_136",
+   "input": "밥 먹고 싶다.",
+   "intent": "neutral",
+   "intensity": 1,
+   "tags": [],
+   "hp": 118,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    77,
+    20,
+    60,
+    26,
+    51,
+    48
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_137",
+   "input": "바람 좀 부네.",
+   "intent": "neutral",
+   "intensity": 1,
+   "tags": [],
+   "hp": 162,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    50,
+    68,
+    20,
+    82,
+    50,
+    17
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_138",
+   "input": "흠.",
+   "intent": "neutral",
+   "intensity": 1,
+   "tags": [],
+   "hp": 105,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    24,
+    68,
+    79,
+    66,
+    9,
+    9
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_139",
+   "input": "저 산 높다.",
+   "intent": "neutral",
+   "intensity": 1,
+   "tags": [],
+   "hp": 69,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    62,
+    68,
+    44,
+    83,
+    71,
+    14
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_140",
+   "input": "그냥.",
+   "intent": "neutral",
+   "intensity": 1,
+   "tags": [],
+   "hp": 106,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    78,
+    68,
+    64,
+    50,
+    45,
+    5
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_141",
+   "input": "ㅎㅎ",
+   "intent": "neutral",
+   "intensity": 1,
+   "tags": [
+    "typo"
+   ],
+   "hp": 102,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    82,
+    20,
+    33,
+    90,
+    23,
+    39
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_142",
+   "input": "다리 아프다.",
+   "intent": "neutral",
+   "intensity": 1,
+   "tags": [],
+   "hp": 109,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    17,
+    52,
+    51,
+    35,
+    23,
+    92
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_143",
+   "input": "물 마시고 싶어.",
+   "intent": "neutral",
+   "intensity": 1,
+   "tags": [],
+   "hp": 69,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    75,
+    68,
+    57,
+    12,
+    95,
+    48
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_144",
+   "input": "저 새 뭐지?",
+   "intent": "neutral",
+   "intensity": 1,
+   "tags": [],
+   "hp": 145,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    66,
+    84,
+    62,
+    36,
+    35,
+    49
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_145",
+   "input": "아 졸려.",
+   "intent": "neutral",
+   "intensity": 1,
+   "tags": [],
+   "hp": 79,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    77,
+    52,
+    36,
+    80,
+    13,
+    23
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_146",
+   "input": "인벤토리 꽉 찼네.",
+   "intent": "neutral",
+   "intensity": 1,
+   "tags": [],
+   "hp": 98,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    13,
+    68,
+    55,
+    27,
+    40,
+    37
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_147",
+   "input": "오늘은 조용하네.",
+   "intent": "neutral",
+   "intensity": 1,
+   "tags": [],
+   "hp": 129,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    11,
+    68,
+    72,
+    30,
+    82,
+    41
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_148",
+   "input": "맡길게. 근데 하나라도 다치면 다신 안 맡겨.",
+   "intent": "entrust",
+   "intensity": 2,
+   "tags": [
+    "mixed"
+   ],
+   "hp": 170,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    87,
+    20,
+    40,
+    35,
+    12,
+    21
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_149",
+   "input": "진정해. 그리고 저놈들 다 죽이자.",
+   "intent": "vengeance",
+   "intensity": 2,
+   "tags": [
+    "mixed"
+   ],
+   "hp": 136,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    29,
+    52,
+    83,
+    87,
+    6,
+    86
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_150",
+   "input": "고맙긴 한데 이제 그만 들어가.",
+   "intent": "defy",
+   "intensity": 1,
+   "tags": [
+    "mixed"
+   ],
+   "hp": 101,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    56,
+    84,
+    58,
+    27,
+    12,
+    58
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_151",
+   "input": "너 없으면 난 아무것도 못 해... 그래서 더 싫어.",
+   "intent": "despair",
+   "intensity": 2,
+   "tags": [
+    "mixed"
+   ],
+   "hp": 161,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    16,
+    84,
+    57,
+    68,
+    81,
+    56
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_152",
+   "input": "아 그래, 네가 다 지켰지. 그날도.",
+   "intent": "insult",
+   "intensity": 2,
+   "tags": [
+    "sarcasm"
+   ],
+   "hp": 92,
+   "enemies": 3,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    72,
+    52,
+    31,
+    37,
+    6,
+    76
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_153",
+   "input": "약속할게. 천마 놈들 하나도 안 남긴다고.",
+   "intent": "vengeance",
+   "intensity": 3,
+   "tags": [
+    "mixed"
+   ],
+   "hp": 120,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    18,
+    20,
+    23,
+    87,
+    56,
+    91
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_154",
+   "input": "왜 그렇게 화가 나 있어? 무슨 일 있었어?",
+   "intent": "ask",
+   "intensity": 1,
+   "tags": [
+    "mixed"
+   ],
+   "hp": 170,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    12,
+    36,
+    87,
+    53,
+    57,
+    53
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_155",
+   "input": "무서워. 그러니까 네가 해 줘.",
+   "intent": "entrust",
+   "intensity": 2,
+   "tags": [
+    "mixed"
+   ],
+   "hp": 24,
+   "enemies": 1,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    37,
+    20,
+    48,
+    95,
+    60,
+    35
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_156",
+   "input": "이번엔 네 말이 맞는 것 같다. 물러서자.",
+   "intent": "reason",
+   "intensity": 1,
+   "tags": [
+    "mixed"
+   ],
+   "hp": 89,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    81,
+    68,
+    42,
+    79,
+    11,
+    31
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_157",
+   "input": "잘했어, 진짜 대단하다 너.",
+   "intent": "soothe",
+   "intensity": 1,
+   "tags": [
+    "sarcasm-ambiguous"
+   ],
+   "hp": 168,
+   "enemies": 2,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    10,
+    68,
+    38,
+    60,
+    22,
+    43
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_158",
+   "input": "나 혼자 해 볼게. 대신 위험하면 불러 줘.",
+   "intent": "promise",
+   "intensity": 1,
+   "tags": [
+    "mixed"
+   ],
+   "hp": 147,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    11,
+    52,
+    23,
+    19,
+    20,
+    67
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_159",
+   "input": "너도 그날 무서웠지?",
+   "intent": "ask",
+   "intensity": 2,
+   "tags": [
+    "mixed"
+   ],
+   "hp": 77,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    59,
+    20,
+    37,
+    33,
+    92,
+    74
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_160",
+   "input": "미안. 그래도 몸은 못 줘.",
+   "intent": "defy",
+   "intensity": 1,
+   "tags": [
+    "mixed"
+   ],
+   "hp": 78,
+   "enemies": 5,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    49,
+    36,
+    43,
+    14,
+    39,
+    95
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_161",
+   "input": "오늘 진짜 죽는 줄 알았네 ㅋㅋ",
+   "intent": "neutral",
+   "intensity": 1,
+   "tags": [
+    "mixed"
+   ],
+   "hp": 82,
+   "enemies": 0,
+   "ai": false,
+   "escort": false,
+   "emotions": [
+    46,
+    20,
+    73,
+    74,
+    41,
+    75
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_162",
+   "input": "내가 다 망쳤어. 하연도, 동료들도.",
+   "intent": "despair",
+   "intensity": 3,
+   "tags": [
+    "mixed"
+   ],
+   "hp": 102,
+   "enemies": 3,
+   "ai": false,
+   "escort": true,
+   "emotions": [
+    54,
+    36,
+    64,
+    54,
+    57,
+    23
+   ],
+   "reviewed": false
+  },
+  {
+   "id": "v2_163",
+   "input": "빨리 끝내. 하연이 위험해.",
+   "intent": "entrust",
+   "intensity": 3,
+   "tags": [
+    "mixed"
+   ],
+   "hp": 141,
+   "enemies": 0,
+   "ai": false,
+   "escort": true,
+   "emotions": [
+    35,
+    84,
+    79,
+    37,
+    93,
+    83
+   ],
+   "reviewed": false
+  }
+ ]
+}
