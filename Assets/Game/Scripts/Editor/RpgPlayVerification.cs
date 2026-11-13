@@ -61,7 +61,8 @@ public static class RpgPlayVerification
         if (state == PlayModeStateChange.EnteredEditMode)
         {
             SessionState.SetBool(Pending, false); SaveSystem.VerificationDirectory = null;
-            EditorApplication.Exit(SessionState.GetInt("RpgPlayVerification.Exit", 1));
+            // 일괄 실행에서만 종료한다. 열린 에디터에서 돌리면 결과만 남기고 에디터는 그대로 둔다
+            if (Application.isBatchMode) EditorApplication.Exit(SessionState.GetInt("RpgPlayVerification.Exit", 1));
         }
     }
 
@@ -90,7 +91,7 @@ public static class RpgPlayVerification
             var lifecycleAI = stats.GetComponent<AIController>();
             lifecycleAI.enabled = false;
             typeof(ControlManager).GetMethod("OnDestroy", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(lifecycleControl, null);
-            Set(lifecycleMood, "isAIControlled", true);
+            typeof(EmotionSystem).GetProperty("IsAIControlled").GetSetMethod(true).Invoke(lifecycleMood, new object[] { true });
             typeof(ControlManager).GetMethod("Start", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(lifecycleControl, null);
             Check(!lifecycleControl.IsPlayerControlled, "late control subscription synchronizes current mood state");
             lifecycleAI.enabled = true;
