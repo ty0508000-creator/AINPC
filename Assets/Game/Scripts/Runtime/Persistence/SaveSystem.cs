@@ -138,8 +138,8 @@ public static class SaveSystem
         attributeRanks = (int[])stats.AttributeRanks.Clone(), skillRanks = (int[])stats.SkillRanks.Clone(),
         hasCheckpoint = true, checkpointScene = stats.CheckpointScene,
         checkpointPosition = stats.CheckpointPosition,
-        hasMood = stats.GetComponent<MoodSystem>() != null,
-        mood = stats.GetComponent<MoodSystem>() != null ? stats.GetComponent<MoodSystem>().Mood : 0f,
+        hasEmotions = stats.GetComponent<EmotionSystem>() != null,
+        emotions = stats.GetComponent<EmotionSystem>() != null ? stats.GetComponent<EmotionSystem>().Capture() : null,
         storyChoices = StoryChoiceManager.Instance != null ? StoryChoiceManager.Instance.Capture() : null,
         inventory = stats.GetComponent<PlayerInventory>() != null
             ? stats.GetComponent<PlayerInventory>().Capture()
@@ -208,6 +208,9 @@ public static class SaveSystem
             throw new InvalidDataException("체크포인트 좌표 오류");
         if (data.hasMood && (!Finite(data.mood) || data.mood < 0f || data.mood > 100f))
             throw new InvalidDataException("Mood 저장값 오류");
+        if (data.hasEmotions && (data.emotions == null || data.emotions.Length != 5 ||
+                                 Array.Exists(data.emotions, v => !Finite(v) || v < 0f || v > 100f)))
+            throw new InvalidDataException("감정 저장값 오류");
         if (data.snapshotVersion >= 1) QuestSaveSystem.Validate(data.quests);
         StoryChoiceManager.Validate(data.storyChoices);
         if (data.snapshotVersion >= 2) PlayerInventory.Validate(data.inventory, data.equipped);

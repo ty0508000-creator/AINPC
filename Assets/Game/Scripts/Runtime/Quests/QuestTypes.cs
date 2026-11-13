@@ -40,13 +40,19 @@ public class QuestObjective
 
 /// <summary>
 /// 퀘스트 결과에 붙는 보상/대가. 이 게임의 보상은 아이템이 아니라
-/// "기분(mood)" 과 "인격이 기억하는 내용" 이 핵심이다.
+/// "어둠의 감정" 과 "인격이 기억하는 내용" 이 핵심이다.
 /// </summary>
 [Serializable]
 public class QuestOutcome
 {
-    [Tooltip("기분 게이지 변화량. 음수면 하락 → 강탈에 가까워진다")]
+    [Tooltip("예전 감정 수치 하나의 변화량. emotion 이 비어 있으면 EmotionRules.FromLegacyMood 로 바꿔 쓴다")]
     public float moodDelta = 0f;
+
+    [Tooltip("어둠의 감정 변화. 채우면 moodDelta 대신 이것을 쓴다")]
+    public EmotionDelta emotion;
+
+    /// <summary>실제로 적용할 감정 변화.</summary>
+    public EmotionDelta EmotionChange => EmotionRules.Resolve(emotion, moodDelta);
 
     [Min(0)] public float expReward = 0f;
 

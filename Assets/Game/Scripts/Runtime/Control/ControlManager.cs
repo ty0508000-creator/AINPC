@@ -8,15 +8,15 @@ public class ControlManager : MonoBehaviour
     public event Action OnAITakeover;
     public event Action OnPlayerRestored;
 
-    private MoodSystem moodSystem;
+    private EmotionSystem emotionSystem;
 
     void Start()
     {
-        moodSystem = GetComponent<MoodSystem>();
-        if (moodSystem == null) return;
-        moodSystem.OnAITakeover += HandleAITakeover;
-        moodSystem.OnPlayerRestored += HandlePlayerRestored;
-        if (moodSystem.IsAIControlled) HandleAITakeover();
+        emotionSystem = GetComponent<EmotionSystem>();
+        if (emotionSystem == null) return;
+        emotionSystem.OnAITakeover += HandleAITakeover;
+        emotionSystem.OnPlayerRestored += HandlePlayerRestored;
+        if (emotionSystem.IsAIControlled) HandleAITakeover();
     }
 
     void HandleAITakeover()
@@ -42,8 +42,8 @@ public class ControlManager : MonoBehaviour
 
     void OnDestroy()
     {
-        if (moodSystem == null) return;
-        moodSystem.OnAITakeover -= HandleAITakeover;
-        moodSystem.OnPlayerRestored -= HandlePlayerRestored;
+        if (emotionSystem == null) return;
+        emotionSystem.OnAITakeover -= HandleAITakeover;
+        emotionSystem.OnPlayerRestored -= HandlePlayerRestored;
     }
 }

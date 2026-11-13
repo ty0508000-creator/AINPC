@@ -27,7 +27,7 @@ public class QuestRuntime
 
 /// <summary>
 /// 퀘스트 진행 허브. 목표 달성 보고를 받아 상태를 갱신하고,
-/// 결과를 기분(MoodSystem) / 기억(MemoryManager) / 내면 세계(InnerVoiceManager) 로 흘려보낸다.
+/// 결과를 감정(EmotionSystem) / 기억(MemoryManager) / 내면 세계(InnerVoiceManager) 로 흘려보낸다.
 ///
 /// 사용: 씬의 GameObject 하나에 붙인다. quests 를 비워두면
 /// Resources/Quests 폴더의 QuestData 를 전부 자동 로드한다.
@@ -40,7 +40,7 @@ public class QuestManager : MonoBehaviour
     [SerializeField] private QuestData[] quests = Array.Empty<QuestData>();
 
     [Header("연결 (비우면 자동 탐색)")]
-    [SerializeField] private MoodSystem moodSystem;
+    [SerializeField] private EmotionSystem moodSystem;   // 필드 이름은 씬 참조를 지키려고 그대로 둔다
     [SerializeField] private MemoryManager memory;
     [SerializeField] private InnerVoiceManager innerVoice;
     [SerializeField] private PlayerStats playerStats;
@@ -87,7 +87,7 @@ public class QuestManager : MonoBehaviour
 
     void Start()
     {
-        if (moodSystem == null)  moodSystem  = FindFirstObjectByType<MoodSystem>();
+        if (moodSystem == null)  moodSystem  = FindFirstObjectByType<EmotionSystem>();
         if (memory == null)      memory      = FindFirstObjectByType<MemoryManager>();
         if (innerVoice == null)  innerVoice  = FindFirstObjectByType<InnerVoiceManager>();
         if (playerStats == null) playerStats = FindFirstObjectByType<PlayerStats>();
@@ -268,7 +268,7 @@ public class QuestManager : MonoBehaviour
         // No events, async work, or intermediate saves inside this core mutation.
         r.State = state;
         if (outcome != null) playerStats?.ApplyExperience(outcome.expReward);
-        if (outcome != null) moodSystem?.ApplyQuestDelta(outcome.moodDelta);
+        if (outcome != null) moodSystem?.ApplySilently(outcome.EmotionChange);
         var unlocked = new List<QuestRuntime>();
         if (outcome?.unlockQuestIds != null)
             foreach (string id in outcome.unlockQuestIds)
@@ -304,8 +304,11 @@ public class QuestManager : MonoBehaviour
     {
         if (outcome == null) return;
 
-        if (outcome.moodDelta != 0f && moodSystem != null)
-            moodSystem.NotifyQuestDelta();
+        if (!outcome.EmotionChange.IsZero && moodSystem != null)
+        {
+            ResearchLog.EmotionEvent("quest_outcome", outcome.EmotionChange);
+            moodSystem.Notify();
+        }
 
         // 인격이 나중에 끄집어낼 수 있도록 기억에 남긴다 (실패일수록 중요)
         if (!string.IsNullOrWhiteSpace(outcome.memoryLine) && memory != null)

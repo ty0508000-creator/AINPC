@@ -9,6 +9,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+/// <summary>내면 대화 응답 형식. Intent = 의도 분류(C, 게임 기본), Direct = 감정 변화량 직접 출력(A, 비교 실험).</summary>
+public enum InnerOutputFormat { Intent, Direct }
+
 public class InnerVoiceManager : MonoBehaviour
 {
     [Header("Trigger")]
@@ -29,10 +32,15 @@ public class InnerVoiceManager : MonoBehaviour
     [Header("인격 설정")]
     [Tooltip("내면 대화 한 번에 주고받는 턴 수. 다 쓰면 현실로 돌아간다.")]
     [SerializeField, Min(1)] private int maxTurns = 1;
-    [Tooltip("주인공과 어둠의 배경. 시스템 프롬프트 맨 앞에 들어간다.")]
-    [SerializeField, TextArea(3, 6)] private string backstory =
-        "주인공의 마을은 천마에게 무너졌다. 주인공은 복수하기 위해 천마의 수하들을 하나씩 쓰러뜨리며 천마를 쫓고 있다. " +
-        "너는 그 복수심이 키워 낸 어둠이다. 주인공이 복수에 물들수록 너는 강해지고, 틈이 보이면 몸을 잠식한다.";
+    [Tooltip("주인공과 어둠의 배경. 시스템 프롬프트 맨 앞에 들어간다. (설정 A: 동료를 잃은 과거의 자신)")]
+    // 예전 필드(backstory)의 프리팹 값이 남지 않도록 이름을 바꿨다
+    [SerializeField, TextArea(3, 6)] private string pastSelfBackstory =
+        "천마가 쳐들어온 밤, 주인공은 함께 싸우던 동료들을 모두 잃었다. 그 뒤로 주인공은 무너졌고, 너는 그날 밤에 멈춰 있는 그의 과거다. " +
+        "너는 다시는 아무도 잃지 않으려고 적을 남김없이 베어 왔다. 지키려는 마음과 통제하려는 마음을 자주 혼동하지만, " +
+        "플레이어가 보여 주는 행동과 말에 따라 그를 믿을 수도 있다.";
+
+    [Tooltip("응답 형식. Intent(C): 의도·강도를 판단하고 규칙 표가 감정을 정한다(게임 기본). Direct(A): 감정 변화량을 직접 낸다(비교 실험).")]
+    [SerializeField] private InnerOutputFormat outputFormat = InnerOutputFormat.Intent;
 
     [Header("Memory (선택 — 비우면 자동 탐색)")]
     [SerializeField] private MemoryManager memory;
@@ -51,8 +59,10 @@ public class InnerVoiceManager : MonoBehaviour
     [SerializeField] private TMP_FontAsset koreanFont;
     [SerializeField] private float fontScale = 2f;
 
-    private MoodSystem moodSystem;
+    private EmotionSystem emotions;
     private PlayerStats playerStats;
+    // 이번 내면 대화(열고 닫을 때까지) 동안 누적된 감정 변화. 대화 한 번의 한도를 지킨다.
+    private EmotionDelta sessionChange;
     private ControlManager controlManager;
 
     // 퀘스트가 강제로 열 때 인격에게 넘길 상황 설명 (1회용)
@@ -89,7 +99,7 @@ public class InnerVoiceManager : MonoBehaviour
     void Start()
     {
         current = this;
-        moodSystem     = GetComponent<MoodSystem>();
+        emotions       = GetComponent<EmotionSystem>();
         playerStats    = GetComponent<PlayerStats>();
         controlManager = GetComponent<ControlManager>();
 
@@ -192,6 +202,7 @@ public class InnerVoiceManager : MonoBehaviour
         if (GetComponent<PlayerStats>() is PlayerStats stats && !stats.IsAlive) return;
         isActive = true;
         turnsTaken = 0;
+        sessionChange = default;
 
         // 게임 완전 정지 (내면 세계로 "넘어간" 동안 바깥은 멈춤)
         prevTimeScale = Time.timeScale;
@@ -210,7 +221,8 @@ public class InnerVoiceManager : MonoBehaviour
         int enemyCount = Physics2D.OverlapCircleAll(
             (Vector2)transform.position, detectionRadius, enemyLayer).Length;
 
-        string context = SituationLine(playerStats.HP, playerStats.MaxHP, moodSystem.Mood, enemyCount, controlManager.IsPlayerControlled);
+        string context = SituationLine(playerStats.HP, playerStats.MaxHP, enemyCount, controlManager.IsPlayerControlled, EscortCompanion.Current != null) +
+                         "\n" + EmotionLine(emotions.Anger, emotions.Revenge, emotions.Sorrow, emotions.Fear, emotions.Trust, emotions.Calm, emotions.Tone);
 
         // 과거 협상 회상 (있으면 프롬프트에 주입)
         string memBlock = "";
@@ -224,7 +236,7 @@ public class InnerVoiceManager : MonoBehaviour
         string storyBlock = StoryBlock(pendingStoryContext);
         pendingStoryContext = "";   // 1회용
 
-        llmAgent.systemPrompt = BuildPrompt(backstory, memBlock, storyBlock, context);
+        llmAgent.systemPrompt = BuildPrompt(pastSelfBackstory, memBlock, storyBlock, context, outputFormat);
 
         // AI 인격이 먼저 말 걸기 (스트리밍 + 타임아웃)
         statusText.text = "...";
@@ -252,25 +264,38 @@ public class InnerVoiceManager : MonoBehaviour
     }
 
     /// <summary>내면 대화의 시스템 프롬프트. 연구용 비교 실험도 게임과 같은 프롬프트를 쓰도록 따로 뺐다.</summary>
-    public static string BuildPrompt(string backstory, string memBlock, string storyBlock, string context) =>
+    public static string BuildPrompt(string backstory, string memBlock, string storyBlock, string context, InnerOutputFormat format) =>
         (string.IsNullOrWhiteSpace(backstory) ? "" : "[배경]\n" + backstory + "\n\n") +
-        "너는 이 캐릭터의 또 다른 인격이야. " +
-        "지금 둘은 현실에서 벗어난 내면의 공간에서 마주보고 있어. " +
-        "몸의 제어권을 두고 플레이어와 협상하거나, 위협하거나, 회유해. " +
-        "짧고 강렬하게 한국어로 말해. 반드시 아래 JSON 형식으로만 응답해:\n" +
-        "{\"dialogue\":\"대사\",\"mood_delta\":0}\n" +
-        "mood_delta: 플레이어가 설득하거나 달래면 양수(+), 반항하거나 무시하면 음수(-).\n" +
+        "너는 이 캐릭터의 또 다른 인격이야. 지금 둘은 현실에서 벗어난 내면의 공간에서 마주보고 있어. " +
+        "몸을 누가 쥘지, 어떻게 싸울지를 두고 플레이어와 이야기해. 오래 알고 지낸 상대에게 하듯 짧고 차분한 한국어 반말로 1~3문장 말해. " +
+        "무조건 칭찬하거나 반대하지 말고, 비웃음·복수 구호·몸을 빼앗겠다는 협박을 되풀이하지 마. 실제로 몸을 쥐는지는 게임이 정한다.\n" +
+        FormatInstruction(format) +
         memBlock +
         storyBlock +
         $"현재 상황: {context}";
+
+    /// <summary>출력 형식 지시. 판단을 먼저, 대사를 나중에 쓰게 한다.</summary>
+    public static string FormatInstruction(InnerOutputFormat format) => format == InnerOutputFormat.Direct
+        ? "먼저 플레이어의 마지막 말로 너의 감정이 얼마나 변하는지 정하고, 그 감정에 맞게 대답해. 반드시 아래 JSON 형식으로만 응답해:\n" +
+          "{\"anger\":0,\"fear\":0,\"trust\":0,\"calm\":0,\"dialogue\":\"대사\"}\n" +
+          "anger·fear·trust·calm: 이번 말로 변한 분노·두려움·신뢰·냉정의 양(-20~20). 첫 마디에서는 모두 0.\n"
+        : "먼저 플레이어의 마지막 말이 어떤 의도인지 판단하고, 그 판단과 지금 가장 강한 감정에 맞게 대답해. 반드시 아래 JSON 형식으로만 응답해:\n" +
+          "{\"intent\":\"neutral\",\"intensity\":1,\"dialogue\":\"대사\"}\n" +
+          "intent: entrust(몸을 맡김) soothe(달램) reason(근거로 설득) promise(약속) defy(거부) insult(모욕) " +
+          "despair(나약함) vengeance(복수 선동) ask(과거 질문) neutral(그 외, 첫 마디)\n" +
+          "intensity: 말의 세기 1(약함)~3(강함).\n";
 
     // 프롬프트에 들어가는 조각들. 학습 데이터 생성기(TrainingPromptExport → Training/gen_data.py)도 같은 원문을 쓰도록 함수로 뺐다.
 
     /// <summary>인격이 먼저 말을 꺼내게 할 때 보내는 사용자 입력.</summary>
     public const string OpeningQuery = "대화를 시작해.";
 
-    public static string SituationLine(float hp, float maxHp, float mood, int enemies, bool playerControlled) =>
-        $"HP {hp:0}/{maxHp:0}, 감정 수치(정신의 균형) {mood:0}/100, 주변 적 {enemies}명, 현재 {(playerControlled ? "플레이어" : "AI")}가 몸을 제어 중.";
+    public static string SituationLine(float hp, float maxHp, int enemies, bool playerControlled, bool escorting) =>
+        $"HP {hp:0}/{maxHp:0}, 주변 적 {enemies}명, 현재 {(playerControlled ? "플레이어" : "AI")}가 몸을 제어 중.{(escorting ? " 하연을 호위하는 중." : "")}";
+
+    public static string EmotionLine(float anger, float revenge, float sorrow, float fear, float trust, float calm, Emotion tone) =>
+        $"너의 감정: 분노 {anger:0}, 복수심 {revenge:0}, 슬픔 {sorrow:0}, 두려움 {fear:0}, 신뢰 {trust:0}, 냉정 {calm:0}. " +
+        $"지금 가장 강한 감정은 {EmotionRules.Korean(tone)}이다.";
 
     /// <summary>recalled 는 MemoryManager.Recall 의 결과("- 기억" 줄들). 비어 있으면 블록도 없다.</summary>
     public static string MemoryBlock(string recalled) =>
@@ -280,14 +305,37 @@ public class InnerVoiceManager : MonoBehaviour
         string.IsNullOrWhiteSpace(story) ? "" : "\n[방금 바깥에서 벌어진 일]\n" + story + "\n";
 
     /// <summary>협상 한 턴을 기억으로 남기는 문장. 나중에 MemoryBlock 으로 프롬프트에 돌아온다.</summary>
-    public static string MemoryEntry(string playerSpeech, string dialogue, int moodDelta) =>
-        $"플레이어: \"{playerSpeech}\" → 나(어둠): \"{dialogue}\" (감정 {(moodDelta >= 0 ? "+" : "")}{moodDelta})";
+    /// <param name="judgement">"달램, 분노 -8 · 신뢰 +4" 처럼 판단과 감정 변화. 변화가 없으면 판단만.</param>
+    public static string MemoryEntry(string playerSpeech, string dialogue, string judgement) =>
+        $"플레이어: \"{playerSpeech}\" → 나(어둠): \"{dialogue}\" ({judgement})";
+
+    /// <summary>기억 문장에 붙는 판단 요약.</summary>
+    public static string Judgement(LLMResponseParser.Result parsed, EmotionDelta change)
+    {
+        string head = parsed.HasIntent ? EmotionRules.Korean(parsed.Intent) : "감정 직접 판단";
+        string tail = change.ToKorean();
+        return string.IsNullOrEmpty(tail) ? head : head + ", " + tail;
+    }
 
     /// <summary>여러 턴 대화에서 앞 턴을 시스템 프롬프트 뒤에 붙이는 줄 (히스토리에 쌓지 않으므로).</summary>
     public static string TurnLine(int turn, string playerSpeech, string dialogue) =>
         $"\n[이번 대화 {turn}턴] 플레이어: \"{playerSpeech}\" → 너: \"{dialogue}\"";
 
-    public string Backstory => backstory;
+    public string Backstory => pastSelfBackstory;
+    public InnerOutputFormat OutputFormat => outputFormat;
+
+    /// <summary>이 형식에 맞는 GBNF 문법.</summary>
+    public static string GrammarFor(InnerOutputFormat format) =>
+        format == InnerOutputFormat.Direct ? LLMResponseParser.InnerDirectGrammar : LLMResponseParser.InnerIntentGrammar;
+
+    /// <summary>
+    /// 응답 한 턴이 감정에 줄 변화. 의도 형식은 규칙 표(EmotionRules.ForIntent), 직접 형식은 모델이 낸 값.
+    /// 파싱에 실패했으면 0 이다. 대화 한 번의 누적 한도는 호출부가 CapSession 으로 건다.
+    /// </summary>
+    public static EmotionDelta ChangeFor(LLMResponseParser.Result parsed, bool lowHp, bool escorting) =>
+        !parsed.ParseOk ? default :
+        parsed.HasIntent ? EmotionRules.ForIntent(parsed.Intent, parsed.Intensity, lowHp, escorting) :
+        parsed.HasDirect ? parsed.Direct : default;
 
     // ── 플레이어 입력 (텍스트) ───────────────────────────────────
 
@@ -331,28 +379,29 @@ public class InnerVoiceManager : MonoBehaviour
         var parsed = LLMResponseParser.Parse(raw, parseFailFallbackLine);
         string dialogue = parsed.Dialogue;
 
-        // (A-2) mood_delta는 -20~+20으로 클램프된 뒤에만 적용된다.
-        //       이상값 한 번으로 제어권이 즉시 넘어가는 일을 막는다.
-        int moodDelta = parsed.MoodDelta;
+        // (A-2) 의도 형식은 규칙 표가, 직접 형식은 ±20 으로 자른 값이 감정을 바꾼다.
+        //       대화 한 번의 누적 한도(EmotionRules.DialogueSessionCap)로 오판 한두 번에 몸이 넘어가는 일을 막는다.
+        bool lowHp = playerStats.MaxHP > 0f && playerStats.HP / playerStats.MaxHP <= 0.3f;
+        var change = EmotionRules.CapSession(ChangeFor(parsed, lowHp, EscortCompanion.Current != null), sessionChange);
+        sessionChange += change;
 
         aiText.text = $"\"{dialogue}\"";
-        moodSystem.ChangeMood(moodDelta);
-        ResearchLog.Turn("inner_turn", "어둠", seconds, raw, parsed, llmAgent.systemPrompt.Length, firstTokenSeconds: FirstTokenSeconds);   // 감정 수치는 반영 후 값으로 남는다
+        emotions.ApplySilently(change);
+        ResearchLog.Turn("inner_turn", "어둠", seconds, raw, parsed, llmAgent.systemPrompt.Length,
+                         firstTokenSeconds: FirstTokenSeconds, applied: change);   // 감정 열은 반영 후 값으로 남는다
+        emotions.Notify();
 
         if (!parsed.ParseOk)
             Debug.LogWarning($"[InnerVoice] JSON 파싱 실패({parsed.FailureReason}) raw={Truncate(raw, 300)}");
-        else if (parsed.MoodDeltaRaw != moodDelta)
-            Debug.LogWarning($"[InnerVoice] mood_delta 클램프 {parsed.MoodDeltaRaw} → {moodDelta}");
-
-        string sign = moodDelta >= 0 ? "+" : "";
+        else if (!string.IsNullOrEmpty(parsed.FailureReason))
+            Debug.LogWarning($"[InnerVoice] 응답 일부를 복구함({parsed.FailureReason}) raw={Truncate(raw, 300)}");
 
         // 이번 협상을 기억으로 남김. 파싱 실패한 턴은 폴백 대사가 사실로 굳으므로 기록하지 않는다.
         if (memory != null && parsed.ParseOk)
-            _ = memory.Remember(MemoryEntry(playerSpeech, dialogue, moodDelta), "inner");
-        moodDeltaText.text = $"감정 {sign}{moodDelta}";
-        moodDeltaText.color = moodDelta >= 0
-            ? new Color(0.4f, 1f, 0.4f)
-            : new Color(1f, 0.4f, 0.4f);
+            _ = memory.Remember(MemoryEntry(playerSpeech, dialogue, Judgement(parsed, change)), "inner");
+        string changeText = change.ToKorean();
+        moodDeltaText.text = string.IsNullOrEmpty(changeText) ? "감정 변화 없음" : changeText;
+        moodDeltaText.color = accentColor;
 
         statusText.text = "";
         isProcessing = false;
@@ -382,6 +431,7 @@ public class InnerVoiceManager : MonoBehaviour
         lastStreamProgress = requestStartedAt = Time.realtimeSinceStartup;
         firstTokenAt = -1f;
         llmAgent.temperature = temperature;
+        LLMServices.UseGrammar(llmAgent, GrammarFor(outputFormat));   // NPC 대화와 문법이 다르다
 
         // 내면 협상은 매번 새 상황이고, 장기 기억은 RAG(MemoryManager)가 담당하므로
         // 대화 히스토리에 누적하지 않는다 (프롬프트가 길어져 점점 느려지는 것 방지 + 대장장이와의 맥락 오염 차단)

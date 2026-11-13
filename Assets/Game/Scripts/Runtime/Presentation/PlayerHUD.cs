@@ -5,7 +5,7 @@ using TMPro;
 public class PlayerHUD : MonoBehaviour
 {
     private PlayerStats stats;
-    private MoodSystem moodSystem;
+    private EmotionSystem emotions;
     private ControlManager controlManager;
 
     [Header("HUD")]
@@ -25,12 +25,12 @@ public class PlayerHUD : MonoBehaviour
     {
         if (GetComponent<RpgUI>() != null) return;
         stats = GetComponent<PlayerStats>();
-        moodSystem = GetComponent<MoodSystem>();
+        emotions = GetComponent<EmotionSystem>();
         controlManager = GetComponent<ControlManager>();
 
-        if (stats == null || moodSystem == null || controlManager == null)
+        if (stats == null || emotions == null || controlManager == null)
         {
-            Debug.LogError("PlayerHUD requires PlayerStats, MoodSystem, and ControlManager on the same GameObject.");
+            Debug.LogError("PlayerHUD requires PlayerStats, EmotionSystem, and ControlManager on the same GameObject.");
             enabled = false;
             return;
         }
@@ -38,12 +38,12 @@ public class PlayerHUD : MonoBehaviour
         BuildUI();
 
         stats.OnStatsChanged += UpdateStats;
-        moodSystem.OnMoodChanged += UpdateMood;
+        emotions.OnEmotionChanged += UpdatePressure;
         controlManager.OnAITakeover += HandleAITakeover;
         controlManager.OnPlayerRestored += HandlePlayerRestored;
 
         UpdateStats();
-        UpdateMood(moodSystem.Mood);
+        UpdatePressure();
         UpdateControlLabel(true);
     }
 
@@ -68,12 +68,12 @@ public class PlayerHUD : MonoBehaviour
         manaText  = MakeText(statsPanel, Scale(new Vector2(12f, -62f)), "MP   50 / 50", Scale(15f));
         expText   = MakeText(statsPanel, Scale(new Vector2(12f, -86f)), "EXP  0 / 100", Scale(15f));
 
-        // ── 기분 패널 ──
+        // ── 어둠의 압박 패널 (임시: 육각형 감정 표시가 정해지면 바꾼다) ──
         var moodPanel = MakePanel(canvasGO.transform, Scale(new Vector2(15f, -145f)), Scale(new Vector2(220f, 70f)));
 
         controlText = MakeText(moodPanel, Scale(new Vector2(12f, -8f)), "제어권: 플레이어", Scale(14f), FontStyles.Bold);
 
-        MakeText(moodPanel, Scale(new Vector2(12f, -30f)), "감정 수치", Scale(13f));
+        MakeText(moodPanel, Scale(new Vector2(12f, -30f)), "어둠의 압박", Scale(13f));
         moodText = MakeText(moodPanel, Scale(new Vector2(160f, -30f)), "50", Scale(13f));
         moodText.GetComponent<RectTransform>().anchorMin = new Vector2(0f, 1f);
         moodText.GetComponent<RectTransform>().anchorMax = new Vector2(0f, 1f);
@@ -151,20 +151,21 @@ public class PlayerHUD : MonoBehaviour
         expText.text   = $"EXP  {stats.EXP:0} / {stats.MaxEXP:0}";
     }
 
-    void UpdateMood(float mood)
+    void UpdatePressure()
     {
-        float ratio = mood / 100f;
+        float pressure = emotions.Pressure;
+        float ratio = pressure / 100f;
 
         // 게이지 채움 비율
         var fillRect = moodFill.GetComponent<RectTransform>();
         fillRect.anchorMax = new Vector2(ratio, 1f);
 
-        // 색상: 빨강(0) → 노랑(0.5) → 초록(1)
+        // 색상: 초록(0) → 노랑(0.5) → 빨강(1). 압박이 높을수록 어둠이 나서기 직전이다
         moodFill.color = ratio < 0.5f
-            ? Color.Lerp(Color.red, Color.yellow, ratio * 2f)
-            : Color.Lerp(Color.yellow, Color.green, (ratio - 0.5f) * 2f);
+            ? Color.Lerp(Color.green, Color.yellow, ratio * 2f)
+            : Color.Lerp(Color.yellow, Color.red, (ratio - 0.5f) * 2f);
 
-        moodText.text = $"{mood:0}";
+        moodText.text = $"{pressure:0}";
     }
 
     void UpdateControlLabel(bool isPlayer)
@@ -180,7 +181,7 @@ public class PlayerHUD : MonoBehaviour
     void OnDestroy()
     {
         if (stats != null) stats.OnStatsChanged -= UpdateStats;
-        if (moodSystem != null) moodSystem.OnMoodChanged -= UpdateMood;
+        if (emotions != null) emotions.OnEmotionChanged -= UpdatePressure;
         if (controlManager != null)
         {
             controlManager.OnAITakeover -= HandleAITakeover;

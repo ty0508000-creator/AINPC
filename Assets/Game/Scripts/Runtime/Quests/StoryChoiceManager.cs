@@ -24,7 +24,10 @@ public class StoryChoiceOption
     public string choiceId;
     [TextArea(1, 2)] public string label;
     [TextArea(2, 4)] public string description;
+    [Tooltip("예전 감정 수치 하나의 변화량. emotion 이 비어 있으면 EmotionRules.FromLegacyMood 로 바꿔 쓴다.")]
     public float moodDelta;
+    [Tooltip("어둠의 감정 변화. 채우면 moodDelta 대신 이것을 쓴다.")]
+    public EmotionDelta emotion;
     [TextArea(1, 3)] public string memoryLine;
     [Tooltip("비우면 choiceId 로 Choice 목표를 채운다. 서로 다른 선택이 같은 목표를 끝낼 때 쓴다.")]
     public string objectiveId;
@@ -32,13 +35,13 @@ public class StoryChoiceOption
 
 /// <summary>
 /// Stores explicit narrative choices independently from LLM/RAG availability.
-/// The selected choice, its Mood consequence, and any matching Choice objective are committed together.
+/// The selected choice, its emotion consequence, and any matching Choice objective are committed together.
 /// </summary>
 public class StoryChoiceManager : MonoBehaviour
 {
     public static StoryChoiceManager Instance { get; private set; }
 
-    [SerializeField] private MoodSystem moodSystem;
+    [SerializeField] private EmotionSystem moodSystem;   // 필드 이름은 씬 참조를 지키려고 그대로 둔다
     [SerializeField] private QuestManager questManager;
     [SerializeField] private TMP_FontAsset koreanFont;
 
@@ -54,7 +57,7 @@ public class StoryChoiceManager : MonoBehaviour
 
     void Start()
     {
-        if (moodSystem == null) moodSystem = FindFirstObjectByType<MoodSystem>();
+        if (moodSystem == null) moodSystem = FindFirstObjectByType<EmotionSystem>();
         if (questManager == null) questManager = QuestManager.Instance;
         if (koreanFont == null) koreanFont = Resources.Load<TMP_FontAsset>("Fonts/NeoDunggeunmoPro SDF");
         Load();
@@ -76,10 +79,10 @@ public class StoryChoiceManager : MonoBehaviour
         if (option == null || string.IsNullOrWhiteSpace(option.choiceId) || HasChoice(option.choiceId)) return false;
         var entry = new StoryChoiceEntry { choiceId = option.choiceId, moodDelta = option.moodDelta, memoryLine = option.memoryLine ?? "" };
         choices.Add(entry.choiceId, entry);
-        if (moodSystem != null && !Mathf.Approximately(entry.moodDelta, 0f))
+        if (moodSystem != null && moodSystem.ApplySilently(EmotionRules.Resolve(option.emotion, option.moodDelta)))
         {
-            moodSystem.ApplyQuestDelta(entry.moodDelta);
-            moodSystem.NotifyQuestDelta();
+            ResearchLog.EmotionEvent("story_choice:" + entry.choiceId, EmotionRules.Resolve(option.emotion, option.moodDelta));
+            moodSystem.Notify();
         }
         // A Choice objective decides which active quest uses this id; unknown IDs are still valid story memories.
         questManager?.ReportChoice(string.IsNullOrWhiteSpace(option.objectiveId) ? entry.choiceId : option.objectiveId);

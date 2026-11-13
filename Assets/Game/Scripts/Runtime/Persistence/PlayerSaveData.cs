@@ -46,8 +46,12 @@ public class PlayerSaveData
     public bool hasCheckpoint;
     public string checkpointScene;
     public UnityEngine.Vector3 checkpointPosition;
+    // 예전 감정 수치 하나. 이제 쓰지 않고, 이 값만 있는 옛 저장은 감정 시작값에서 출발한다.
     public bool hasMood;
     public float mood;
+    // 어둠의 감정: 분노·두려움·신뢰·냉정·슬픔(EmotionSystem.Capture). 복수심은 보스 플래그에서 계산하므로 없다.
+    public bool hasEmotions;
+    public float[] emotions;
     // Optional in snapshot version 1 for backward compatibility with existing saves.
     public StoryChoiceSaveData storyChoices;
     // Version 2: inventory is committed with player and quest progress.

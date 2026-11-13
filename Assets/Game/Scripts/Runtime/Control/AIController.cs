@@ -1,21 +1,20 @@
 using System.Collections;
 using UnityEngine;
 
-/// <summary>기억(소윤 선택)에 따라 바뀌는 내면의 전투 성향.</summary>
-public enum CombatStyle { Default, Protective, Aggressive }
+/// <summary>
+/// 어둠의 전투 성향. 분노가 지배하면 학살형(Aggressive), 두려움이 지배하면 수호형(Guardian).
+/// Default(치고 빠지기)는 감정을 쓰지 않는 비교 실험용이다.
+/// </summary>
+public enum CombatStyle { Default, Guardian, Aggressive }
 
 public class AIController : MonoBehaviour
 {
-    [Header("기억에 따른 전투 성향")]
-    [Tooltip("소윤을 구했으면 보호형, 두고 떠났으면 공격형, 선택 전이면 기본(치고 빠지기)")]
-    [SerializeField] private bool useMemoryStyle = true;
+    [Header("감정에 따른 전투 성향")]
+    [Tooltip("켜면 분노/두려움으로 학살형/수호형을 고른다. 끄면 기본(치고 빠지기)")]
+    [SerializeField] private bool useEmotionStyle = true;
 
-    [Tooltip("보호형: 빠지는 거리 배율")]
-    [SerializeField] private float protectiveRetreatScale = 1.6f;
-
-    [Tooltip("보호형: 체력이 이 비율 이하면 싸우지 않고 물러난다")]
-    [Range(0f, 1f)]
-    [SerializeField] private float protectiveFleeHpRatio = 0.5f;
+    [Tooltip("복수심이 이 값 이상이면 감지 범위 안의 보스를 먼저 노린다")]
+    [SerializeField] private float revengeBossThreshold = 60f;
 
     [Tooltip("공격형: 붙어서 버티는 시간 (빠지지 않는다)")]
     [SerializeField] private float aggressiveStrikeHold = 0.6f;
@@ -81,6 +80,7 @@ public class AIController : MonoBehaviour
     private Player_Attack playerAttack;
     private Player_Controller playerController;
     private PlayerStats playerStats;
+    private EmotionSystem emotions;
 
     private Coroutine behaviorCoroutine;
     private Coroutine recklessCoroutine;
@@ -100,6 +100,7 @@ public class AIController : MonoBehaviour
         playerAttack = GetComponent<Player_Attack>();
         playerController = GetComponent<Player_Controller>();
         playerStats = GetComponent<PlayerStats>();
+        emotions = GetComponent<EmotionSystem>();
 
         if (spriteRenderer != null) baseColor = spriteRenderer.color;
 
@@ -136,10 +137,8 @@ public class AIController : MonoBehaviour
 
     CombatStyle ResolveStyle()
     {
-        if (!useMemoryStyle) return CombatStyle.Default;
-        if (StoryChoiceManager.Remembers(HubStoryIds.RescueLeft)) return CombatStyle.Aggressive;
-        if (StoryChoiceManager.Remembers(HubStoryIds.Rescue)) return CombatStyle.Protective;
-        return CombatStyle.Default;
+        if (!useEmotionStyle || emotions == null) return CombatStyle.Default;
+        return emotions.AngerDominates() ? CombatStyle.Aggressive : CombatStyle.Guardian;
     }
 
     void FixedUpdate()
@@ -157,7 +156,7 @@ public class AIController : MonoBehaviour
         float duration = Time.time - sessionStart;
         float hpEnd = playerStats != null ? playerStats.HP : 0f;
         Debug.Log($"[AI] 강탈 종료 style={Style} {duration:F1}s 이동={sessionDistance:F1} 공격={sessionAttacks} 대시={sessionDashes} 후퇴={sessionRetreats} HP {sessionHpStart:F0}→{hpEnd:F0}");
-        ResearchLog.AiSession(Style, duration, sessionDistance, sessionAttacks, sessionDashes, sessionRetreats, sessionHpStart, hpEnd);
+        ResearchLog.AiSession(Style, emotions != null && emotions.LastTakeoverForced, duration, sessionDistance, sessionAttacks, sessionDashes, sessionRetreats, sessionHpStart, hpEnd);
     }
 
     void Attack(Vector2 dir)
@@ -210,7 +209,9 @@ public class AIController : MonoBehaviour
 
             if (touchingEnemy)
             {
-                playerStats.TakeDamage(recklessDamage);
+                // 냉정할수록 덜 다친다 (×1.5 ~ ×0.5)
+                float scale = emotions != null ? EmotionRules.RecklessScale(emotions.Calm) : 1f;
+                playerStats.TakeDamage(Mathf.Max(1, Mathf.RoundToInt(recklessDamage * scale)));
                 StartCoroutine(HitFlash());
             }
         }
@@ -231,13 +232,11 @@ public class AIController : MonoBehaviour
             while (playerAttack.IsInvincible)
                 yield return new WaitForFixedUpdate();
 
-            Collider2D target = FindNearest();
+            // 목표를 새로 고를 때마다 성향도 다시 본다 (싸우는 도중 감정이 바뀐다)
+            Style = ResolveStyle();
+            Collider2D target = FindTarget();
 
-            if (target != null && ShouldFlee())
-            {
-                yield return Flee(target);
-            }
-            else if (target != null)
+            if (target != null)
             {
                 yield return KeepRangeAndAttack(target);
             }
@@ -249,16 +248,30 @@ public class AIController : MonoBehaviour
         }
     }
 
-    Collider2D FindNearest()
+    /// <summary>
+    /// 노릴 적. 복수심이 높으면 보스부터, 수호형이 하연을 호위 중이면 하연에게 가장 가까운 적부터, 아니면 가장 가까운 적.
+    /// </summary>
+    Collider2D FindTarget()
     {
         Collider2D[] cols = Physics2D.OverlapCircleAll(rb.position, detectionRadius, enemyLayer);
         if (cols.Length == 0) return null;
 
+        if (emotions != null && useEmotionStyle && emotions.Revenge >= revengeBossThreshold)
+            foreach (var c in cols)
+                if (c.GetComponentInParent<StageBoss>() != null || c.GetComponentInParent<AshKingBoss>() != null) return c;
+
+        var escort = EscortCompanion.Current;
+        Vector2 from = Style == CombatStyle.Guardian && escort != null ? (Vector2)escort.transform.position : rb.position;
+        return Nearest(cols, from);
+    }
+
+    static Collider2D Nearest(Collider2D[] cols, Vector2 from)
+    {
         Collider2D nearest = null;
         float minDist = float.MaxValue;
         foreach (var c in cols)
         {
-            float d = Vector2.Distance(rb.position, c.transform.position);
+            float d = Vector2.Distance(from, c.transform.position);
             if (d < minDist) { minDist = d; nearest = c; }
         }
         return nearest;
@@ -270,7 +283,7 @@ public class AIController : MonoBehaviour
     /// </summary>
     IEnumerator KeepRangeAndAttack(Collider2D target)
     {
-        while (IsEngageable(target) && !ShouldFlee())
+        while (IsEngageable(target))
         {
             // 대시 무적 중에는 각 단계가 바로 끝나므로, 한 프레임 쉬지 않으면 무한 반복에 빠진다
             if (playerAttack.IsInvincible) { yield return new WaitForFixedUpdate(); continue; }
@@ -287,30 +300,6 @@ public class AIController : MonoBehaviour
         }
 
         rb.linearVelocity = Vector2.zero;
-    }
-
-    /// <summary>보호형은 체력이 낮으면 싸움을 멈추고 몸을 지킨다.</summary>
-    bool ShouldFlee() =>
-        Style == CombatStyle.Protective && playerStats != null && playerStats.MaxHP > 0f &&
-        playerStats.HP / playerStats.MaxHP <= protectiveFleeHpRatio;
-
-    /// <summary>감지 범위 끝까지 적에게서 멀어진다.</summary>
-    IEnumerator Flee(Collider2D target)
-    {
-        float timer = 0f;
-        while (timer < phaseTimeout && target != null && !playerAttack.IsInvincible)
-        {
-            Vector2 away = rb.position - (Vector2)target.transform.position;
-            if (away.magnitude >= detectionRadius * 0.9f) break;
-            // 이미 충분히 떨어져 있으면 세지 않는다 (가만히 거리만 지키는 프레임까지 후퇴로 세지 않게)
-            if (timer == 0f) sessionRetreats++;
-            Vector2 dir = away.sqrMagnitude > 0.0001f ? away.normalized : Random.insideUnitCircle.normalized;
-            FaceTo(-dir);
-            Drive(dir * GetAIMoveSpeed() * retreatSpeedScale);
-            timer += Time.fixedDeltaTime;
-            yield return new WaitForFixedUpdate();
-        }
-        Drive(Vector2.zero);
     }
 
     /// <summary>사거리 안쪽까지 파고든다.</summary>
@@ -374,7 +363,7 @@ public class AIController : MonoBehaviour
     IEnumerator Retreat(Collider2D target, float strafeSign)
     {
         float timer = 0f;
-        float goal = RetreatDistance() * (Style == CombatStyle.Protective ? protectiveRetreatScale : 1f);
+        float goal = RetreatDistance();
         sessionRetreats++;
 
         while (timer < phaseTimeout && IsEngageable(target) && !playerAttack.IsInvincible)

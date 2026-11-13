@@ -221,7 +221,7 @@ public class PlayerStats : MonoBehaviour, IDamageable
         transform.position = CheckpointPosition;
         var body = GetComponent<Rigidbody2D>();
         if (body != null) body.position = CheckpointPosition;
-        GetComponent<MoodSystem>()?.ReleaseControlForRecovery();
+        GetComponent<EmotionSystem>()?.ReleaseControlForRecovery();
         GetComponent<ControlManager>()?.RestoreForRecovery();
         GetComponent<RpgSkillController>()?.ResetForRecovery();
         HP = MaxHP; Mana = MaxMana;

@@ -17,7 +17,7 @@ public partial class RpgUI : MonoBehaviour
     PlayerStats stats;
     Player_Attack attack;
     RpgSkillController skills;
-    MoodSystem mood;
+    EmotionSystem mood;
     ControlManager control;
     [SerializeField] GameObject canvasRoot, overlay, statsPage, skillsPage;
     [SerializeField] GameObject deathOverlay;
@@ -48,7 +48,7 @@ public partial class RpgUI : MonoBehaviour
     {
         stats = GetComponent<PlayerStats>(); attack = GetComponent<Player_Attack>();
         skills = GetComponent<RpgSkillController>();
-        mood = GetComponent<MoodSystem>(); control = GetComponent<ControlManager>();
+        mood = GetComponent<EmotionSystem>(); control = GetComponent<ControlManager>();
         if (stats == null) { enabled = false; return; }
         if (canvasRoot == null)
         {
@@ -74,7 +74,7 @@ public partial class RpgUI : MonoBehaviour
         BuildIllustratedLayout();
         identity.text = "Lv. 01";
         vitals.text = "HP 100/100     MP 50/50";
-        moodLabel.text = "정신의 균형  100";
+        moodLabel.text = "어둠의 압박  0";
         for (int i = 0; i < 3; i++) hotLabels[i].text = RpgSkillCatalog.All[RpgSkillCatalog.Hotbar[i]].Name;
         for (int i = 0; i < 9; i++) nodeLabels[i].text = RpgSkillCatalog.All[i].Name;
         BakeKeyboardShortcuts();
@@ -331,9 +331,10 @@ public partial class RpgUI : MonoBehaviour
         identity.text = $"Lv. {stats.Level:00}";
         vitals.text = $"HP {stats.HP:0}/{stats.MaxHP:0}     MP {stats.Mana:0}/{stats.MaxMana:0}";
         SetBar(hpFill, stats.HP / stats.MaxHP); SetBar(manaFill, stats.Mana / stats.MaxMana); SetBar(expFill, stats.EXP / stats.MaxEXP);
-        float moodValue = mood != null ? mood.Mood : 100f;
-        SetBar(moodFill, moodValue / 100f);
-        moodLabel.text = $"{(control != null && !control.IsPlayerControlled ? "어둠이 지배 중" : "감정 수치")}  {moodValue:0}    EXP {stats.EXP:0}/{stats.MaxEXP:0}";
+        // 임시: 육각형 감정 표시가 정해지면 바꾼다. 지금은 어둠이 나서기까지의 압박만 보인다
+        float pressure = mood != null ? mood.Pressure : 0f;
+        SetBar(moodFill, pressure / 100f);
+        moodLabel.text = $"{(control != null && !control.IsPlayerControlled ? "어둠이 지배 중" : "어둠의 압박")}  {pressure:0}    EXP {stats.EXP:0}/{stats.MaxEXP:0}";
         guardLabel.text = skills != null && skills.GuardRemaining > 0 ? $"금강호신 / {skills.GuardRemaining:0.0}s" : "";
         RefreshUltimateUI();
         for (int i = 0; i < 3; i++)
