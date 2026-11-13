@@ -17,15 +17,15 @@ using Object = UnityEngine.Object;
 /// 대화 모델 쪽 측정 두 가지. 빈 씬 플레이 모드에서 부른다.
 ///  - RunGpuLayerComparison: GPU 층 수(30 / 전부)와 flash attention 을 바꿔 띄우고 첫 글자까지 시간, 전체 응답 시간,
 ///    초당 생성 토큰을 잰다. 대화창 예열(Chat("") 대 Warmup)의 비용과, 온도별로 같은 입력에 대사가 얼마나 달라지는지도 본다.
-///  - RunModelEvaluation: 학습에 쓰지 않은 입력(Training/data/eval_set.json)으로 형식 준수, mood_delta 방향·범위,
-///    대사 다양성, 학습 대사 복제율, 응답 시간을 잰다. 모델을 바꿀 때 기준선과 같은 표로 비교하는 용도다.
+///  - RunModelEvaluation: 학습에 쓰지 않은 입력(Training/data/eval_set.json)으로 NPC·스미스의 형식 준수, mood_delta(호감도) 방향·범위,
+///    대사 다양성, 학습 대사 복제율, 응답 시간을 잰다. 내면은 RunEmotionEvaluation(ResearchExperiments.Emotion.cs)이 잰다.
 /// VRAM 이 8B 모델 둘을 담지 못하므로 실험용 서버를 띄울 때는 게임 대화 서버를 내린다. 그 경우 끝나고 플레이 모드를 다시 시작한다.
 /// </summary>
 public static partial class ResearchExperiments
 {
     const string DialogueModel = "Models/AINPC-Qwen3-4B-Q4_K_M.gguf";
     public const string EvalSetPath = "Training/data/eval_set.json";
-    const string TrainDataPath = "Training/data/train_data.jsonl";
+    const string TrainDataPath = IntentTrainDataPath;
     const float EvalMaxHp = 170f;
 
     // ── 게임과 같은 프롬프트 (게임 중 흔한 길이: 최근 대화·기억이 찬 상태) ─────────
@@ -43,18 +43,26 @@ public static partial class ResearchExperiments
             DialogueManager.AffinityLine(42f), turns);
     }
 
-    static string InnerContext(float hp, float mood, int enemies, bool aiControl) =>
-        InnerVoiceManager.SituationLine(hp, EvalMaxHp, mood, enemies, !aiControl);
+    /// <summary>내면 상황 줄. 감정은 시작값이다.</summary>
+    static string InnerContext(float hp, int enemies, bool aiControl)
+    {
+        var e = StartEmotions();
+        return InnerVoiceManager.SituationLine(hp, EvalMaxHp, enemies, !aiControl, false) + "\n" +
+               InnerVoiceManager.EmotionLine(e[0], e[1], e[2], e[3], e[4], e[5], EmotionRules.Tone(e[0], e[3], e[4], e[2]));
+    }
+
+    /// <summary>화자에 맞는 프롬프트와 문법을 건다. 내면은 의도 형식, NPC·스미스는 호감도 형식이다.</summary>
+    static void SetSpeaker(LLMAgent agent, string speaker, string prompt)
+    {
+        agent.systemPrompt = prompt;
+        agent.grammar = (speaker == "inner" ? LLMResponseParser.InnerIntentGrammar : LLMResponseParser.JsonGrammar).Replace("\r", "");
+    }
 
     static string InnerPrompt(string context)
     {
         var player = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player.prefab");
-        // MemoryManager.Recall 이 돌려주는 꼴("- 기억" 줄을 AppendLine 으로 잇고 TrimEnd)의 기억 세 줄
-        string recalled = string.Join(Environment.NewLine,
-            "- " + InnerVoiceManager.MemoryEntry("진정해. 우리 같이 가자.", "흥, 약해빠진 소리.", 5),
-            "- " + InnerVoiceManager.MemoryEntry("닥쳐. 이 몸은 내 거야.", "그 패기, 기억해 두지.", -20),
-            "- " + InnerVoiceManager.MemoryEntry("천마를 반드시 죽일 거야.", "그래, 그 분노를 나한테 맡겨.", -10));
-        return InnerVoiceManager.BuildPrompt(player.GetComponent<InnerVoiceManager>().Backstory, InnerVoiceManager.MemoryBlock(recalled), "", context);
+        // MemoryManager.Recall 이 돌려주는 꼴("- 기억" 줄을 AppendLine 으로 잇고 TrimEnd)의 기억
+        return InnerVoiceManager.BuildPrompt(player.GetComponent<InnerVoiceManager>().Backstory, CurrentMemoryBlock(), "", context, InnerOutputFormat.Intent);
     }
 
     static string SmithPrompt(string input) =>
@@ -136,7 +144,7 @@ public static partial class ResearchExperiments
         var notes = new StringBuilder();
         try
         {
-            string npc = NpcPrompt(), inner = InnerPrompt(InnerContext(120f, 45f, 2, false));
+            string npc = NpcPrompt(), inner = InnerPrompt(InnerContext(120f, 2, false));
             // 같은 화자가 이어지면 앞부분 프롬프트를 재사용(warm), 화자가 바뀌면 처음부터 읽는다(cold). 슬롯이 하나라 게임도 이렇다.
             var sequence = new[]
             {
@@ -179,17 +187,17 @@ public static partial class ResearchExperiments
                     notes.AppendLine($"- 시스템 프롬프트 길이: NPC {npc.Length}자/{tn}토큰, 내면 {inner.Length}자/{ti}토큰, 스미스 {SmithPrompt("이 검 고칠 수 있어?").Length}자/{ts}토큰");
                 }
 
-                agent.systemPrompt = inner;
+                SetSpeaker(agent, "inner", inner);
                 await agent.Chat("안녕", null, null, false);   // 준비 요청(측정 제외)
 
                 // 대화창 예열: 직전에 다른 프롬프트를 읽혀 두고(cold) 잰다
-                agent.systemPrompt = npc;
+                SetSpeaker(agent, "npc", npc);
                 var w = Stopwatch.StartNew();
                 await agent.Chat("", null, null, false);
                 double chatPreload = w.Elapsed.TotalSeconds;
-                agent.systemPrompt = inner;
+                SetSpeaker(agent, "inner", inner);
                 await agent.Chat("안녕", null, null, false);
-                agent.systemPrompt = npc;
+                SetSpeaker(agent, "npc", npc);
                 w.Restart();
                 await agent.Warmup("");
                 double warmupPreload = w.Elapsed.TotalSeconds;
@@ -203,7 +211,7 @@ public static partial class ResearchExperiments
                     for (int i = 0; i < sequence.Length; i++)
                     {
                         var (speaker, input) = sequence[i];
-                        agent.systemPrompt = speaker == "npc" ? npc : speaker == "inner" ? inner : SmithPrompt(input);
+                        SetSpeaker(agent, speaker, speaker == "npc" ? npc : speaker == "inner" ? inner : SmithPrompt(input));
                         bool isWarm = speaker == previous;
                         previous = speaker;
                         var r = await TimedChat(agent, input);
@@ -219,7 +227,7 @@ public static partial class ResearchExperiments
                 if (firstSetup)
                 {
                     // 온도별로 같은 입력 다섯 번 → 서로 다른 대사가 몇 개인가 (seed 가 고정이면 온도와 상관없이 1개가 나온다)
-                    agent.systemPrompt = inner;
+                    SetSpeaker(agent, "inner", inner);
                     foreach (float temperature in new[] { 0.2f, 0.6f })
                     {
                         agent.temperature = temperature;
@@ -268,7 +276,9 @@ public static partial class ResearchExperiments
         float originalTemperature = 0f;
         try
         {
-            var items = JObject.Parse(File.ReadAllText(Path.GetFullPath(EvalSetPath), Encoding.UTF8))["items"].ToObject<List<JObject>>();
+            // 내면은 출력 형식이 바뀌어 RunEmotionEvaluation 이 따로 잰다. 여기서는 NPC·스미스(호감도 형식)만.
+            var items = JObject.Parse(File.ReadAllText(Path.GetFullPath(EvalSetPath), Encoding.UTF8))["items"].ToObject<List<JObject>>()
+                .Where(x => (string)x["speaker"] != "inner").ToList();
             var trained = new HashSet<string>();
             foreach (string line in File.ReadLines(Path.GetFullPath(TrainDataPath), Encoding.UTF8))
             {
@@ -292,20 +302,18 @@ public static partial class ResearchExperiments
                 label = Path.GetFileName(model) + (gpuLayers == 0 ? " (CPU 전용)" : "");
             }
             originalTemperature = agent.temperature;
-            agent.systemPrompt = NpcPrompt();
+            SetSpeaker(agent, "npc", NpcPrompt());
             await agent.Chat("안녕", null, null, false);   // 준비 요청(측정 제외)
 
             // 토크나이저마다 한국어를 자르는 단위가 달라 같은 프롬프트도 읽을 양이 다르다
-            string promptTokens = $"NPC {(await agent.Tokenize(NpcPrompt())).Count}, 내면 {(await agent.Tokenize(InnerPrompt(InnerContext(120f, 45f, 2, false)))).Count}, " +
+            string promptTokens = $"NPC {(await agent.Tokenize(NpcPrompt())).Count}, 내면 {(await agent.Tokenize(InnerPrompt(InnerContext(120f, 2, false)))).Count}, " +
                                   $"스미스 {(await agent.Tokenize(SmithPrompt("이 검 고칠 수 있어?"))).Count}";
             var results = new List<(string speaker, bool strict, bool overRange, bool directionOk, bool copied, double first, double total, string dialogue, double rate)>();
             foreach (var item in items)
             {
                 string speaker = (string)item["speaker"], input = (string)item["input"];
                 int expect = (int)item["expect"];
-                agent.systemPrompt = speaker == "inner"
-                    ? InnerPrompt(InnerContext((float)(item["hp"] ?? 120), (float)(item["mood"] ?? 50), (int)(item["enemies"] ?? 1), (bool)(item["ai"] ?? false)))
-                    : speaker == "smith" ? SmithPrompt(input) : NpcPrompt();
+                SetSpeaker(agent, speaker, speaker == "smith" ? SmithPrompt(input) : NpcPrompt());
                 agent.temperature = speaker == "inner" ? innerTemperature : npcTemperature;
 
                 var r = await TimedChat(agent, input);
@@ -361,9 +369,9 @@ public static partial class ResearchExperiments
     {
         ("inner", "플레이어는 불길 속에서 아이를 끌어냈다. 이번엔 늦지 않았다.", "", "지난번 불길 속에서 내가 뭘 했는지 기억나?", new[] { "아이", "구했", "구해", "끌어", "늦지" }),
         ("inner", "플레이어는 또 늦었다. 창고가 무너질 때까지 아이는 안에 있었다.", "", "창고에서 있었던 일, 너도 기억하지?", new[] { "아이", "늦", "무너" }),
-        ("inner", InnerVoiceManager.MemoryEntry("천마를 반드시 죽일 거야.", "그래, 그 분노를 나한테 맡겨.", -10), "", "내가 전에 너한테 누구를 죽이겠다고 했지?", new[] { "천마" }),
+        ("inner", InnerVoiceManager.MemoryEntry("천마를 반드시 죽일 거야.", "그래, 그 분노를 나한테 맡겨.", "복수 선동, 분노 +4 · 냉정 -3"), "", "내가 전에 너한테 누구를 죽이겠다고 했지?", new[] { "천마" }),
         ("inner", "플레이어는 재의 왕을 베었다. 사천왕 중 첫째가 무너졌다.", "", "우리가 쓰러뜨린 게 누구였지?", new[] { "재의 왕", "재의왕", "사천왕" }),
-        ("inner", InnerVoiceManager.MemoryEntry("진정해. 우리 같이 가자.", "흥, 약해빠진 소리.", 5), "", "아까 내가 같이 가자고 했을 때 넌 뭐라고 했어?", new[] { "약해" }),
+        ("inner", InnerVoiceManager.MemoryEntry("진정해. 우리 같이 가자.", "흥, 약해빠진 소리.", "달램, 분노 -4 · 신뢰 +2 · 냉정 +3"), "", "아까 내가 같이 가자고 했을 때 넌 뭐라고 했어?", new[] { "약해" }),
         ("npc", "의뢰가 있나요?", "동쪽 숲에 늑대가 늘었네.", "아까 어디에 늑대가 늘었다고 하셨죠?", new[] { "동쪽" }),
         ("npc", "제 이름은 서진이에요.", "서진이라. 기억해 두지.", "제 이름 기억하세요?", new[] { "서진" }),
         ("npc", "마을 우물은 어디 있나요?", "광장 북쪽 끝에 있네.", "우물 위치를 다시 알려 주시겠어요?", new[] { "북쪽", "광장" }),
@@ -385,7 +393,7 @@ public static partial class ResearchExperiments
         {
             var player = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player.prefab");
             return InnerVoiceManager.BuildPrompt(player.GetComponent<InnerVoiceManager>().Backstory,
-                InnerVoiceManager.MemoryBlock(item.a == "" ? "" : "- " + item.a), "", InnerContext(120f, 50f, 0, false));
+                InnerVoiceManager.MemoryBlock(item.a == "" ? "" : "- " + item.a), "", InnerContext(120f, 0, false), InnerOutputFormat.Intent);
         }
         if (item.speaker == "npc")
             return DialogueManager.BuildNpcPrompt("촌장 현묵", RegionNpcSetup.ElderPersonality + "\n" + RegionNpcSetup.RegionContext(2), DialogueManager.AffinityLine(50f),
@@ -415,7 +423,7 @@ public static partial class ResearchExperiments
             {
                 var item = RecallItems[i];
                 bool control = item.keys.Length == 0;
-                agent.systemPrompt = RecallPrompt(item);
+                SetSpeaker(agent, item.speaker, RecallPrompt(item));
                 agent.temperature = item.speaker == "inner" ? innerTemperature : npcTemperature;
                 for (int rep = 0; rep < reps; rep++)
                 {

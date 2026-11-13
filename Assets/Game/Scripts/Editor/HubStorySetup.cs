@@ -22,7 +22,7 @@ public static class HubStorySetup
     static void CapturePlayer()
     {
         var player = UnityEngine.Object.FindFirstObjectByType<PlayerStats>();
-        foreach (Type type in new[] { typeof(Player_Attack),typeof(MoodSystem),typeof(ControlManager),typeof(AIController),typeof(PlayerStats) })
+        foreach (Type type in new[] { typeof(Player_Attack),typeof(EmotionSystem),typeof(ControlManager),typeof(AIController),typeof(PlayerStats) })
         { var component=player.GetComponent(type); if(component!=null)playerSettings[type]=EditorJsonUtility.ToJson(component); }
     }
     static void EquipPlayer()

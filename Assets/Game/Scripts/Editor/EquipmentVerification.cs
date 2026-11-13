@@ -173,7 +173,7 @@ public static class EquipmentVerification
     {
         var player = new GameObject("Equipment verification player");
         created.Add(player);
-        Invoke(player.AddComponent<MoodSystem>(), "Awake");
+        Invoke(player.AddComponent<EmotionSystem>(), "Awake");
         var stats = player.AddComponent<PlayerStats>();
         Invoke(stats, "Awake");
         // 편집 모드의 AddComponent 는 Awake 를 부르지 않는다. 플레이 모드처럼 저장을 읽게 한다.

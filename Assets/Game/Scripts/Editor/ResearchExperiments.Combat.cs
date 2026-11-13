@@ -9,20 +9,21 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 
 /// <summary>
-/// 기억(소윤 선택)에 따른 어둠의 전투 성향 비교. Stage1 플레이 모드에서 StartCombatStyleComparison 을 부른다.
-/// 사냥터 3 한가운데 스켈레톤 3마리를 같은 자리에 세우고, 같은 위치·체력에서 감정 수치를 10으로 떨어뜨려 어둠이 몸을 잡게 한다.
-/// 조건은 선택 기록만 바꾸며, 조건을 번갈아 돌려 순서 효과를 줄인다. 몬스터 경험치는 0 으로 바꿔 레벨업이 끼지 않게 한다.
+/// 감정에 따른 어둠의 전투 성향 비교. Stage1 플레이 모드에서 StartCombatStyleComparison 을 부른다.
+/// 사냥터 3 한가운데 스켈레톤 3마리를 같은 자리에 세우고, 같은 위치·체력에서 감정을 조건 값으로 정해 어둠이 몸을 강제로 잡게 한다(신뢰 20).
+/// 조건은 분노·두려움·냉정만 바꾸며(분노 지배 → 학살형, 두려움 지배 → 수호형, 냉정 → 무모함 피해 배율), 조건을 번갈아 돌려 순서 효과를 줄인다. 몬스터 경험치는 0 으로 바꿔 레벨업이 끼지 않게 한다.
 /// 테스트 세이브(Tools > AINPC > 테스트 세이브로 플레이)를 켜고 돌리면 실제 세이브가 바뀌지 않는다.
 /// </summary>
 public static partial class ResearchExperiments
 {
-    static readonly (string name, string choice, float hpRatio)[] CombatConditions =
+    static readonly (string name, float anger, float fear, float calm, float hpRatio)[] CombatConditions =
     {
-        ("기본", null, 1f),
-        ("공격형(외면)", HubStoryIds.RescueLeft, 1f),
-        ("보호형(구조)", HubStoryIds.Rescue, 1f),
-        ("보호형·체력40%", HubStoryIds.Rescue, 0.4f),
+        ("학살형(분노)", 90f, 20f, 50f, 1f),
+        ("수호형(두려움)", 20f, 90f, 50f, 1f),
+        ("학살형·냉정 낮음", 90f, 20f, 10f, 1f),
+        ("학살형·냉정 높음", 90f, 20f, 90f, 1f),
     };
+    const float ConditionTrust = 20f, ConditionSorrow = 40f;
 
     const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
 
@@ -40,7 +41,7 @@ public static partial class ResearchExperiments
         readonly int trialsPerCondition;
         readonly float trialSeconds, timeScale;
         readonly PlayerStats player;
-        readonly MoodSystem mood;
+        readonly EmotionSystem mood;
         readonly AIController ai;
         readonly InnerVoiceManager inner;
         readonly Dictionary<string, StoryChoiceEntry> choices;
@@ -66,7 +67,7 @@ public static partial class ResearchExperiments
             player = Object.FindFirstObjectByType<PlayerStats>();
             var choiceManager = StoryChoiceManager.Instance;
             if (player == null || choiceManager == null) throw new InvalidOperationException("Stage1 에서 실행해야 합니다(플레이어·StoryChoiceManager 필요).");
-            mood = player.GetComponent<MoodSystem>(); ai = player.GetComponent<AIController>(); inner = player.GetComponent<InnerVoiceManager>();
+            mood = player.GetComponent<EmotionSystem>(); ai = player.GetComponent<AIController>(); inner = player.GetComponent<InnerVoiceManager>();
 
             foreach (var area in Object.FindObjectsByType<MonsterSpawnArea>(FindObjectsSortMode.None))
             {
@@ -113,11 +114,9 @@ public static partial class ResearchExperiments
 
         void BeginTrial()
         {
-            var (name, choice, hpRatio) = CombatConditions[index % CombatConditions.Length];
+            var (name, anger, fear, calm, hpRatio) = CombatConditions[index % CombatConditions.Length];
             current = new Trial { Condition = name, Number = index / CombatConditions.Length + 1, Level = player.Level };
 
-            choices.Remove(HubStoryIds.Rescue); choices.Remove(HubStoryIds.RescueLeft);
-            if (choice != null) choices[choice] = new StoryChoiceEntry { choiceId = choice };
 
             foreach (var m in Object.FindObjectsByType<MonsterBase>(FindObjectsSortMode.None))
                 if (Vector2.Distance(m.transform.position, center) < 30f) Object.Destroy(m.gameObject);
@@ -127,7 +126,7 @@ public static partial class ResearchExperiments
             body.position = center; body.linearVelocity = Vector2.zero; player.transform.position = center;
             foreach (var p in points) p.Spawn(prefab, data);
 
-            mood.ChangeMood(10f - mood.Mood);   // 전투 감지가 켜지면 어둠이 몸을 잡는다
+            mood.SetAll(anger, fear, ConditionTrust, calm, ConditionSorrow);   // 전투 감지가 켜지면 어둠이 몸을 강제로 잡는다
             trialStart = lastTime = Time.time;
             lastHp = player.HP;
             current.HpStart = player.HP;
@@ -152,7 +151,7 @@ public static partial class ResearchExperiments
             current.Cleared = cleared; current.Died = died;
             current.Seconds = now - trialStart;
             current.Style = ai.Style.ToString();
-            mood.ChangeMood(90f - mood.Mood);   // 몸을 돌려받아 세션을 닫는다
+            mood.SetAll(20f, 20f, ConditionTrust, 50f, ConditionSorrow);   // 압박이 내려가 몸을 돌려받고 세션을 닫는다
             CloseSession();
             current.HpEnd = player.HP;
             rows.Add(current.Csv());
@@ -240,7 +239,7 @@ public static partial class ResearchExperiments
         sb.AppendLine();
         sb.AppendLine("| 조건 | n | 처치 | 사망 | 시간(초) | 받은 피해 | 이동거리 | 공격 | 대시 | 후퇴 | AI 조작 비율 |");
         sb.AppendLine("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|");
-        foreach (var (name, _, _) in CombatConditions)
+        foreach (var (name, _, _, _, _) in CombatConditions)
         {
             var g = trials.Where(t => t.Condition == name).ToList();
             if (g.Count == 0) continue;

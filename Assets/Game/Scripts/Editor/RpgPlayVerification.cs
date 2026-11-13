@@ -47,7 +47,7 @@ public static class RpgPlayVerification
             var animation = player.AddComponent<Animator>();
             animation.runtimeAnimatorController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>("Assets/Art/Characters/Samurai/ElderSamurai.controller");
             var rb = player.AddComponent<Rigidbody2D>(); rb.gravityScale = 0;
-            player.AddComponent<MoodSystem>();
+            player.AddComponent<EmotionSystem>();
             player.AddComponent<ControlManager>();
             player.AddComponent<AIController>();
             attack = player.AddComponent<Player_Attack>();
@@ -85,7 +85,7 @@ public static class RpgPlayVerification
                 "spawn range includes two camera viewports");
             Check(!(bool)isWithinSpawnRange.Invoke(null, new object[] { Vector3.zero, new Vector3(18f, 0f, 0f), 5f, 16f / 9f, 2f }),
                 "spawn range delays distant points");
-            var lifecycleMood = stats.GetComponent<MoodSystem>();
+            var lifecycleMood = stats.GetComponent<EmotionSystem>();
             var lifecycleControl = stats.GetComponent<ControlManager>();
             var lifecycleAI = stats.GetComponent<AIController>();
             lifecycleAI.enabled = false;
@@ -133,9 +133,9 @@ public static class RpgPlayVerification
             typeof(RpgUI).GetMethod("Close", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(ui, null);
             Check(!RpgUI.IsOpen, "menu releases input");
             stats.SetCheckpoint(new Vector3(9, 7, 0));
-            var mood = stats.GetComponent<MoodSystem>();
-            mood.ChangeMood(-9);
-            float preservedMood = mood.Mood;
+            var mood = stats.GetComponent<EmotionSystem>();
+            mood.Apply(new EmotionDelta(trust: -9f), "verification");
+            float preservedTrust = mood.Trust;
             var control = stats.GetComponent<ControlManager>();
             typeof(ControlManager).GetMethod("HandleAITakeover", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(control, null);
             Check(!control.IsPlayerControlled, "AI control enabled before lethal damage");
@@ -158,7 +158,7 @@ public static class RpgPlayVerification
             Check(SaveSystem.LoadPlayer().hp == 0, "death persisted as recoverable state");
             Check(stats.Respawn() && control.IsPlayerControlled, "retry restores manual control");
             Check(stats.transform.position == new Vector3(9, 7, 0) && stats.HP == stats.MaxHP && stats.Mana == stats.MaxMana, "retry restores checkpoint and vitals");
-            Check(mood.Mood == preservedMood, "retry preserves mood value");
+            Check(mood.Trust == preservedTrust, "retry preserves trust (relationship layer)");
             Check(skills.Remaining(0) == 0 && skills.Remaining(6) == 0 && skills.GuardRemaining == 0, "retry resets cooldowns and guard");
             Check(stats.GetComponent<SpriteRenderer>().color == Color.white &&
                 System.Array.TrueForAll(stats.GetComponentsInChildren<LineRenderer>(), line => !line.gameObject.activeInHierarchy),

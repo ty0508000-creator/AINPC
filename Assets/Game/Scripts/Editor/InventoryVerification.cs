@@ -71,7 +71,7 @@ public static class InventoryVerification
     static PlayerInventory VerifyData(ItemDefinition[] items)
     {
         var player = new GameObject("Inventory verification player");
-        Invoke(player.AddComponent<MoodSystem>(), "Awake");
+        Invoke(player.AddComponent<EmotionSystem>(), "Awake");
         var stats = player.AddComponent<PlayerStats>();
         Invoke(stats, "Awake");
         var inventory = player.GetComponent<PlayerInventory>();

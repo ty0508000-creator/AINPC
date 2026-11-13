@@ -68,9 +68,8 @@ public static partial class ResearchExperiments
 
             // 게임과 같은 프롬프트: 2지역 현묵(NPC 잡담, 호감도 줄 제외)과 내면(전투 직전 상황)
             string npcPrompt = DialogueManager.BuildDefaultPrompt("촌장 현묵", RegionNpcSetup.ElderPersonality + "\n" + RegionNpcSetup.RegionContext(2));
-            var playerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player.prefab");
-            string innerPrompt = InnerVoiceManager.BuildPrompt(playerPrefab.GetComponent<InnerVoiceManager>().Backstory, "", "",
-                "HP 160/170, 감정 수치(정신의 균형) 50/100, 주변 적 2명, 현재 플레이어가 몸을 제어 중.");
+            // 감정 수치 하나 시절의 실험이라 그때의 내면 프롬프트·형식({"dialogue","mood_delta"})을 그대로 쓴다
+            string innerPrompt = LegacyInnerPrompt("", LegacySituationLine(160f, 170f, 50f, 2, true));
             var speakers = new[] { ("npc", npcPrompt), ("inner", innerPrompt) };
 
             // 첫 요청은 준비 시간이 섞이므로 버린다

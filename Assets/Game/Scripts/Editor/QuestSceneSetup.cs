@@ -272,8 +272,8 @@ public static class QuestSceneSetup
     /// <summary>퀘스트가 제 기능을 하려면 씬에 있어야 하는 것들을 점검한다.</summary>
     private static void ReportMissingDependencies()
     {
-        if (Object.FindFirstObjectByType<MoodSystem>() == null)
-            Debug.LogWarning("[Quest] 씬에 MoodSystem 이 없습니다 — 퀘스트의 moodDelta 가 아무 일도 하지 않습니다.");
+        if (Object.FindFirstObjectByType<EmotionSystem>() == null)
+            Debug.LogWarning("[Quest] 씬에 EmotionSystem 이 없습니다 — 퀘스트의 감정 변화가 아무 일도 하지 않습니다.");
 
         if (Object.FindFirstObjectByType<MemoryManager>() == null)
             Debug.LogWarning("[Quest] 씬에 MemoryManager 가 없습니다 — memoryLine 이 기억에 저장되지 않습니다.");

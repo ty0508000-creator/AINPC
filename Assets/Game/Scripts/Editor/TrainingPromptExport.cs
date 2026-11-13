@@ -27,9 +27,15 @@ public static class TrainingPromptExport
         var inner = player.GetComponent<InnerVoiceManager>();
         int maxTurns = new SerializedObject(inner).FindProperty("maxTurns").intValue;
 
-        // 숫자 인자는 표식 숫자로 만든 뒤 자리 표시로 바꾼다
-        string Situation(bool playerControlled) => InnerVoiceManager.SituationLine(1111f, 2222f, 3333f, 4444, playerControlled)
-            .Replace("1111", "{{HP}}").Replace("2222", "{{MAX_HP}}").Replace("3333", "{{MOOD}}").Replace("4444", "{{ENEMIES}}");
+        // 숫자 인자는 표식 숫자로 만든 뒤 자리 표시로 바꾼다. 호위 문구는 {{ESCORT}} 자리에 escort_suffix 나 빈 문자열이 들어간다.
+        string escortSuffix = InnerVoiceManager.SituationLine(1f, 1f, 1, true, true).Substring(InnerVoiceManager.SituationLine(1f, 1f, 1, true, false).Length);
+        string Situation(bool playerControlled) => InnerVoiceManager.SituationLine(1111f, 2222f, 4444, playerControlled, false)
+            .Replace("1111", "{{HP}}").Replace("2222", "{{MAX_HP}}").Replace("4444", "{{ENEMIES}}") + "{{ESCORT}}";
+        string toneMarker = EmotionRules.Korean(Emotion.Anger);
+        string emotionLine = InnerVoiceManager.EmotionLine(1111f, 2222f, 3333f, 4444f, 5555f, 6666f, Emotion.Anger)
+            .Replace("1111", "{{ANGER}}").Replace("2222", "{{REVENGE}}").Replace("3333", "{{SORROW}}")
+            .Replace("4444", "{{FEAR}}").Replace("5555", "{{TRUST}}").Replace("6666", "{{CALM}}")
+            .Replace("가장 강한 감정은 " + toneMarker, "가장 강한 감정은 {{TONE}}");
 
         var root = new JObject
         {
@@ -38,16 +44,23 @@ public static class TrainingPromptExport
             ["recall_line_separator"] = Environment.NewLine,
             ["inner"] = new JObject
             {
-                ["system"] = InnerVoiceManager.BuildPrompt(inner.Backstory, "{{MEMORY_BLOCK}}", "{{STORY_BLOCK}}", "{{SITUATION}}"),
+                // 의도 형식(C, 게임 기본)과 직접 형식(A, 비교 실험). {{SITUATION}} 은 상황 줄 + 줄바꿈 + 감정 줄이다(InnerVoiceManager.OpenDialogue).
+                ["system"] = InnerVoiceManager.BuildPrompt(inner.Backstory, "{{MEMORY_BLOCK}}", "{{STORY_BLOCK}}", "{{SITUATION}}", InnerOutputFormat.Intent),
+                ["system_direct"] = InnerVoiceManager.BuildPrompt(inner.Backstory, "{{MEMORY_BLOCK}}", "{{STORY_BLOCK}}", "{{SITUATION}}", InnerOutputFormat.Direct),
                 ["memory_block"] = InnerVoiceManager.MemoryBlock("{{RECALLED}}"),
                 ["story_block"] = InnerVoiceManager.StoryBlock("{{STORY}}"),
                 ["situation_player"] = Situation(true),
                 ["situation_ai"] = Situation(false),
-                ["memory_entry"] = InnerVoiceManager.MemoryEntry("{{PLAYER}}", "{{REPLY}}", 7777).Replace("+7777", "{{SIGNED_DELTA}}"),
+                ["escort_suffix"] = escortSuffix,
+                ["emotion_line"] = emotionLine,
+                ["situation_separator"] = "\n",
+                ["memory_entry"] = InnerVoiceManager.MemoryEntry("{{PLAYER}}", "{{REPLY}}", "{{JUDGEMENT}}"),
                 ["turn_line"] = InnerVoiceManager.TurnLine(5555, "{{PLAYER}}", "{{REPLY}}").Replace("5555", "{{TURN}}"),
                 ["opening_query"] = InnerVoiceManager.OpeningQuery,
                 ["max_turns"] = maxTurns,
             },
+            // 감정 규칙 표(EmotionRules). 생성기가 A 형식 정답과 기억 문장의 판단 요약을 게임과 같은 규칙으로 계산하게 한다.
+            ["emotion_rules"] = EmotionRulesJson(),
             ["npc"] = new JObject
             {
                 ["affinity_line"] = DialogueManager.AffinityLine(1111f).Replace("1111", "{{AFFINITY}}"),
@@ -60,6 +73,43 @@ public static class TrainingPromptExport
         string path = Path.GetFullPath(OutputPath);
         File.WriteAllText(path, json, new UTF8Encoding(false));
         return $"{path} (NPC {((JArray)root["npc"]["personas"]).Count}명)";
+    }
+
+    /// <summary>
+    /// 의도 × 강도 × (체력 30% 이하) × (호위 중) 마다 ForIntent 결과, 의도·감정의 한국어 이름, 시작값, 어조 규칙의 문턱값.
+    /// 키는 "intent|강도|lowhp|escort" (lowhp·escort 는 0/1), 값은 [분노, 두려움, 신뢰, 냉정].
+    /// </summary>
+    static JObject EmotionRulesJson()
+    {
+        var effects = new JObject();
+        var korean = new JObject();
+        foreach (InnerIntent intent in Enum.GetValues(typeof(InnerIntent)))
+        {
+            korean[EmotionRules.Json(intent)] = EmotionRules.Korean(intent);
+            for (int intensity = 1; intensity <= 3; intensity++)
+            foreach (bool lowHp in new[] { false, true })
+            foreach (bool escort in new[] { false, true })
+            {
+                var d = EmotionRules.ForIntent(intent, intensity, lowHp, escort);
+                effects[$"{EmotionRules.Json(intent)}|{intensity}|{(lowHp ? 1 : 0)}|{(escort ? 1 : 0)}"] = new JArray(d.anger, d.fear, d.trust, d.calm);
+            }
+        }
+        var emotionNames = new JObject();
+        foreach (Emotion e in Enum.GetValues(typeof(Emotion))) emotionNames[e.ToString().ToLowerInvariant()] = EmotionRules.Korean(e);
+        return new JObject
+        {
+            ["effects"] = effects,
+            ["intent_korean"] = korean,
+            ["emotion_korean"] = emotionNames,
+            ["start"] = new JObject
+            {
+                ["anger"] = EmotionRules.StartAnger, ["fear"] = EmotionRules.StartFear, ["trust"] = EmotionRules.StartTrust,
+                ["calm"] = EmotionRules.StartCalm, ["sorrow"] = EmotionRules.StartSorrow,
+            },
+            ["direct_limit"] = EmotionRules.DirectDeltaLimit,
+            ["tone_trust_threshold"] = EmotionRules.ToneTrustThreshold,
+            ["revenge_per_boss"] = 16, ["revenge_base"] = 20,
+        };
     }
 
     static JArray ScenePersonas()

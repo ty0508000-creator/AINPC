@@ -27,7 +27,7 @@ public static class RecoverySaveVerification
                 Check(AssetDatabase.LoadAssetAtPath<MonoScript>(scriptPath)?.GetClass() != null,
                     "renamed MonoBehaviour resolves: " + scriptPath);
             var player = new GameObject("Recovery verification player");
-            var mood = player.AddComponent<MoodSystem>();
+            var mood = player.AddComponent<EmotionSystem>();
             Invoke(mood, "Awake");
             player.transform.position = new Vector3(4, 5, 0);
             var stats = player.AddComponent<PlayerStats>();
@@ -80,19 +80,19 @@ public static class RecoverySaveVerification
             quest.questId = "verification_reward";
             quest.objectives = new[] { new QuestObjective { type = ObjectiveType.Kill, targetId = "test", requiredCount = 1 } };
             quest.onComplete.expReward = 50;
-            quest.onComplete.moodDelta = 7;
+            quest.onComplete.emotion = new EmotionDelta(trust: 7f);
             table.Add(quest.questId, new QuestRuntime(quest));
             Invoke(manager, "Start");
             Check(manager.IsSaveReady && manager.StartQuest(quest.questId), "quest starts with unified save ready");
             float beforeEXP = stats.EXP;
-            float beforeMood = mood.Mood;
+            float beforeTrust = mood.Trust;
             string path = Path.Combine(slot, "player_save.json");
             string committed = File.ReadAllText(path);
             SaveSystem.VerificationBeforeCommit = () => throw new IOException("Injected interruption before atomic replace");
             manager.CompleteQuest(quest.questId);
             Check(File.ReadAllText(path) == committed, "failed commit preserves entire previous snapshot");
             var old = SaveSystem.LoadPlayer();
-            Check(old.exp == beforeEXP && old.mood == beforeMood && old.quests.entries.Single(e => e.questId == quest.questId).state == QuestState.Active,
+            Check(old.exp == beforeEXP && old.hasEmotions && old.emotions[2] == beforeTrust && old.quests.entries.Single(e => e.questId == quest.questId).state == QuestState.Active,
                 "interrupted reward has neither XP nor terminal marker on disk");
             manager.CompleteQuest(quest.questId);
             Check(stats.EXP == beforeEXP + 50, "repeat completion cannot double live reward");
@@ -105,7 +105,7 @@ public static class RecoverySaveVerification
             var saved = SaveSystem.LoadPlayer();
             Check(saved.exp == beforeEXP + 50 && saved.quests.entries.Single(e => e.questId == quest.questId).state == QuestState.Completed,
                 "XP and terminal claim committed together");
-            Check(saved.hasMood && saved.mood == mood.Mood && saved.mood == beforeMood + 7, "quest mood is part of the same committed snapshot");
+            Check(saved.hasEmotions && saved.emotions[2] == mood.Trust && saved.emotions[2] == beforeTrust + 7, "quest emotion is part of the same committed snapshot");
             Invoke(stats, "Load"); QuestSaveSystem.Load(manager);
             manager.CompleteQuest(quest.questId);
             Check(stats.EXP == beforeEXP + 50, "reload then duplicate completion pays once");
@@ -218,10 +218,10 @@ public static class RecoverySaveVerification
             Invoke(npcAgain, "Awake");
             Check(npcAgain.Affinity == 35, "affinity reloads by NPC name in another scene");
             UnityEngine.Object.DestroyImmediate(npcAgain.gameObject);
-            Check(region.hasMood && region.mood == mood.Mood, "mood is part of every snapshot");
-            float beforeRevenge = mood.Mood;
+            Check(region.hasEmotions && region.emotions[2] == mood.Trust, "emotions are part of every snapshot");
+            float beforeAnger = mood.Anger;
             mood.ApplyRevenge();
-            Check(mood.Mood == Mathf.Max(0f, beforeRevenge - 10f), "boss revenge lowers mood by the default 10");
+            Check(mood.Anger == Mathf.Min(100f, beforeAnger + 10f), "boss revenge raises anger by 10");
 
             File.WriteAllText(Path.Combine(output, "result.txt"), $"PASS: {count} recovery/save assertions\n");
             Debug.Log($"RECOVERY_SAVE_VERIFY_PASS: {count}");
