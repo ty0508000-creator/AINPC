@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
@@ -33,6 +34,9 @@ public class TakeoverRequestPrompt : MonoBehaviour
     void Update()
     {
         if (emotions == null || !emotions.RequestPending || Keyboard.current == null) return;
+        // 대화창에 글자를 치는 중이면 Y/N 을 답으로 받지 않는다
+        var selected = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+        if (selected != null && selected.GetComponent<TMP_InputField>() != null) return;
         if (Keyboard.current.yKey.wasPressedThisFrame) emotions.AnswerRequest(true);
         else if (Keyboard.current.nKey.wasPressedThisFrame) emotions.AnswerRequest(false);
     }

@@ -14,7 +14,7 @@ public class EscortCompanion : MonoBehaviour
 
     public const float MaxHp = 100f;
     const float FollowDistance = 1.5f, TeleportDistance = 12f, SpeedScale = 0.9f;
-    const float ThreatRadius = 1.2f, DamagePerEnemy = 6f, TickSeconds = 1f;
+    const float ThreatRadius = 1.2f, DamagePerEnemy = 3f, TickSeconds = 1f;
     const int MaxEnemiesPerTick = 2;
     public const string DownedMemory = "하연이 내 곁에서 쓰러졌다. 또 지키지 못했다.";
 
@@ -28,6 +28,7 @@ public class EscortCompanion : MonoBehaviour
     ControlManager control;
     float nextTick;
     bool lowHpFearGiven;
+    float hitFear;   // 이번 위협에서 피격으로 올린 두려움
     Transform bar;
     SpriteRenderer barFill;
 
@@ -91,6 +92,7 @@ public class EscortCompanion : MonoBehaviour
         Current = this;
         Hp = MaxHp;
         lowHpFearGiven = false;
+        hitFear = 0f;
         nextTick = Time.time + TickSeconds;
         player = FindFirstObjectByType<PlayerStats>();
         playerMove = player != null ? player.GetComponent<Player_Controller>() : null;
@@ -130,11 +132,15 @@ public class EscortCompanion : MonoBehaviour
             var m = c.GetComponentInParent<MonsterBase>();
             if (m != null && !m.IsDead && ++enemies >= MaxEnemiesPerTick) break;
         }
-        if (enemies == 0) return;
+        if (enemies == 0) { hitFear = 0f; return; }
 
         Hp = Mathf.Max(0f, Hp - DamagePerEnemy * enemies);
         UpdateBar();
-        emotions?.Apply(EmotionRules.EscortHit, "escort_hit");
+        if (hitFear < EmotionRules.EscortHitFearCap)
+        {
+            hitFear += EmotionRules.EscortHit.fear;
+            emotions?.Apply(EmotionRules.EscortHit, "escort_hit");
+        }
         if (!lowHpFearGiven && Hp > 0f && Hp <= MaxHp * 0.3f)
         {
             lowHpFearGiven = true;

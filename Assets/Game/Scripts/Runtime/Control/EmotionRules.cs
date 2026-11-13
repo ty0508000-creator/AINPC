@@ -80,6 +80,10 @@ public static class EmotionRules
     public static readonly EmotionDelta CombatEntered = new(anger: 5f);
     public static readonly EmotionDelta PlayerLowHp = new(fear: 15f);
     public static readonly EmotionDelta EscortHit = new(fear: 3f);
+    /// <summary>하연 피격으로 오르는 두려움의 한도(적이 한 번 붙었다 떨어질 때까지). 없으면 호위 중엔 늘 몸을 빼앗긴다.</summary>
+    public const float EscortHitFearCap = 15f;
+    /// <summary>몸의 체력이 이 비율 이하면 어둠도 붙어서 버티지 않고 치고 빠진다(몸을 살리는 것이 먼저다).</summary>
+    public const float CautiousHpRatio = 0.3f;
     public static readonly EmotionDelta EscortLowHp = new(fear: 15f);
     public static readonly EmotionDelta BossDefeated = new(anger: 10f);
     public static readonly EmotionDelta PlayerDied = new(sorrow: 5f);

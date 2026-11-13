@@ -248,6 +248,10 @@ public class AIController : MonoBehaviour
         }
     }
 
+    /// <summary>학살형이 붙어서 몰아치는 중인가. 체력이 바닥이면 학살형도 치고 빠진다.</summary>
+    bool Relentless => Style == CombatStyle.Aggressive &&
+        (playerStats == null || playerStats.MaxHP <= 0f || playerStats.HP / playerStats.MaxHP > EmotionRules.CautiousHpRatio);
+
     /// <summary>
     /// 노릴 적. 복수심이 높으면 보스부터, 수호형이 하연을 호위 중이면 하연에게 가장 가까운 적부터, 아니면 가장 가까운 적.
     /// </summary>
@@ -294,7 +298,7 @@ public class AIController : MonoBehaviour
             yield return Approach(target);
             yield return Strike(target);
             // 공격형은 빠지지 않고 붙은 채로 계속 친다
-            if (Style == CombatStyle.Aggressive) continue;
+            if (Relentless) continue;
             yield return Retreat(target, strafeSign);
             yield return Breather(target);
         }
@@ -319,7 +323,7 @@ public class AIController : MonoBehaviour
                 break;
 
             // 공격형은 멀면 대시로 단숨에 파고든다
-            if (Style == CombatStyle.Aggressive && dist > aggressiveDashMinDistance && playerAttack.DashReady)
+            if (Relentless && dist > aggressiveDashMinDistance && playerAttack.DashReady)
             {
                 sessionDashes++;
                 playerAttack.ForceDash(dir, Mathf.Min(dist - goal, playerAttack.MaxDashRange));
@@ -341,7 +345,7 @@ public class AIController : MonoBehaviour
     IEnumerator Strike(Collider2D target)
     {
         float timer = 0f;
-        float hold = Style == CombatStyle.Aggressive ? aggressiveStrikeHold : strikeHold;
+        float hold = Relentless ? aggressiveStrikeHold : strikeHold;
 
         while (timer < hold && IsEngageable(target) && !playerAttack.IsInvincible)
         {
