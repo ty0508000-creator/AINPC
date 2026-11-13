@@ -285,7 +285,7 @@ public class DialogueManager : MonoBehaviour
             var parsed = LLMResponseParser.Parse(raw, parseFailFallbackLine);
             if (raw != null)
                 // (A-2) mood_delta는 이미 -20~+20으로 클램프된 값이다.
-                //       NPC 대화의 mood_delta 는 그 NPC 의 호감도다. 플레이어의 감정 수치(MoodSystem)는 건드리지 않는다.
+                //       NPC 대화의 mood_delta 는 그 NPC 의 호감도다. 어둠의 감정(EmotionSystem)은 건드리지 않는다.
                 currentNPC?.ChangeAffinity(parsed.MoodDelta);
             ResearchLog.Turn("npc_turn", currentNPCName, llmStopwatch.Elapsed.TotalSeconds, raw, parsed, promptChars,
                 currentNPC != null ? currentNPC.Affinity : float.NaN, firstTokenSeconds: FirstTokenSeconds);
@@ -341,6 +341,7 @@ public class DialogueManager : MonoBehaviour
 
     private async Task<string> ChatWithRetry(string question, bool addToHistory)
     {
+        LLMServices.UseGrammar(llmAgent, LLMResponseParser.JsonGrammar);   // 내면 대화가 다른 문법을 걸어 두었을 수 있다
         int maxRetries = 3;
         for (int i = 0; i < maxRetries; i++)
         {

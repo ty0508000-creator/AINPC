@@ -9,7 +9,7 @@ public class LLMServices : MonoBehaviour
 {
     public static LLMServices Instance { get; private set; }
 
-    [Tooltip("응답을 {\"dialogue\",\"mood_delta\"} JSON 형식으로만 생성하게 강제한다(GBNF, LLMResponseParser.JsonGrammar). 끄면 프롬프트 지시만으로 형식을 맞춘다.")]
+    [Tooltip("응답을 화자별 JSON 형식으로만 생성하게 강제한다(GBNF, LLMResponseParser). 끄면 프롬프트 지시만으로 형식을 맞춘다.")]
     [SerializeField] private bool useJsonGrammar = true;
     bool grammarOn;
 
@@ -20,12 +20,24 @@ public class LLMServices : MonoBehaviour
     public static void SetGrammar(bool on)
     {
         if (Instance == null) return;
-        var agent = Instance.GetComponentInChildren<LLMUnity.LLMAgent>(true);
-        if (agent == null) return;
-        // 문법 원문이 CRLF 파일의 여러 줄 문자열이라 \r 이 섞인다. GBNF 해석에 맡기지 않고 지운다.
-        agent.grammar = on ? LLMResponseParser.JsonGrammar.Replace("\r", "") : "";
         Instance.grammarOn = on;
+        var agent = Instance.GetComponentInChildren<LLMUnity.LLMAgent>(true);
+        if (agent != null) agent.grammar = on ? Clean(LLMResponseParser.JsonGrammar) : "";
     }
+
+    /// <summary>
+    /// 요청 직전에 화자에 맞는 문법을 건다(내면 의도 형식, NPC 형식 등). LLMAgent 를 내면·NPC 가 같이 쓰므로 매 요청마다 부른다.
+    /// grammar 가 꺼져 있으면 아무것도 하지 않는다.
+    /// </summary>
+    public static void UseGrammar(LLMUnity.LLMAgent agent, string grammar)
+    {
+        if (agent == null || Instance == null || !Instance.grammarOn) return;
+        string g = Clean(grammar);
+        if (agent.grammar != g) agent.grammar = g;
+    }
+
+    // 문법 원문이 CRLF 파일의 여러 줄 문자열이라 \r 이 섞인다. GBNF 해석에 맡기지 않고 지운다.
+    static string Clean(string grammar) => (grammar ?? "").Replace("\r", "");
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void Boot()
