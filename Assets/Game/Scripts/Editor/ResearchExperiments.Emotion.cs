@@ -138,8 +138,8 @@ public static partial class ResearchExperiments
             var intents = (InnerIntent[])Enum.GetValues(typeof(InnerIntent));
             var confusion = new int[intents.Length, intents.Length];
             int n = 0, strict = 0, parsedCount = 0, intentHit = 0, intensityHit = 0, intensityNear = 0, balanceHit = 0, copied = 0;
-            int[] dirHit = new int[4], dirHitFixed = new int[4];
-            double[] absErr = new double[4];
+            int[] dirHit = new int[4];
+            double[] absErr = new double[4], absErrFixed = new double[4];   // 강도는 크기만 바꾸므로 제거 실험은 오차로 본다
             var dialogues = new List<string>();
             var firsts = new List<double>();
             var totals = new List<double>();
@@ -184,7 +184,7 @@ public static partial class ResearchExperiments
                     for (int k = 0; k < 4; k++)
                     {
                         if (Sign(p[k], 0.5f) == Sign(g[k], 0.5f)) dirHit[k]++;
-                        if (Sign(pf[k], 0.5f) == Sign(g[k], 0.5f)) dirHitFixed[k]++;
+                        absErrFixed[k] += Math.Abs(pf[k] - g[k]);
                         absErr[k] += Math.Abs(p[k] - g[k]);
                     }
                 }
@@ -225,7 +225,7 @@ public static partial class ResearchExperiments
                 summary.AppendLine($"| 의도 정확도 | {Pct(intentHit, parsedCount)} |");
                 summary.AppendLine($"| 의도 macro-F1 | {MacroF1(confusion):0.000} |");
                 summary.AppendLine($"| 강도 정확히 맞음 / ±1 이내 | {Pct(intensityHit, parsedCount)} / {Pct(intensityNear, parsedCount)} |");
-                summary.AppendLine($"| 강도를 2로 고정했을 때 감정 방향 일치(제거 실험) | {string.Join(", ", Enumerable.Range(0, 4).Select(k => EmotionNames[k] + " " + Pct(dirHitFixed[k], n)))} |");
+                summary.AppendLine($"| 강도를 2로 고정했을 때 평균 절대 오차(제거 실험) | {string.Join(", ", Enumerable.Range(0, 4).Select(k => $"{EmotionNames[k]} {absErrFixed[k] / Math.Max(1, n):0.00}"))} |");
             }
             summary.AppendLine($"| 서로 다른 대사 | {dialogues.Distinct().Count()}/{dialogues.Count} |");
             summary.AppendLine($"| 학습 대사 복제 | {Pct(copied, n)}{(trained.Count == 0 ? " (학습 데이터 파일 없음)" : "")} |");
