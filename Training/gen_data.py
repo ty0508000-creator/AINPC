@@ -36,7 +36,7 @@ ENEMIES = [0, 0, 1, 1, 2, 2, 3, 4, 5, 6]
 # 의도별 빈도. 맡김·달램·거부처럼 자주 나올 말을 조금 더 뽑는다.
 INTENT_WEIGHTS = {"entrust": 3, "soothe": 3, "reason": 3, "promise": 2, "defy": 3, "insult": 2,
                   "despair": 2, "vengeance": 2, "ask": 2, "neutral": 2}
-AI_INTENT_WEIGHTS = {"defy": 3, "soothe": 2, "reason": 2, "despair": 1, "promise": 1}
+AI_INTENT_WEIGHTS = {"defy": 3, "soothe": 2, "reason": 2, "despair": 1, "promise": 1, "vengeance": 1, "entrust": 1}
 NPC_CAT_WEIGHTS = {"rude": 2, "awkward": 2, "normal": 4, "kind": 3, "lore": 3}
 
 random.seed(42)
