@@ -245,7 +245,7 @@ MonoBehaviour:
   _parallelPrompts: -1
   _contextSize: 2048
   _batchSize: 512
-  _model: Models/AINPC-Qwen3-4B-Q4_K_M.gguf
+  _model: Models/AINPC-Qwen3-4B-emo-intent-Q4_K_M.gguf
   _flashAttention: 0
   _reasoning: 0
   _lora: 
