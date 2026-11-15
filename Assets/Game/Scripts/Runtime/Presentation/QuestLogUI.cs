@@ -22,6 +22,7 @@ public class QuestLogUI : MonoBehaviour
     [SerializeField] private TMP_Text bodyText;
     [SerializeField] private GameObject panelRoot;
     private bool visible = true;
+    private bool refreshAfterStartup;
 
     void Start()
     {
@@ -41,6 +42,7 @@ public class QuestLogUI : MonoBehaviour
         manager.OnObjectiveProgress += OnObjectiveChanged;
 
         Refresh();
+        refreshAfterStartup = true;
     }
 
     void OnDestroy()
@@ -57,6 +59,11 @@ public class QuestLogUI : MonoBehaviour
 
     void Update()
     {
+        if (refreshAfterStartup)
+        {
+            refreshAfterStartup = false;
+            Refresh();
+        }
         if (Input.GetKeyDown(toggleKey))
         {
             visible = !visible;
@@ -91,7 +98,7 @@ public class QuestLogUI : MonoBehaviour
                 bool done = r.Progress[i] >= obj.requiredCount;
                 string c = ColorUtility.ToHtmlStringRGB(done ? doneColor : subColor);
                 string count = obj.requiredCount > 1 ? $" ({r.Progress[i]}/{obj.requiredCount})" : "";
-                string box = done ? "✓" : "·";
+                string box = done ? "[완료]" : "·";
                 sb.AppendLine($"   <color=#{c}>{box} {obj.description}{count}</color>");
             }
 
