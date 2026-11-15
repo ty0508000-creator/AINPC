@@ -274,6 +274,7 @@ public static partial class ResearchExperiments
         var summary = new StringBuilder();
         LLMAgent agent = null;
         float originalTemperature = 0f;
+        double loadSeconds = double.NaN;   // 게임 서버를 그대로 쓰면 재지 않는다
         try
         {
             // 내면은 출력 형식이 바뀌어 RunEmotionEvaluation 이 따로 잰다. 여기서는 NPC·스미스(호감도 형식)만.
@@ -298,7 +299,10 @@ public static partial class ResearchExperiments
             else
             {
                 var template = await TakeDownGameServer();
-                agent = CreateAgent(await CreateLLM(model, gpuLayers, 4096, -1, created), template, created);
+                var loadWatch = Stopwatch.StartNew();
+                var llm = await CreateLLM(model, gpuLayers, 4096, -1, created);
+                loadSeconds = loadWatch.Elapsed.TotalSeconds;
+                agent = CreateAgent(llm, template, created);
                 label = Path.GetFileName(model) + (gpuLayers == 0 ? " (CPU 전용)" : "");
             }
             originalTemperature = agent.temperature;
@@ -345,7 +349,7 @@ public static partial class ResearchExperiments
             }
             summary.AppendLine();
             summary.AppendLine("방향: 기대가 +면 양수, -면 음수, 0이면 ±5 안일 때 맞음. 서로 다른 대사가 적거나 복제율이 높으면 학습 대사를 외워서 되풀이하는 것이다.");
-            summary.AppendLine($"프롬프트 토큰(이 모델 토크나이저): {promptTokens}. 생성 토큰/초 평균 {Mean(results.Select(x => x.rate), "", "0.0")}. " +
+            summary.AppendLine($"프롬프트 토큰(이 모델 토크나이저): {promptTokens}. 생성 토큰/초 평균 {Mean(results.Select(x => x.rate), "", "0.0")}. 모델 로딩 {S(loadSeconds, "0.0")}초. " +
                                $"이 PC: {SystemInfo.graphicsDeviceName}, {SystemInfo.processorType}.");
             if (!string.IsNullOrEmpty(model)) summary.AppendLine("게임 대화 서버를 내렸으므로 플레이 모드를 다시 시작해야 게임 대화가 된다.");
         }
@@ -403,7 +407,8 @@ public static partial class ResearchExperiments
 
     /// <summary>기억 블록에 심은 사실을 대답에 쓰는 비율. 문항마다 reps 번 묻는다. 대조군은 대답만 기록한다.</summary>
     /// <param name="model">평가할 대화 모델(StreamingAssets 기준 경로 또는 절대 경로).</param>
-    public static async Task RunMemoryRecallEvaluation(string model, int reps = 3, float innerTemperature = 0.6f, float npcTemperature = 0.2f)
+    /// <param name="gpuLayers">GPU 에 올릴 층 수. 0 이면 CPU 전용.</param>
+    public static async Task RunMemoryRecallEvaluation(string model, int reps = 3, float innerTemperature = 0.6f, float npcTemperature = 0.2f, int gpuLayers = 99)
     {
         if (!EditorApplication.isPlaying) throw new InvalidOperationException("플레이 모드에서 실행해야 합니다.");
         if (Running) return;
@@ -414,7 +419,7 @@ public static partial class ResearchExperiments
         try
         {
             var template = await TakeDownGameServer();
-            var agent = CreateAgent(await CreateLLM(model, 99, 4096, -1, created), template, created);
+            var agent = CreateAgent(await CreateLLM(model, gpuLayers, 4096, -1, created), template, created);
             agent.systemPrompt = NpcPrompt();
             await agent.Chat("안녕", null, null, false);   // 준비 요청(측정 제외)
 
@@ -435,7 +440,7 @@ public static partial class ResearchExperiments
                 }
             }
 
-            summary.AppendLine($"# 기억 활용 평가 — {Path.GetFileName(model)} ({DateTime.Now:yyyy-MM-dd HH:mm})");
+            summary.AppendLine($"# 기억 활용 평가 — {Path.GetFileName(model)}{(gpuLayers == 0 ? " (CPU 전용)" : "")} ({DateTime.Now:yyyy-MM-dd HH:mm})");
             summary.AppendLine();
             summary.AppendLine($"게임과 같은 프롬프트의 기억 블록(내면 [너는 지난 일들을 기억한다], 촌장 [최근 대화], 스미스 [관련 과거 기억]·[최근 대화])에 사실 하나를 심고 그걸 물었다. " +
                                $"문항마다 {reps}번, 온도 내면 {innerTemperature:0.0} / NPC·스미스 {npcTemperature:0.0}. 맞음은 대답에 심은 사실의 핵심어가 들어 있는 비율이다.");
