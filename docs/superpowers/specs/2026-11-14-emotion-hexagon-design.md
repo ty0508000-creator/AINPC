@@ -159,7 +159,7 @@ A 형식(비교 실험용)은 `{"anger":정수,"fear":정수,"trust":정수,"cal
 | insult | 모욕 | "넌 그냥 망상이야." | insult |
 | despair | 나약함 | "못 하겠어…" | fear, panic |
 | vengeance | 복수 선동 | "다 죽여 버리자." | (새로 씀) |
-| ask | 과거 질문 | "넌 누구야?" | question |
+| ask | 어둠에게 던지는 질문 | "넌 누구야?" | question |
 | neutral | 그 외 | 무관한 말, 첫 마디 | ignore |
 
 ### 5.4 의도 → 감정 규칙 표 (강도 1 기준, 평가 이론 근거)
